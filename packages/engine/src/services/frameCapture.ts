@@ -426,6 +426,17 @@ export async function initializeSession(session: CaptureSession): Promise<void> 
       await initTransparentBackground(session.page);
     }
 
+    // Warm-up seek: prime the page's render pipeline (WebGL transmission
+    // buffers, canvas compositing, etc.) before real frame capture begins.
+    // Without this, parallel workers whose first assigned frame is mid-
+    // animation can capture an uninitialized render state — typically a
+    // single flash frame with wrong 3D object orientation or missing
+    // transmission effects. Two seeks at different times ensure both the
+    // initial state and mid-animation state are primed.
+    await page.evaluate(`window.__hf?.seek?.(0)`);
+    await page.evaluate(`window.__hf?.seek?.(window.__hf?.duration * 0.5 || 0)`);
+    await page.evaluate(`window.__hf?.seek?.(0)`);
+
     session.isInitialized = true;
     return;
   }
@@ -521,6 +532,11 @@ export async function initializeSession(session: CaptureSession): Promise<void> 
   if (session.options.format === "png") {
     await initTransparentBackground(session.page);
   }
+
+  // Warm-up seek (same rationale as the screenshot-mode branch above).
+  await page.evaluate(`window.__hf?.seek?.(0)`);
+  await page.evaluate(`window.__hf?.seek?.(window.__hf?.duration * 0.5 || 0)`);
+  await page.evaluate(`window.__hf?.seek?.(0)`);
 
   session.isInitialized = true;
 }
