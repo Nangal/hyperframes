@@ -255,6 +255,10 @@ export interface RenderConfig {
   debug?: boolean;
   /** Entry HTML file relative to projectDir. Defaults to "index.html". */
   entryFile?: string;
+  /** Render only this frame range. Used for distributed chunk rendering. */
+  frameRange?: { startFrame: number; endFrame: number };
+  /** Skip audio processing. Used when audio is handled by the stitch step. */
+  skipAudio?: boolean;
   /** Full producer config. When provided, env vars are not read. */
   producerConfig?: EngineConfig;
   /** Custom logger. Defaults to console-based defaultLogger. */
@@ -2243,7 +2247,15 @@ export async function executeRenderJob(
     perfStages.browserProbeMs = Date.now() - probeStart;
 
     job.duration = composition.duration;
-    job.totalFrames = Math.ceil(composition.duration * job.config.fps);
+    const fullTotalFrames = Math.ceil(composition.duration * job.config.fps);
+    const frameRange = job.config.frameRange;
+    if (frameRange) {
+      const clampedStart = Math.max(0, Math.min(frameRange.startFrame, fullTotalFrames));
+      const clampedEnd = Math.max(clampedStart, Math.min(frameRange.endFrame, fullTotalFrames));
+      job.totalFrames = clampedEnd - clampedStart;
+    } else {
+      job.totalFrames = fullTotalFrames;
+    }
     const totalFrames = job.totalFrames;
 
     if (job.duration <= 0) {
