@@ -2249,10 +2249,12 @@ export async function executeRenderJob(
     job.duration = composition.duration;
     const fullTotalFrames = Math.ceil(composition.duration * job.config.fps);
     const frameRange = job.config.frameRange;
+    const frameStartOffset = frameRange
+      ? Math.max(0, Math.min(frameRange.startFrame, fullTotalFrames))
+      : 0;
     if (frameRange) {
-      const clampedStart = Math.max(0, Math.min(frameRange.startFrame, fullTotalFrames));
-      const clampedEnd = Math.max(clampedStart, Math.min(frameRange.endFrame, fullTotalFrames));
-      job.totalFrames = clampedEnd - clampedStart;
+      const clampedEnd = Math.max(frameStartOffset, Math.min(frameRange.endFrame, fullTotalFrames));
+      job.totalFrames = clampedEnd - frameStartOffset;
     } else {
       job.totalFrames = fullTotalFrames;
     }
@@ -2511,7 +2513,7 @@ export async function executeRenderJob(
     const audioOutputPath = join(workDir, "audio.aac");
     let hasAudio = false;
 
-    if (composition.audios.length > 0) {
+    if (composition.audios.length > 0 && !job.config.skipAudio) {
       const audioResult = await processCompositionAudio(
         composition.audios,
         projectDir,
@@ -3203,7 +3205,7 @@ export async function executeRenderJob(
 
           for (let i = 0; i < totalFrames; i++) {
             assertNotAborted();
-            const time = i / job.config.fps;
+            const time = (i + frameStartOffset) / job.config.fps;
             if (hdrPerf) hdrPerf.frames += 1;
 
             // Seek timeline
@@ -3641,7 +3643,7 @@ export async function executeRenderJob(
 
               for (let i = 0; i < totalFrames; i++) {
                 assertNotAborted();
-                const time = i / job.config.fps;
+                const time = (i + frameStartOffset) / job.config.fps;
                 const { buffer } = await captureFrameToBuffer(session, i, time);
                 await reorderBuffer.waitForFrame(i);
                 currentEncoder.writeFrame(buffer);
@@ -3749,7 +3751,7 @@ export async function executeRenderJob(
 
               for (let i = 0; i < job.totalFrames; i++) {
                 assertNotAborted();
-                const time = i / job.config.fps;
+                const time = (i + frameStartOffset) / job.config.fps;
                 await captureFrame(session, i, time);
                 job.framesRendered = i + 1;
 
