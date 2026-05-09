@@ -34,26 +34,35 @@ async function getSharedBrowser(): Promise<import("puppeteer-core").Browser | nu
   if (_browser?.connected) return _browser;
   if (_browserLaunchPromise) return _browserLaunchPromise;
   _browserLaunchPromise = (async () => {
-    const puppeteer = await import("puppeteer-core");
-    const executablePath = [
-      "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
-      "/usr/bin/google-chrome",
-      "/usr/bin/chromium-browser",
-    ].find((p) => existsSync(p));
-    if (!executablePath) return null;
-    _browser = await puppeteer.default.launch({
-      headless: true,
-      executablePath,
-      args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"],
-    });
-    _browserLaunchPromise = null;
-    return _browser;
+    try {
+      const puppeteer = await import("puppeteer-core");
+      const executablePath = [
+        "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome",
+        "/usr/bin/google-chrome",
+        "/usr/bin/chromium-browser",
+      ].find((p) => existsSync(p));
+      if (!executablePath) return null;
+      _browser = await puppeteer.default.launch({
+        headless: true,
+        executablePath,
+        args: ["--no-sandbox", "--disable-gpu", "--disable-dev-shm-usage"],
+      });
+      return _browser;
+    } catch (err) {
+      console.warn(
+        "[Studio] Browser launch failed — thumbnails will be unavailable:",
+        err instanceof Error ? err.message : err,
+      );
+      return null;
+    } finally {
+      _browserLaunchPromise = null;
+    }
   })();
   return _browserLaunchPromise;
 }
 
 // In-flight thumbnail dedup
-const _thumbnailInflight = new Map<string, Promise<Buffer>>();
+const _thumbnailInflight = new Map<string, Promise<Buffer | null>>();
 const THUMBNAIL_CACHE_VERSION = "v4";
 
 interface ScreenshotClip {
@@ -419,7 +428,7 @@ function createViteAdapter(dataDir: string, server: ViteDevServer): StudioApiAda
           }
         })();
         _thumbnailInflight.set(cacheKey, bufferPromise);
-        bufferPromise.finally(() => _thumbnailInflight.delete(cacheKey));
+        void bufferPromise.finally(() => _thumbnailInflight.delete(cacheKey));
       }
       return bufferPromise;
     },

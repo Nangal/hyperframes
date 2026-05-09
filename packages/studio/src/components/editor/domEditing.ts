@@ -105,6 +105,11 @@ export interface DomEditContextOptions {
   preferClipAncestor?: boolean;
 }
 
+export interface DomEditViewport {
+  width: number;
+  height: number;
+}
+
 export interface TimelineElementDomTarget {
   id?: string;
   domId?: string;
@@ -291,6 +296,27 @@ function escapeCssString(value: string): string {
     .replace(/\f/g, "\\c ");
 }
 
+function normalizeTimelineCompositionSource(value: string | undefined): string | undefined {
+  const trimmed = value?.trim();
+  if (!trimmed) return undefined;
+
+  let pathname = trimmed;
+  try {
+    pathname = new URL(trimmed, "http://studio.local").pathname;
+  } catch {
+    pathname = trimmed;
+  }
+
+  for (const marker of ["/preview/comp/", "/preview/"]) {
+    const markerIndex = pathname.indexOf(marker);
+    if (markerIndex < 0) continue;
+    const sourcePath = pathname.slice(markerIndex + marker.length).replace(/^\/+/, "");
+    return sourcePath || trimmed;
+  }
+
+  return trimmed;
+}
+
 function querySelectorAllSafely(doc: Document, selector: string): Element[] {
   try {
     return Array.from(doc.querySelectorAll(selector));
@@ -372,6 +398,7 @@ function buildElementLabel(el: HTMLElement): string {
 const DOM_LAYER_IGNORED_TAGS = new Set([
   "base",
   "br",
+  "canvas",
   "link",
   "meta",
   "script",
@@ -414,6 +441,91 @@ function getDomLayerPatchTarget(
     ),
     sourceFile,
   };
+}
+
+function getElementDepth(el: HTMLElement): number {
+  let depth = 0;
+  let current = el.parentElement;
+  while (current) {
+    depth += 1;
+    current = current.parentElement;
+  }
+  return depth;
+}
+
+function hasRenderedBox(el: HTMLElement): boolean {
+  const rect = el.getBoundingClientRect();
+  if (rect.width <= 1 || rect.height <= 1) return false;
+
+  const computed = el.ownerDocument.defaultView?.getComputedStyle(el);
+  if (!computed) return true;
+  if (computed.display === "none" || computed.visibility === "hidden") return false;
+
+  const opacity = Number.parseFloat(computed.opacity);
+  if (Number.isFinite(opacity) && opacity <= 0.01) return false;
+
+  return true;
+}
+
+function getVisualElementScore(el: HTMLElement, pointerStackIndex: number): number {
+  const tagName = el.tagName.toLowerCase();
+  const rect = el.getBoundingClientRect();
+  const area = Math.max(1, rect.width * rect.height);
+  const smallerElementBonus = Math.max(0, 1_000_000 - Math.min(area, 1_000_000)) / 1_000;
+  const visualLeafBonus =
+    isEditableTextLeaf(el) || ["img", "video", "canvas", "svg"].includes(tagName) ? 2_000 : 0;
+
+  return getElementDepth(el) * 10_000 + visualLeafBonus + smallerElementBonus - pointerStackIndex;
+}
+
+export function resolveVisualDomEditSelectionTarget(
+  elementsFromPoint: Iterable<Element | null | undefined>,
+  options: Pick<DomEditContextOptions, "activeCompositionPath">,
+): HTMLElement | null {
+  let best: { element: HTMLElement; score: number } | null = null;
+  let pointerStackIndex = 0;
+
+  for (const entry of elementsFromPoint) {
+    if (!isHtmlElement(entry)) {
+      pointerStackIndex += 1;
+      continue;
+    }
+
+    if (hasRenderedBox(entry) && getDomLayerPatchTarget(entry, options.activeCompositionPath)) {
+      const score = getVisualElementScore(entry, pointerStackIndex);
+      if (!best || score > best.score) {
+        best = { element: entry, score };
+      }
+    }
+    pointerStackIndex += 1;
+  }
+
+  return best?.element ?? null;
+}
+
+function hasRasterBackground(selection: Pick<DomEditSelection, "computedStyles">): boolean {
+  const backgroundImage = selection.computedStyles["background-image"]?.trim();
+  return Boolean(backgroundImage && backgroundImage !== "none");
+}
+
+export function isLargeRasterDomEditSelection(
+  selection: Pick<DomEditSelection, "boundingBox" | "computedStyles" | "tagName">,
+  viewport?: DomEditViewport | null,
+): boolean {
+  const tagName = selection.tagName.toLowerCase();
+  const isRasterLike = tagName === "img" || hasRasterBackground(selection);
+  if (!isRasterLike) return false;
+
+  const { width, height } = selection.boundingBox;
+  if (width <= 1 || height <= 1) return false;
+  if (!viewport || viewport.width <= 1 || viewport.height <= 1) {
+    return width >= 960 && height >= 540;
+  }
+
+  const areaRatio = (width * height) / (viewport.width * viewport.height);
+  const widthRatio = width / viewport.width;
+  const heightRatio = height / viewport.height;
+  return areaRatio >= 0.4 || (widthRatio >= 0.7 && heightRatio >= 0.5);
 }
 
 function getDirectLayerChildren(el: HTMLElement, options: DomEditContextOptions): HTMLElement[] {
@@ -848,9 +960,14 @@ export function findElementForTimelineElement(
   options: TimelineElementDomTargetOptions,
 ): HTMLElement | null {
   const elementId = typeof element.id === "string" ? element.id : "";
-  const compositionSource = element.compositionSrc ?? options.compIdToSrc?.get(elementId);
+  const compositionSource =
+    normalizeTimelineCompositionSource(element.compositionSrc) ??
+    options.compIdToSrc?.get(elementId);
   const sourceFile =
-    compositionSource ?? element.sourceFile ?? options.activeCompositionPath ?? "index.html";
+    compositionSource ??
+    normalizeTimelineCompositionSource(element.sourceFile) ??
+    options.activeCompositionPath ??
+    "index.html";
   const escapedElementId = escapeCssString(elementId);
   const escapedCompositionSource = compositionSource ? escapeCssString(compositionSource) : null;
   const selector =
@@ -927,12 +1044,14 @@ export function buildElementAgentPrompt({
   selection,
   currentTime,
   tagSnippet,
+  selectionContext,
   userInstruction,
   sourceFilePath,
 }: {
   selection: DomEditSelection;
   currentTime: number;
   tagSnippet?: string;
+  selectionContext?: string;
   userInstruction?: string;
   sourceFilePath?: string;
 }): string {
@@ -955,6 +1074,11 @@ export function buildElementAgentPrompt({
 
   if (selection.textContent) {
     lines.push(`Text: ${selection.textContent}`);
+  }
+
+  const trimmedSelectionContext = selectionContext?.trim();
+  if (trimmedSelectionContext) {
+    lines.push("", "Selection context:", trimmedSelectionContext);
   }
 
   const textFieldsBlock = formatTextFields(selection.textFields);
