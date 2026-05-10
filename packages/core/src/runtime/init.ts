@@ -1796,11 +1796,7 @@ export function initSandboxRuntimeModular(): void {
               if (!rawEl.paused) {
                 clock.attachAudioSource({ el: rawEl, compositionStart: start, mediaStart });
                 foundActive = true;
-              } else if (
-                !rawEl.error &&
-                rawEl.networkState !== HTMLMediaElement.NETWORK_NO_SOURCE &&
-                rawEl.readyState < HTMLMediaElement.HAVE_FUTURE_DATA
-              ) {
+              } else if (!rawEl.error && rawEl.readyState < HTMLMediaElement.HAVE_FUTURE_DATA) {
                 // Audio is buffering — freeze visuals at last known position
                 // instead of falling through to monotonic (which runs ahead).
                 clock.attachAudioSource({ currentTimeSeconds: state.currentTime });
@@ -1887,6 +1883,10 @@ export function initSandboxRuntimeModular(): void {
         state.currentTime = 0;
         seekTimelineAndAdapters(0);
       }
+    } else {
+      const rootEl = resolveRootCompositionElement();
+      const declaredDur = Number(rootEl?.getAttribute("data-duration") ?? 0);
+      if (declaredDur > 0) clock.setDuration(declaredDur);
     }
     if (tl) tl.pause();
     if (!clock.play()) return;
