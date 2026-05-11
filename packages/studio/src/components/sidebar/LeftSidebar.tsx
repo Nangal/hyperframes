@@ -1,10 +1,13 @@
-import { memo, useState, useCallback, type ReactNode } from "react";
-import { useMountEffect } from "../../hooks/useMountEffect";
+import { memo, useState, useCallback, useImperativeHandle, forwardRef, type ReactNode } from "react";
 import { CompositionsTab } from "./CompositionsTab";
 import { AssetsTab } from "./AssetsTab";
 import { FileTree } from "../editor/FileTree";
 
-type SidebarTab = "compositions" | "assets" | "code";
+export type SidebarTab = "compositions" | "assets" | "code";
+
+export interface LeftSidebarHandle {
+  selectTab: (tab: SidebarTab) => void;
+}
 
 const STORAGE_KEY = "hf-studio-sidebar-tab";
 
@@ -38,7 +41,7 @@ interface LeftSidebarProps {
   onToggleCollapse?: () => void;
 }
 
-export const LeftSidebar = memo(function LeftSidebar({
+export const LeftSidebar = memo(forwardRef<LeftSidebarHandle, LeftSidebarProps>(function LeftSidebar({
   width = 240,
   projectId,
   compositions,
@@ -59,7 +62,7 @@ export const LeftSidebar = memo(function LeftSidebar({
   onLint,
   linting,
   onToggleCollapse,
-}: LeftSidebarProps) {
+}, ref) {
   const [tab, setTab] = useState<SidebarTab>(getPersistedTab);
 
   const selectTab = useCallback((t: SidebarTab) => {
@@ -67,22 +70,7 @@ export const LeftSidebar = memo(function LeftSidebar({
     localStorage.setItem(STORAGE_KEY, t);
   }, []);
 
-  // Keyboard shortcuts: Cmd+1 for Compositions, Cmd+2 for Assets
-  useMountEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (!e.metaKey && !e.ctrlKey) return;
-      if (e.key === "1") {
-        e.preventDefault();
-        selectTab("compositions");
-      }
-      if (e.key === "2") {
-        e.preventDefault();
-        selectTab("assets");
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  });
+  useImperativeHandle(ref, () => ({ selectTab }), [selectTab]);
 
   return (
     <div
@@ -221,4 +209,4 @@ export const LeftSidebar = memo(function LeftSidebar({
       )}
     </div>
   );
-});
+}));

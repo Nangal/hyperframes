@@ -10,7 +10,7 @@ import {
 import { useMountEffect } from "./hooks/useMountEffect";
 import { NLELayout } from "./components/nle/NLELayout";
 import { SourceEditor } from "./components/editor/SourceEditor";
-import { LeftSidebar } from "./components/sidebar/LeftSidebar";
+import { LeftSidebar, type LeftSidebarHandle } from "./components/sidebar/LeftSidebar";
 import { RenderQueue } from "./components/renders/RenderQueue";
 import { useRenderQueue } from "./components/renders/useRenderQueue";
 import { CompositionThumbnail, VideoThumbnail, liveTime, usePlayerStore } from "./player";
@@ -285,6 +285,7 @@ export function StudioApp() {
   const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const lastBlockedTimelineToastAtRef = useRef(0);
   const previewHotkeyWindowRef = useRef<Window | null>(null);
+  const leftSidebarRef = useRef<LeftSidebarHandle>(null);
   const panelDragRef = useRef<{
     side: "left" | "right";
     startX: number;
@@ -994,11 +995,29 @@ export function StudioApp() {
   const handleToggleRef = useRef(handleTimelineToggleHotkey);
   handleToggleRef.current = handleTimelineToggleHotkey;
 
+  // ── Consolidated keyboard shortcuts ────────────────────────────────
+  // All app-level window keydown handlers live here.
+  // Component-scoped shortcuts (playback J/K/L/Space, caption nudge)
+  // stay in their respective hooks.
   // eslint-disable-next-line no-restricted-syntax
   useEffect(() => {
     function handleAppKeyDown(event: KeyboardEvent) {
       // Shift+T — toggle timeline
       handleToggleRef.current(event);
+
+      // Cmd/Ctrl+1 — sidebar: Compositions tab
+      if ((event.metaKey || event.ctrlKey) && event.key === "1") {
+        event.preventDefault();
+        leftSidebarRef.current?.selectTab("compositions");
+        return;
+      }
+
+      // Cmd/Ctrl+2 — sidebar: Assets tab
+      if ((event.metaKey || event.ctrlKey) && event.key === "2") {
+        event.preventDefault();
+        leftSidebarRef.current?.selectTab("assets");
+        return;
+      }
 
       // Delete / Backspace — remove selected timeline element
       if (
@@ -1533,6 +1552,7 @@ export function StudioApp() {
           </div>
         ) : (
           <LeftSidebar
+            ref={leftSidebarRef}
             width={leftWidth}
             projectId={projectId}
             compositions={compositions}
