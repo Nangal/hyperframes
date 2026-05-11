@@ -24,6 +24,8 @@ export const CANVAS_DIMENSIONS = {
   portrait: { width: 1080, height: 1920 },
   "landscape-4k": { width: 3840, height: 2160 },
   "portrait-4k": { width: 2160, height: 3840 },
+  square: { width: 1080, height: 1080 },
+  "square-4k": { width: 2160, height: 2160 },
 } as const;
 
 // Single source of truth: derive the type from the table so adding a preset
@@ -47,6 +49,9 @@ const RESOLUTION_ALIASES: Record<string, CanvasResolution> = {
   "4k": "landscape-4k",
   uhd: "landscape-4k",
   "4k-portrait": "portrait-4k",
+  "1080p-square": "square",
+  "square-1080p": "square",
+  "4k-square": "square-4k",
 };
 
 /**

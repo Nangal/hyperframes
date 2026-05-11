@@ -10,6 +10,8 @@ describe("@hyperframes/core public API exports", () => {
       expect(core.CANVAS_DIMENSIONS.portrait).toEqual({ width: 1080, height: 1920 });
       expect(core.CANVAS_DIMENSIONS["landscape-4k"]).toEqual({ width: 3840, height: 2160 });
       expect(core.CANVAS_DIMENSIONS["portrait-4k"]).toEqual({ width: 2160, height: 3840 });
+      expect(core.CANVAS_DIMENSIONS.square).toEqual({ width: 1080, height: 1080 });
+      expect(core.CANVAS_DIMENSIONS["square-4k"]).toEqual({ width: 2160, height: 2160 });
     });
 
     it("exports VALID_CANVAS_RESOLUTIONS derived from CANVAS_DIMENSIONS", () => {
@@ -18,6 +20,8 @@ describe("@hyperframes/core public API exports", () => {
         "portrait",
         "landscape-4k",
         "portrait-4k",
+        "square",
+        "square-4k",
       ]);
     });
 
@@ -27,6 +31,10 @@ describe("@hyperframes/core public API exports", () => {
       expect(core.normalizeResolutionFlag("1080p")).toBe("landscape");
       expect(core.normalizeResolutionFlag("landscape-4k")).toBe("landscape-4k");
       expect(core.normalizeResolutionFlag("UHD")).toBe("landscape-4k");
+      expect(core.normalizeResolutionFlag("square")).toBe("square");
+      expect(core.normalizeResolutionFlag("square-4k")).toBe("square-4k");
+      expect(core.normalizeResolutionFlag("1080p-square")).toBe("square");
+      expect(core.normalizeResolutionFlag("4k-square")).toBe("square-4k");
       expect(core.normalizeResolutionFlag("8k")).toBeUndefined();
       expect(core.normalizeResolutionFlag(undefined)).toBeUndefined();
     });
