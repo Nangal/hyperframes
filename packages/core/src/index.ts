@@ -35,6 +35,12 @@ export type {
 } from "./core.types";
 
 export {
+  type Fps,
+  fpsToNumber,
+  fpsToFfmpegArg,
+  type FpsParseResult,
+  parseFps,
+  parseFpsWithDefault,
   CANVAS_DIMENSIONS,
   VALID_CANVAS_RESOLUTIONS,
   normalizeResolutionFlag,
