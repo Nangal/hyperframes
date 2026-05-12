@@ -234,9 +234,11 @@ export const NLELayout = memo(function NLELayout({
   const currentLevel = compositionStack[compositionStack.length - 1];
   const directUrl = compositionStack.length > 1 ? currentLevel.previewUrl : undefined;
 
+  const onIframeRefRef = useRef(onIframeRef);
+  onIframeRefRef.current = onIframeRef;
   useEffect(() => {
-    onIframeRef?.(iframeRef.current);
-  }, [compositionStack.length, onIframeRef, refreshKey, iframeRef]);
+    onIframeRefRef.current?.(iframeRef.current);
+  }, [compositionStack.length, refreshKey, iframeRef]);
 
   // Save master seek position before drilling down so we can restore it on back-navigation.
   // saveSeekPosition() sets pendingSeekRef in useTimelinePlayer which onIframeLoad reads.
