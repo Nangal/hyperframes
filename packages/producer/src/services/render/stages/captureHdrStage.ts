@@ -1,8 +1,7 @@
 /**
  * captureHdrStage — Z-ordered HDR / shader-transition layered composite.
  *
- * Lifted verbatim from `executeRenderJob`'s `if (useLayeredComposite)`
- * branch. The most complex capture path:
+ * The most complex capture path:
  *   - Spawns a dedicated `domSession` for transparent-background screenshots.
  *   - Spawns an `hdrEncoder` (`spawnStreamingEncoder` with
  *     `rawInputFormat: "rgb48le"`) accepting pre-composited HDR frames.

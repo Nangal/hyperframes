@@ -34,9 +34,10 @@
  *     `streamingEncoderClosed` so it's idempotent.
  *
  * Known follow-up (same as captureStage): this stage imports
- * `updateJobStatus` from `renderOrchestrator.ts`, re-introducing the
- * cycle PR 1.3.5 broke. A subsequent PR will consolidate capture
- * helpers into a shared module.
+ * `updateJobStatus` from `renderOrchestrator.ts`, forming a runtime
+ * cycle with the orchestrator's import of `runCaptureStreamingStage`.
+ * Safe at runtime; a subsequent change will move the capture helpers
+ * into a shared module so the stages can import without reaching back.
  */
 
 import {
@@ -102,8 +103,6 @@ export type CaptureStreamingStageResult =
   | {
       /** Streaming path ran successfully — sequencer should skip the disk path AND Stage 5 encode. */
       success: true;
-      /** Wall-clock ms for the capture phase (`Date.now() - stage4Start` is the sequencer's job). */
-      captureDurationMs: number;
       /** Wall-clock ms for the encode phase (overlapped with capture; from the encoder's own report). */
       encodeMs: number;
       probeSession: CaptureSession | null;
@@ -165,7 +164,6 @@ export async function runCaptureStreamingStage(
     return { success: false };
   }
 
-  const streamStart = Date.now();
   const currentEncoder: StreamingEncoder = streamingEncoder;
 
   try {
@@ -280,7 +278,6 @@ export async function runCaptureStreamingStage(
 
     return {
       success: true,
-      captureDurationMs: Date.now() - streamStart,
       encodeMs: encodeResult.durationMs,
       probeSession,
       lastBrowserConsole,

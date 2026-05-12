@@ -17,7 +17,6 @@
 
 import { join } from "node:path";
 import { processCompositionAudio } from "@hyperframes/engine";
-import type { RenderJob } from "../../renderOrchestrator.js";
 import type { CompositionMetadata } from "../shared.js";
 
 export interface AudioStageInput {
@@ -25,7 +24,6 @@ export interface AudioStageInput {
   workDir: string;
   /** `join(workDir, "compiled")`; passed through to the audio mixer for asset resolution. */
   compiledDir: string;
-  job: RenderJob;
   /** Composition duration (post-probe). Must be > 0 — probeStage guarantees this. */
   duration: number;
   /** Read-only view of `composition.audios`. */

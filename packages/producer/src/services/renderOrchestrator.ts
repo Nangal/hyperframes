@@ -1,16 +1,33 @@
 /**
  * Render Orchestrator Service
  *
- * Coordinates the entire video rendering pipeline:
- * 1. Parse composition metadata
- * 2. Pre-extract video frames
- * 3. Pre-process audio tracks
- * 4. Parallel frame capture
- * 5. Video encoding
- * 6. Final assembly (audio mux + faststart)
+ * `executeRenderJob` is the in-process entry point that composes the
+ * pipeline's six stages. Each stage lives in its own module under
+ * `./render/stages/` so the pure-function primitives can be reused by
+ * the distributed render path without dragging the orchestrator's
+ * cleanup and observability scaffolding with them.
  *
- * Heavy observability: every stage logs timing, errors include
- * full context, and failures produce a diagnostic summary.
+ *   Stage 1  compile         → services/render/stages/compileStage.ts
+ *   Stage 1b probe           → services/render/stages/probeStage.ts
+ *            (browser-driven duration discovery + media reconciliation;
+ *            grouped with Stage 1 in the perf summary)
+ *   Stage 2  extract videos  → services/render/stages/extractVideosStage.ts
+ *   Stage 3  audio           → services/render/stages/audioStage.ts
+ *   Stage 4  capture         → services/render/stages/captureStage.ts
+ *                              services/render/stages/captureStreamingStage.ts
+ *                              services/render/stages/captureHdrStage.ts
+ *   Stage 5  encode          → services/render/stages/encodeStage.ts
+ *   Stage 6  assemble        → services/render/stages/assembleStage.ts
+ *
+ * Resources spawned by stages (file server, capture sessions, streaming
+ * encoders, raw HDR frame files) are tracked in the orchestrator's
+ * `try/finally` so a stage throwing mid-pipeline doesn't leak Chrome
+ * processes or ffmpeg subprocesses.
+ *
+ * Heavy observability: every stage records timing into `perfStages`,
+ * errors carry full context, and failures produce a diagnostic summary
+ * (browser console tail, memory peaks, capture attempts, HDR
+ * diagnostics).
  */
 
 import {
@@ -1812,6 +1829,16 @@ export function extractStandaloneEntryFromIndex(
   return document.toString();
 }
 
+/**
+ * Render a `RenderJob` end-to-end: compile → probe → extract videos →
+ * audio → capture → encode → assemble. The function body is a thin
+ * sequencer over the eight stage modules in `./render/stages/`; the
+ * orchestrator owns shared resources (work dir, file server, probe
+ * session, browser console buffer, perf counters, peak-memory sampler)
+ * and the `try/finally` cleanup. Returns once the final output exists at
+ * `outputPath`; throws on cancellation, encoder failure, or a stage
+ * error (with a diagnostic summary written to `perf-summary.json`).
+ */
 export async function executeRenderJob(
   job: RenderJob,
   projectDir: string,
@@ -2069,7 +2096,6 @@ export async function executeRenderJob(
       projectDir,
       workDir,
       compiledDir,
-      job,
       duration: job.duration,
       audios: composition.audios,
       abortSignal,
@@ -2442,7 +2468,6 @@ export async function executeRenderJob(
           videoOnlyPath,
           width,
           height,
-          fps: job.config.fps,
           needsAlpha,
           hasAudio,
           audioOutputPath,
@@ -2450,7 +2475,6 @@ export async function executeRenderJob(
           preset,
           effectiveQuality,
           effectiveBitrate,
-          useGpu: job.config.useGpu,
           enableChunkedEncode,
           chunkedEncodeSize,
           abortSignal,

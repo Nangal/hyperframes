@@ -33,7 +33,6 @@ import {
   encodeFramesFromDir,
   getEncoderPreset,
 } from "@hyperframes/engine";
-import type { Fps } from "@hyperframes/core";
 import type { ProducerLogger } from "../../../logger.js";
 import {
   updateJobStatus,
@@ -53,7 +52,6 @@ export interface EncodeStageInput {
   /** Output dimensions (post-deviceScaleFactor). */
   width: number;
   height: number;
-  fps: Fps;
   /** True when the output format requires an alpha channel; selects frame extension. */
   needsAlpha: boolean;
   /** True iff the composition has audio. Drives the sidecar copy. */
@@ -66,7 +64,6 @@ export interface EncodeStageInput {
   preset: ReturnType<typeof getEncoderPreset>;
   effectiveQuality: number;
   effectiveBitrate: string | undefined;
-  useGpu: boolean | undefined;
   /** Producer config — enables the chunked-concat encoder when on. */
   enableChunkedEncode: boolean;
   chunkedEncodeSize: number;
@@ -89,7 +86,6 @@ export async function runEncodeStage(input: EncodeStageInput): Promise<EncodeSta
     videoOnlyPath,
     width,
     height,
-    fps,
     needsAlpha,
     hasAudio,
     audioOutputPath,
@@ -97,7 +93,6 @@ export async function runEncodeStage(input: EncodeStageInput): Promise<EncodeSta
     preset,
     effectiveQuality,
     effectiveBitrate,
-    useGpu,
     enableChunkedEncode,
     chunkedEncodeSize,
     abortSignal,
@@ -143,7 +138,7 @@ export async function runEncodeStage(input: EncodeStageInput): Promise<EncodeSta
   const frameExt = needsAlpha ? "png" : "jpg";
   const framePattern = `frame_%06d.${frameExt}`;
   const encoderOpts = {
-    fps,
+    fps: job.config.fps,
     width,
     height,
     codec: preset.codec,
@@ -151,7 +146,7 @@ export async function runEncodeStage(input: EncodeStageInput): Promise<EncodeSta
     quality: effectiveQuality,
     bitrate: effectiveBitrate,
     pixelFormat: preset.pixelFormat,
-    useGpu,
+    useGpu: job.config.useGpu,
     hdr: preset.hdr,
   };
   const encodeResult = enableChunkedEncode
