@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Design your visual direction</title>
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/CustomEase.min.js"></script>
+    <script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js"}}</script>
     <style>
       * {
         margin: 0;
@@ -373,11 +375,7 @@
       .ease-preview-track {
         width: 100%;
         height: 48px;
-        background: rgba(128,128,128,0.06);
-        border-radius: 8px;
         position: relative;
-        overflow: hidden;
-        border: 1px solid rgba(128,128,128,0.12);
       }
       .ease-preview-dot {
         width: 24px;
@@ -707,6 +705,102 @@
         font-family: "SF Mono", Consolas, monospace;
         letter-spacing: 0.02em;
       }
+      #shader-editor input[type="color"] {
+        padding: 0;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      .bezier-editor {
+        border: 1px solid #1e1e1e;
+        border-radius: 10px;
+        margin-bottom: 6px;
+        cursor: pointer;
+        background: #141414;
+        padding: 14px;
+        transition: border-color 0.12s;
+      }
+      .bezier-editor:hover { border-color: #333; }
+      .bezier-editor.selected { border-color: #fff; }
+      .bezier-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 10px;
+      }
+      .bezier-header .ease-name { font-size: 11px; font-weight: 600; }
+      .bezier-header .ease-value {
+        font-size: 9px;
+        color: #444;
+        font-family: "SF Mono", Consolas, monospace;
+      }
+      .bezier-canvas-wrap {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 1;
+        overflow: visible;
+        cursor: crosshair;
+      }
+      .bezier-canvas-wrap canvas {
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      .bezier-handle {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        border: 2px solid #4e7fff;
+        background: #0e0e0e;
+        cursor: grab;
+        transform: translate(-50%, -50%);
+        z-index: 2;
+      }
+      .bezier-handle:hover, .bezier-handle.dragging {
+        background: #4e7fff;
+        cursor: grabbing;
+      }
+      .bezier-anchor {
+        position: absolute;
+        width: 12px;
+        height: 12px;
+        border: 2px solid #4e7fff;
+        background: #fff;
+        cursor: grab;
+        transform: translate(-50%, -50%) rotate(45deg);
+        z-index: 3;
+      }
+      .bezier-anchor:hover, .bezier-anchor.dragging {
+        background: #4e7fff;
+        cursor: grabbing;
+      }
+      .bezier-anchor.selected {
+        background: #4e7fff;
+      }
+      .bezier-hint {
+        font-size: 9px;
+        color: #555;
+        margin-top: 6px;
+        line-height: 1.3;
+      }
+      .bezier-track {
+        position: relative;
+        height: 8px;
+        background: #1a1a1a;
+        border-radius: 4px;
+        margin-top: 10px;
+        overflow: visible;
+      }
+      .bezier-dot {
+        position: absolute;
+        top: 50%;
+        transform: translateY(-50%);
+        left: 0;
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: #fff;
+      }
 
       .preview-empty {
         display: flex;
@@ -912,6 +1006,36 @@
           </div>
           <div class="section-body"><div class="chips" id="theme-options"></div></div>
         </div>
+        <!-- Background / Shader Editor -->
+        <div class="section-card" id="bg-section">
+          <div class="section-header">
+            <div class="section-icon">◈</div>
+            <div class="section-title">Background</div>
+          </div>
+          <div class="section-body">
+            <div class="chips" id="bg-options"></div>
+            <div id="shader-editor" style="display:none;margin-top:10px;">
+              <div style="display:flex;gap:8px;margin-bottom:8px;">
+                <label style="flex:1;font-size:10px;color:#666;">
+                  Color 1
+                  <input type="color" id="se-c1" value="#f7f4ef" style="width:100%;height:24px;border:none;background:none;cursor:pointer;">
+                </label>
+                <label style="flex:1;font-size:10px;color:#666;">
+                  Color 2
+                  <input type="color" id="se-c2" value="#2a9d8f" style="width:100%;height:24px;border:none;background:none;cursor:pointer;">
+                </label>
+                <label style="flex:1;font-size:10px;color:#666;">
+                  Color 3
+                  <input type="color" id="se-c3" value="#7a8b8d" style="width:100%;height:24px;border:none;background:none;cursor:pointer;">
+                </label>
+              </div>
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:10px;color:#666;margin-bottom:8px;">
+                <input type="checkbox" id="se-use-palette" checked style="accent-color:#fff;"> Use palette colors
+              </label>
+              <div id="se-controls"></div>
+            </div>
+          </div>
+        </div>
         <!-- Structure -->
         <div class="section-card">
           <div class="section-header">
@@ -944,6 +1068,14 @@
             <div class="section-title">Corners</div>
           </div>
           <div class="section-body"><div class="chips" id="corner-options"></div></div>
+        </div>
+        <!-- Density -->
+        <div class="section-card">
+          <div class="section-header">
+            <div class="section-icon">▦</div>
+            <div class="section-title">Density</div>
+          </div>
+          <div class="section-body"><div class="chips" id="density-options"></div></div>
         </div>
         <!-- Depth -->
         <div class="section-card">
@@ -1018,14 +1150,14 @@
       </div>
     </div>
 
-    <button class="fab" id="fab" onclick="showOutput()">Create design.md</button>
+    <button class="fab" id="fab" onclick="showOutput()">Create design.html</button>
 
     <div class="md-overlay" id="md-overlay">
       <div class="md-card">
         <div class="md-header">
           <div class="md-title">
-            design.md
-            <span style="font-size: 11px; font-weight: 400; color: #555">— edit, then copy</span>
+            design.html
+            <span style="font-size: 11px; font-weight: 400; color: #555">— copy and paste back</span>
           </div>
           <div class="md-actions">
             <button class="copy-btn" id="copy-btn">Copy</button>
@@ -1058,6 +1190,7 @@
         density: null,
         depth: null,
         easing: null,
+        bg_mode: null,
       };
 
       var EASINGS = [
@@ -1127,7 +1260,7 @@
       var palBar = document.getElementById("pal-bar");
       PALETTES.forEach(function (p, i) {
         var chip = document.createElement("div");
-        chip.className = "pal-bar-chip" + (i === 0 ? "" : "");
+        chip.className = "pal-bar-chip";
         chip.innerHTML =
           '<div class="pal-bar-chip-swatches"><div class="pal-bar-chip-swatch" style="background:' +
           p.background +
@@ -1208,6 +1341,7 @@
           }).join("") + '</div>' : '';
           var arrowsHtml = frames.length > 1 ? '<div class="mood-arrow left">‹</div><div class="mood-arrow right">›</div>' : '';
           card.innerHTML = '<div class="mood-preview" style="background:' + bg + ';">' + framesHtml + arrowsHtml + dotsHtml + '</div>';
+
           if (frames.length > 1) {
             (function(cardEl, count) {
               var idx = 0;
@@ -1280,8 +1414,17 @@
           chipSel("density", mb.density_index, document.getElementById("density-options"));
         if (mb.depth_index != null)
           chipSel("depth", mb.depth_index, document.getElementById("depth-options"));
-        // Pre-fill background effect from architecture
+        // Pre-fill background from architecture
+        var arch = ARCHITECTURES[mb.arch_index || 0];
         var bgIdx = 0;
+        if (arch.bg_preset) {
+          for (var si = 0; si < BG_PRESETS.length; si++) {
+            if (BG_PRESETS[si].name === arch.bg_preset) { bgIdx = si; break; }
+          }
+        }
+        chipSel("bg_mode", bgIdx, document.getElementById("bg-options"));
+        shaderEditor.style.display = bgIdx > 0 ? "block" : "none";
+        renderBgControls(bgIdx > 0 ? BG_PRESETS[bgIdx] : null);
 
         var eIdx = mb.easing_index != null ? mb.easing_index : 0;
         var eOpts = document.getElementById("ease-options");
@@ -1500,8 +1643,420 @@
         });
       });
 
-      function chipSel(key, idx, container) {
-        container.querySelectorAll(".chip").forEach(function (c) {
+      // ── Custom Ease Editor (GSAP CustomEase, multi-waypoint) ──
+      (function() {
+        var customIdx = EASINGS.length;
+        var initPath = "M0,0 C0.126,0.382 0.282,0.674 0.44,0.822 0.632,1.002 0.818,1.001 1,1";
+        EASINGS.push({ name: "Custom", value: initPath, desc: "Click curve to add points, drag to shape" });
+        if (typeof CustomEase !== "undefined") { gsap.registerPlugin(CustomEase); CustomEase.create("_pickerCustom", initPath); }
+
+        // Anchors: [{x,y,ox,oy,ix,iy}] — ox/oy = outgoing handle, ix/iy = incoming handle (absolute coords, 0-1 normalized, y=0 is bottom)
+        var anchors = [
+          { x: 0, y: 0, ox: 0.126, oy: 0.382, ix: 0, iy: 0 },
+          { x: 0.44, y: 0.822, ox: 0.632, oy: 1.002, ix: 0.282, iy: 0.674 },
+          { x: 1, y: 1, ox: 1, oy: 1, ix: 0.818, iy: 1.001 }
+        ];
+        var selectedAnchor = -1;
+
+        var wrap = document.createElement("div");
+        wrap.className = "bezier-editor";
+        wrap.innerHTML =
+          '<div class="bezier-header"><div class="ease-name">Custom</div><div class="ease-value" id="bezier-value" style="font-size:8px;word-break:break-all;max-height:28px;overflow:hidden;">' + initPath + '</div></div>' +
+          '<div class="bezier-canvas-wrap" id="bezier-wrap"><canvas id="bezier-canvas"></canvas></div>' +
+          '<div class="bezier-hint">Click curve to add point · Select + Delete to remove · Drag handles to shape</div>' +
+          '<div class="bezier-track"><div class="bezier-dot" id="bezier-dot"></div></div>';
+
+        wrap.addEventListener("click", function(e) {
+          if (e.target.closest(".bezier-canvas-wrap") || e.target.closest(".bezier-anchor") || e.target.closest(".bezier-handle")) return;
+          selectCustom();
+        });
+        easeOpts.appendChild(wrap);
+
+        var canvas = document.getElementById("bezier-canvas");
+        var bwrap = document.getElementById("bezier-wrap");
+        var valEl = document.getElementById("bezier-value");
+        var dotEl = document.getElementById("bezier-dot");
+        var handles = []; // DOM elements for handles/anchors
+
+        function selectCustom() {
+          easeOpts.querySelectorAll(".ease-opt").forEach(function(c) { c.classList.remove("selected"); });
+          wrap.classList.add("selected");
+          picks.easing = customIdx;
+          checkReady();
+          renderPreview();
+        }
+
+        // Convert anchors to SVG path (CustomEase: y=0 is start, y=1 is end — same as our internal coords)
+        function toPath() {
+          var d = "M0,0";
+          for (var i = 0; i < anchors.length - 1; i++) {
+            var a = anchors[i], b = anchors[i + 1];
+            d += " C" + n(a.ox) + "," + n(a.oy) + " " + n(b.ix) + "," + n(b.iy) + " " + n(b.x) + "," + n(b.y);
+          }
+          return d;
+        }
+        function n(v) { return parseFloat(v.toFixed(3)); }
+
+        // De Casteljau split
+        function splitBezier(p0, cp1, cp2, p1, t) {
+          var u = 1 - t;
+          var q0 = lerp(p0, cp1, t), q1 = lerp(cp1, cp2, t), q2 = lerp(cp2, p1, t);
+          var r0 = lerp(q0, q1, t), r1 = lerp(q1, q2, t);
+          var s = lerp(r0, r1, t);
+          return { left: { cp1: q0, cp2: r0, end: s }, right: { cp1: r1, cp2: q2, end: p1 } };
+        }
+        function lerp(a, b, t) { return { x: a.x + (b.x - a.x) * t, y: a.y + (b.y - a.y) * t }; }
+
+        // Find closest point on curve to click
+        function closestOnCurve(mx, my) {
+          var best = { dist: Infinity, seg: 0, t: 0.5 };
+          for (var i = 0; i < anchors.length - 1; i++) {
+            var a = anchors[i], b = anchors[i + 1];
+            var p0 = { x: a.x, y: a.y }, cp1 = { x: a.ox, y: a.oy }, cp2 = { x: b.ix, y: b.iy }, p1 = { x: b.x, y: b.y };
+            for (var t = 0; t <= 1; t += 0.01) {
+              var u = 1 - t;
+              var px = u*u*u*p0.x + 3*u*u*t*cp1.x + 3*u*t*t*cp2.x + t*t*t*p1.x;
+              var py = u*u*u*p0.y + 3*u*u*t*cp1.y + 3*u*t*t*cp2.y + t*t*t*p1.y;
+              var dx = px - mx, dy = py - my;
+              var d = dx * dx + dy * dy;
+              if (d < best.dist) { best.dist = d; best.seg = i; best.t = t; }
+            }
+          }
+          return best;
+        }
+
+        // Add waypoint
+        function addWaypoint(seg, t) {
+          var a = anchors[seg], b = anchors[seg + 1];
+          var p0 = { x: a.x, y: a.y }, cp1 = { x: a.ox, y: a.oy }, cp2 = { x: b.ix, y: b.iy }, p1 = { x: b.x, y: b.y };
+          var sp = splitBezier(p0, cp1, cp2, p1, t);
+          a.ox = sp.left.cp1.x; a.oy = sp.left.cp1.y;
+          var newAnchor = {
+            x: sp.left.end.x, y: sp.left.end.y,
+            ix: sp.left.cp2.x, iy: sp.left.cp2.y,
+            ox: sp.right.cp1.x, oy: sp.right.cp1.y
+          };
+          b.ix = sp.right.cp2.x; b.iy = sp.right.cp2.y;
+          anchors.splice(seg + 1, 0, newAnchor);
+          selectedAnchor = seg + 1;
+          rebuild();
+          updateValue();
+        }
+
+        // Remove waypoint
+        function removeWaypoint(idx) {
+          if (idx <= 0 || idx >= anchors.length - 1) return;
+          anchors.splice(idx, 1);
+          selectedAnchor = -1;
+          rebuild();
+          updateValue();
+        }
+
+        // Rebuild handle DOM elements
+        function rebuild() {
+          handles.forEach(function(h) { if (h.el.parentNode) h.el.parentNode.removeChild(h.el); });
+          handles = [];
+          for (var i = 0; i < anchors.length; i++) {
+            var a = anchors[i];
+            // Anchor point (not for first/last x position, but y is draggable)
+            if (i > 0 && i < anchors.length - 1) {
+              makeHandle(i, "anchor", "x", "y", true, true);
+            }
+            // Outgoing handle (not for last anchor)
+            if (i < anchors.length - 1) {
+              makeHandle(i, "out", "ox", "oy", true, true);
+            }
+            // Incoming handle (not for first anchor)
+            if (i > 0) {
+              makeHandle(i, "in", "ix", "iy", true, true);
+            }
+          }
+          draw();
+        }
+
+        function makeHandle(idx, type, xk, yk, dragX, dragY) {
+          var el = document.createElement("div");
+          el.className = type === "anchor" ? "bezier-anchor" : "bezier-handle";
+          el.dataset.idx = idx;
+          el.dataset.type = type;
+          bwrap.appendChild(el);
+          var info = { el: el, idx: idx, type: type, xk: xk, yk: yk };
+          handles.push(info);
+
+          var dragging = false;
+          el.addEventListener("mousedown", function(e) {
+            e.preventDefault(); e.stopPropagation();
+            dragging = true;
+            el.classList.add("dragging");
+            selectCustom();
+            if (type === "anchor") {
+              selectedAnchor = idx;
+              handles.forEach(function(h) { if (h.type === "anchor") h.el.classList.toggle("selected", h.idx === idx); });
+            }
+          });
+          window.addEventListener("mousemove", function(e) {
+            if (!dragging) return;
+            var r = bwrap.getBoundingClientRect();
+            var nx = (e.clientX - r.left) / r.width;
+            var ny = 1 - (e.clientY - r.top) / r.height;
+            if (type === "anchor") {
+              var prev = anchors[idx - 1], next = anchors[idx + 1];
+              nx = Math.max(prev.x + 0.01, Math.min(next.x - 0.01, nx));
+              var dx = nx - anchors[idx].x, dy = ny - anchors[idx].y;
+              anchors[idx].x = nx; anchors[idx].y = ny;
+              anchors[idx].ox += dx; anchors[idx].oy += dy;
+              anchors[idx].ix += dx; anchors[idx].iy += dy;
+            } else {
+              anchors[idx][xk] = nx;
+              anchors[idx][yk] = ny;
+            }
+            draw();
+            updateValue();
+          });
+          window.addEventListener("mouseup", function() {
+            if (dragging) { dragging = false; el.classList.remove("dragging"); }
+          });
+        }
+
+        // Canvas click to add waypoint
+        bwrap.addEventListener("click", function(e) {
+          if (e.target.classList.contains("bezier-handle") || e.target.classList.contains("bezier-anchor")) return;
+          var r = bwrap.getBoundingClientRect();
+          var mx = (e.clientX - r.left) / r.width;
+          var my = 1 - (e.clientY - r.top) / r.height;
+          var hit = closestOnCurve(mx, my);
+          if (hit.dist < 0.005) {
+            addWaypoint(hit.seg, hit.t);
+          } else {
+            selectedAnchor = -1;
+            handles.forEach(function(h) { if (h.type === "anchor") h.el.classList.remove("selected"); });
+          }
+        });
+
+        // Delete key removes selected waypoint
+        document.addEventListener("keydown", function(e) {
+          if ((e.key === "Delete" || e.key === "Backspace") && selectedAnchor > 0 && selectedAnchor < anchors.length - 1) {
+            if (document.activeElement && (document.activeElement.tagName === "INPUT" || document.activeElement.tagName === "TEXTAREA")) return;
+            e.preventDefault();
+            removeWaypoint(selectedAnchor);
+          }
+        });
+
+        function draw() {
+          var r = bwrap.getBoundingClientRect();
+          canvas.width = r.width * 2; canvas.height = r.height * 2;
+          var ctx = canvas.getContext("2d");
+          var w = canvas.width, ht = canvas.height;
+          ctx.clearRect(0, 0, w, ht);
+
+          // Grid
+          ctx.strokeStyle = "rgba(255,255,255,0.04)"; ctx.lineWidth = 1;
+          for (var g = 0.25; g < 1; g += 0.25) {
+            ctx.beginPath(); ctx.moveTo(g*w, 0); ctx.lineTo(g*w, ht); ctx.stroke();
+            ctx.beginPath(); ctx.moveTo(0, g*ht); ctx.lineTo(w, g*ht); ctx.stroke();
+          }
+          // Diagonal
+          ctx.strokeStyle = "rgba(255,255,255,0.06)"; ctx.setLineDash([6, 6]);
+          ctx.beginPath(); ctx.moveTo(0, ht); ctx.lineTo(w, 0); ctx.stroke(); ctx.setLineDash([]);
+
+          // Handle lines
+          ctx.strokeStyle = "rgba(78,127,255,0.3)"; ctx.lineWidth = 1.5;
+          for (var i = 0; i < anchors.length; i++) {
+            var a = anchors[i];
+            if (i < anchors.length - 1) {
+              ctx.beginPath(); ctx.moveTo(a.x*w, (1-a.y)*ht); ctx.lineTo(a.ox*w, (1-a.oy)*ht); ctx.stroke();
+            }
+            if (i > 0) {
+              ctx.beginPath(); ctx.moveTo(a.x*w, (1-a.y)*ht); ctx.lineTo(a.ix*w, (1-a.iy)*ht); ctx.stroke();
+            }
+          }
+
+          // Curve
+          ctx.strokeStyle = "#0ae448"; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(0, ht);
+          for (var i = 0; i < anchors.length - 1; i++) {
+            var a = anchors[i], b = anchors[i + 1];
+            ctx.bezierCurveTo(a.ox*w, (1-a.oy)*ht, b.ix*w, (1-b.iy)*ht, b.x*w, (1-b.y)*ht);
+          }
+          ctx.stroke();
+
+          // Position handle DOM elements
+          handles.forEach(function(h) {
+            var a = anchors[h.idx];
+            var px = a[h.xk] * r.width, py = (1 - a[h.yk]) * r.height;
+            h.el.style.left = px + "px"; h.el.style.top = py + "px";
+          });
+        }
+
+        function updateValue() {
+          var path = toPath();
+          EASINGS[customIdx].value = path;
+          valEl.textContent = path;
+          if (typeof CustomEase !== "undefined") { CustomEase.create("_pickerCustom", path); }
+          if (picks.easing === customIdx) { animateBezierDot(); renderPreview(); }
+        }
+
+        var bzTween = null;
+        function animateBezierDot() {
+          if (bzTween) { bzTween.kill(); bzTween = null; }
+          if (typeof CustomEase === "undefined") return;
+          bzTween = gsap.fromTo(dotEl, { left: 0 }, {
+            left: "calc(100% - 12px)", duration: 1.2,
+            ease: "_pickerCustom", repeat: -1, repeatDelay: 0.5, yoyo: true
+          });
+        }
+
+        rebuild();
+        setTimeout(function() { draw(); animateBezierDot(); }, 100);
+        window.addEventListener("resize", function() { draw(); });
+      })();
+
+      // ── Background / Three.js Gradient Presets ──
+      var bgOpts = document.getElementById("bg-options");
+      var shaderEditor = document.getElementById("shader-editor");
+      var seC1 = document.getElementById("se-c1");
+      var seC2 = document.getElementById("se-c2");
+      var seC3 = document.getElementById("se-c3");
+      var seUsePal = document.getElementById("se-use-palette");
+
+      var BG_PRESETS = [
+        { name: "None", desc: "Flat color" },
+        { name: "Halo", desc: "Warm flowing gradient", type: "plane", shader: "defaults", density: 1.3, speed: 0.4, strength: 4, rotX: 0, rotY: 10, rotZ: 50, camDist: 3.6, camAz: 180, camPol: 90, zoom: 1, posX: -1.4,
+          controls: [
+            { label: "Speed", key: "speed", min: 0.05, max: 1.0, step: 0.05 },
+            { label: "Density", key: "density", min: 0.5, max: 3.0, step: 0.1 },
+            { label: "Rotation", key: "rotZ", min: -180, max: 180, step: 5 }
+          ]},
+        { name: "Mint", desc: "Cool water surface", type: "water", shader: "defaults", density: 1.2, speed: 0.2, strength: 3.4, rotX: 45, rotY: 0, rotZ: 0, camDist: 4.4, camAz: 170, camPol: 70, zoom: 1, posY: 0.9, posZ: -0.3,
+          controls: [
+            { label: "Speed", key: "speed", min: 0.05, max: 0.8, step: 0.05 },
+            { label: "Wave height", key: "strength", min: 0.5, max: 6.0, step: 0.2 },
+            { label: "Wave density", key: "density", min: 0.5, max: 3.0, step: 0.1 }
+          ]},
+        { name: "Cosmic", desc: "Holographic nebula", type: "sphere", shader: "cosmic", density: 0.8, speed: 0.3, strength: 0.3, rotX: 0, rotY: 130, rotZ: 70, camDist: 0.5, camAz: 270, camPol: 180, zoom: 15.1, posX: -0.1,
+          controls: [
+            { label: "Speed", key: "speed", min: 0.05, max: 0.8, step: 0.05 },
+            { label: "Shimmer", key: "strength", min: 0.05, max: 0.8, step: 0.05 },
+            { label: "Pattern scale", key: "density", min: 0.3, max: 2.0, step: 0.1 }
+          ]},
+        { name: "Nighty Night", desc: "Dark moody waves", type: "water", shader: "defaults", density: 1.5, speed: 0.3, strength: 0.4, rotX: 50, rotY: 0, rotZ: -60, camDist: 2.8, camAz: 180, camPol: 80, zoom: 9.1,
+          controls: [
+            { label: "Speed", key: "speed", min: 0.05, max: 0.8, step: 0.05 },
+            { label: "Wave height", key: "strength", min: 0.1, max: 2.0, step: 0.1 },
+            { label: "Darkness", key: "density", min: 0.5, max: 3.0, step: 0.1 }
+          ]},
+        { name: "Sunset", desc: "Warm sphere glow", type: "sphere", shader: "defaults", density: 1.1, speed: 0.1, strength: 0.4, rotX: 0, rotY: 0, rotZ: 0, camDist: 7.1, camAz: 60, camPol: 90, zoom: 15.3, posY: -0.15,
+          controls: [
+            { label: "Speed", key: "speed", min: 0.02, max: 0.4, step: 0.02 },
+            { label: "Glow", key: "strength", min: 0.1, max: 1.0, step: 0.05 }
+          ]},
+        { name: "Cotton Candy", desc: "Pastel soft waves", type: "water", shader: "defaults", density: 1, speed: 0.3, strength: 3, rotX: 0, rotY: 0, rotZ: -90, camDist: 2.9, camAz: 180, camPol: 120, zoom: 1, posY: 1.8,
+          controls: [
+            { label: "Speed", key: "speed", min: 0.05, max: 0.8, step: 0.05 },
+            { label: "Wave height", key: "strength", min: 0.5, max: 5.0, step: 0.2 },
+            { label: "Softness", key: "density", min: 0.5, max: 2.5, step: 0.1 }
+          ]},
+        { name: "Glass", desc: "Refractive water", type: "water", shader: "glass", density: 1.2, speed: 0.2, strength: 3.4, rotX: 45, rotY: 0, rotZ: 0, camDist: 4.4, camAz: 170, camPol: 70, zoom: 1, posY: 0.9, posZ: -0.3,
+          controls: [
+            { label: "Speed", key: "speed", min: 0.05, max: 0.6, step: 0.05 },
+            { label: "Refraction", key: "strength", min: 0.5, max: 6.0, step: 0.2 },
+            { label: "Clarity", key: "density", min: 0.5, max: 3.0, step: 0.1 }
+          ]},
+        { name: "Blob", desc: "Wiggly organic shape", type: "sphere", shader: "defaults", density: 1.3, speed: 0.4, strength: 1.5, rotX: 0, rotY: 10, rotZ: 0, camDist: 3.6, camAz: 180, camPol: 90, zoom: 1,
+          controls: [
+            { label: "Speed", key: "speed", min: 0.1, max: 1.0, step: 0.05 },
+            { label: "Wobble", key: "strength", min: 0.3, max: 4.0, step: 0.1 },
+            { label: "Wobble density", key: "density", min: 0.5, max: 3.0, step: 0.1 }
+          ]}
+      ];
+
+      var seControls = document.getElementById("se-controls");
+
+      function makeSlider(parent, label, key, min, max, step, preset) {
+        var wrap = document.createElement("label");
+        wrap.style.cssText = "font-size:10px;color:#666;display:block;margin-bottom:6px;";
+        var input = document.createElement("input");
+        input.type = "range";
+        input.min = min; input.max = max; input.step = step;
+        input.value = preset[key];
+        input.style.cssText = "width:100%;accent-color:#0ae448;height:4px;-webkit-appearance:none;background:#222;border-radius:2px;outline:none;margin-top:4px;";
+        input.dataset.key = key;
+        var valSpan = document.createElement("span");
+        valSpan.style.cssText = "float:right;color:#888;font-family:monospace;";
+        valSpan.textContent = preset[key];
+        input.addEventListener("input", function() {
+          var val = parseFloat(this.value);
+          preset[this.dataset.key] = val;
+          valSpan.textContent = val;
+          if (typeof window._sgUpdateBg === "function") window._sgUpdateBg();
+        });
+        wrap.textContent = label + " ";
+        wrap.appendChild(valSpan);
+        wrap.appendChild(input);
+        parent.appendChild(wrap);
+      }
+
+      function renderBgControls(preset) {
+        seControls.innerHTML = "";
+        if (!preset) return;
+        // Preset-specific controls
+        if (preset.controls) {
+          preset.controls.forEach(function(c) {
+            makeSlider(seControls, c.label, c.key, c.min, c.max, c.step, preset);
+          });
+        }
+        // Camera controls (always shown)
+        var camLabel = document.createElement("div");
+        camLabel.style.cssText = "font-size:9px;color:#444;text-transform:uppercase;letter-spacing:0.1em;margin:10px 0 6px;border-top:1px solid #222;padding-top:8px;";
+        camLabel.textContent = "Camera";
+        seControls.appendChild(camLabel);
+        var isSphere = preset.type === "sphere";
+        if (isSphere) {
+          makeSlider(seControls, "Zoom", "zoom", 1, 20, 0.5, preset);
+        } else {
+          makeSlider(seControls, "Distance", "camDist", 1, 10, 0.2, preset);
+        }
+        makeSlider(seControls, "Angle", "camAz", 0, 360, 5, preset);
+        makeSlider(seControls, "Tilt", "camPol", 30, 170, 5, preset);
+      }
+
+      BG_PRESETS.forEach(function(p, i) {
+        var el = document.createElement("div");
+        el.className = "chip";
+        var dot = i > 0 ? '<span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:#0ae448;margin-right:6px;"></span>' : '';
+        el.innerHTML = '<div><div class="chip-label">' + dot + p.name + '</div><div class="chip-sub">' + p.desc + '</div></div>';
+        el.onclick = function() {
+          chipSel("bg_mode", i, bgOpts);
+          shaderEditor.style.display = i > 0 ? "block" : "none";
+          renderBgControls(i > 0 ? p : null);
+          if (typeof window._sgUpdateBg === "function") window._sgUpdateBg();
+        };
+        bgOpts.appendChild(el);
+      });
+
+      function getBgColors() {
+        if (seUsePal.checked && picks.palette !== null) {
+          var p = PALETTES[picks.palette];
+          return [p.background, p.accent, p.muted];
+        }
+        return [seC1.value, seC2.value, seC3.value];
+      }
+
+      seUsePal.addEventListener("change", function() {
+        if (this.checked && picks.palette !== null) {
+          var p = PALETTES[picks.palette];
+          seC1.value = p.background; seC2.value = p.accent; seC3.value = p.muted;
+        }
+        if (typeof window._sgUpdateBg === "function") window._sgUpdateBg();
+      });
+      [seC1, seC2, seC3].forEach(function(el) {
+        el.addEventListener("input", function() {
+          if (typeof window._sgUpdateBg === "function") window._sgUpdateBg();
+        });
+      });
+
+      function sel(key, idx, container, cls) {
+        container.querySelectorAll(cls || ".opt").forEach(function (c) {
           c.classList.remove("selected");
         });
         container.children[idx].classList.add("selected");
@@ -1509,15 +2064,7 @@
         checkReady();
         renderPreview();
       }
-      function sel(key, idx, container) {
-        container.querySelectorAll(".opt").forEach(function (c) {
-          c.classList.remove("selected");
-        });
-        container.children[idx].classList.add("selected");
-        picks[key] = idx;
-        checkReady();
-        renderPreview();
-      }
+      function chipSel(key, idx, container) { sel(key, idx, container, ".chip"); }
 
       function checkReady() {
         var ready =
@@ -1529,6 +2076,7 @@
           picks.density !== null &&
           picks.depth !== null &&
           picks.easing !== null &&
+          picks.bg_mode !== null;
         document
           .getElementById("fab")
           .classList.toggle("visible", ready && currentPhase === "tune");
@@ -1625,7 +2173,12 @@
         }).join("");
         document.getElementById("sc-scene-grid").innerHTML = sceneHtml;
 
+        // Three.js shader background — rendered by module script, triggered via global hook
+        var _hasBgPreset = picks.bg_mode !== null && picks.bg_mode > 0;
+
         // Scale scene frames — retry until cells have width
+        if (window._scaleRetry) clearTimeout(window._scaleRetry);
+        if (window._scaleScenes) window.removeEventListener("resize", window._scaleScenes);
         function scaleScenes() {
           var allDone = true;
           document.querySelectorAll(".scene-cell").forEach(function(cell) {
@@ -1635,13 +2188,13 @@
             if (cw <= 0) { allDone = false; return; }
             var s = cw / 1920;
             f.style.transform = "scale(" + s + ")";
-            f.style.background = bg;
-            console.log("scene scale:", s.toFixed(3), "cell:", cw + "x" + cell.offsetHeight, "frame visual:", Math.round(1920*s) + "x" + Math.round(1080*s));
+            f.style.background = _hasBgPreset ? "transparent" : bg;
           });
-          if (!allDone) setTimeout(scaleScenes, 50);
+          if (!allDone) window._scaleRetry = setTimeout(scaleScenes, 50);
+          else if (typeof window._sgUpdateBg === "function") window._sgUpdateBg();
         }
-        setTimeout(scaleScenes, 100);
-        window.removeEventListener("resize", scaleScenes);
+        window._scaleScenes = scaleScenes;
+        window._scaleRetry = setTimeout(scaleScenes, 100);
         window.addEventListener("resize", scaleScenes);
 
         // ── Motion ──
@@ -1654,7 +2207,8 @@
         easePreview.innerHTML = '<div class="ease-preview-track"><div class="ease-preview-dot" id="sc-ease-dot" style="background:' + ac + ';"></div></div>';
         if (easeObj && typeof gsap !== "undefined") {
           var dot = document.getElementById("sc-ease-dot");
-          var currentEase = easeObj.value;
+          var isCustom = easeObj.value.indexOf("M") === 0;
+          var currentEase = isCustom ? "_pickerCustom" : easeObj.value;
           function animateDot() {
             window._easeDotTween = gsap.fromTo(dot, { left: 10 }, { left: "calc(100% - 34px)", duration: 1.2, ease: currentEase, delay: 0.5, onComplete: function() {
               window._easeDotReturn = gsap.to(dot, { left: 10, duration: 1.2, ease: currentEase, delay: 0.5, onComplete: animateDot });
@@ -1689,135 +2243,139 @@
       }
 
       // ── Output ──
+      // GLSL accessed via window._sgShaders (set by the module script)
+
       function showOutput() {
-        if (
-          picks.theme === null ||
-          picks.arch === null ||
-          picks.palette === null ||
-          picks.type === null ||
-          picks.corners === null ||
-          picks.density === null ||
-          picks.depth === null
-        )
-          return;
-        var a = ARCHITECTURES[picks.arch],
-          p = PALETTES[picks.palette],
-          t = TYPEPAIRS[picks.type];
-        var th = THEMES[picks.theme],
-          cr = CORNERS[picks.corners],
-          dn = DENSITIES[picks.density],
-          dp = DEPTHS[picks.depth];
+        if (picks.theme === null || picks.arch === null || picks.palette === null || picks.type === null || picks.corners === null || picks.density === null || picks.depth === null) return;
+        var a = ARCHITECTURES[picks.arch], p = PALETTES[picks.palette], t = TYPEPAIRS[picks.type];
+        var th = THEMES[picks.theme], cr = CORNERS[picks.corners], dn = DENSITIES[picks.density], dp = DEPTHS[picks.depth];
         var bg = th.id === "palette" && p.background ? p.background : th.bg;
         var fg = th.id === "palette" && p.foreground ? p.foreground : th.fg;
-        var ac = p.accent,
-          mt = p.muted || p.mid || "#888";
+        var ac = p.accent, mt = p.muted || p.mid || "#888";
         var padVal = { Tight: "8px", Normal: "16px", Generous: "32px" }[dn.name] || "16px";
         var gapVal = { Tight: "8px", Normal: "16px", Generous: "28px" }[dn.name] || "16px";
-
         var easeObj = picks.easing !== null ? EASINGS[picks.easing] : null;
         var isDark = bg && bg[0] === "#" ? parseInt(bg.slice(1, 3), 16) < 80 : true;
 
-        // ── YAML frontmatter ──
-        var md = "---\n";
-        md += "name: " + ((PROMPT && PROMPT.title) || "Untitled") + "\n";
-        md += "colors:\n";
-        md += '  canvas: "' + bg + '"\n';
-        md += '  text: "' + fg + '"\n';
-        md += '  accent: "' + ac + '"\n';
-        md += '  muted: "' + mt + '"\n';
-        md += "typography:\n";
-        md += "  hero:\n    fontFamily: " + t.headline.family + "\n    fontWeight: " + t.headline.weight + "\n";
-        md += "  body:\n    fontFamily: " + t.body.family + "\n    fontWeight: " + t.body.weight + "\n";
-        md += "rounded:\n  md: " + cr.value + "\n";
-        md += "spacing:\n  scene-padding: " + padVal + "\n  element-gap: " + gapVal + "\n";
-        if (easeObj) md += "motion:\n  easing: " + easeObj.value + "\n  energy: " + easeObj.name.toLowerCase() + "\n";
-        md += "---\n\n";
-
-        // ── Overview ──
-        md += "## Overview\n\n";
-        md += (a.mood || "") + " " + (a.description || "") + ".\n\n";
-        md += "**Canvas:** " + (isDark ? "Dark" : "Light") + " (`" + bg + "`). ";
-        md += "**Accent:** `" + ac + "` — the single color that does the brand work. ";
-        md += "**Type:** " + t.headline.family + " for headlines, " + t.body.family + " for body.\n\n";
-
-        // ── Palette ──
-        md += "## Palette\n\n";
-        md += "- **Canvas** (`" + bg + "`) — The frame background. Every scene starts here.\n";
-        md += "- **Text** (`" + fg + "`) — Primary readable text" + (isDark ? ". Not pure white — tinted slightly toward the accent hue" : "") + ".\n";
-        md += "- **Accent** (`" + ac + "`) — Hero stats, key headlines, dividers, focal elements. This is the only color that draws the eye. Use it scarcely — its power comes from restraint.\n";
-        md += "- **Muted** (`" + mt + "`) — Captions, labels, secondary text, overlines. Should pass WCAG AA on the canvas.\n";
-        md += "\n**Accent discipline:** Accent appears on exactly the element the viewer should remember from each scene. If every element uses accent, none of them stand out.\n\n";
-
-        // ── Typography ──
-        md += "## Typography\n\n";
-        md += "| Role | Font | Weight | Video Size | Use |\n";
-        md += "|---|---|---|---|---|\n";
-        md += "| Hero/Slam | " + t.headline.family + " | " + t.headline.weight + " | 80–140px | The biggest text on screen. Slam entrances, hero stats, title cards |\n";
-        md += "| Section | " + t.headline.family + " | " + t.headline.weight + " | 48–72px | Scene headlines, pull quotes, key statements |\n";
-        md += "| Body | " + t.body.family + " | " + t.body.weight + " | 24–36px | Readable text that stays on screen 3+ seconds |\n";
-        md += "| Label | " + t.body.family + " | " + t.body.weight + " | 14–20px | Overlines, captions, metadata, attribution. Uppercase with 0.1–0.2em tracking |\n";
-        md += "| Data | " + t.body.family + " | " + t.headline.weight + " | 48–96px | Numbers, stats, counters. `font-variant-numeric: tabular-nums` |\n";
-        md += "\n**Weight contrast:** Headlines at " + t.headline.weight + ", body at " + t.body.weight + " — ";
+        // ── Build design.html ──
         var wDiff = parseInt(t.headline.weight) - parseInt(t.body.weight);
-        md += (wDiff >= 400 ? "extreme contrast, reads clearly in motion" : wDiff >= 200 ? "clear contrast" : "subtle contrast — consider increasing headline weight for video") + ".\n";
-        md += "\n**Case:** Labels and overlines should be uppercase with wide letter-spacing. Headlines can be either — match the brand energy.\n\n";
+        var bgpObj = (picks.bg_mode > 0 && BG_PRESETS[picks.bg_mode]) ? BG_PRESETS[picks.bg_mode] : null;
+        var bgColors = bgpObj ? getBgColors() : [];
 
-        // ── Surface & Depth ──
-        md += "## Surface & Depth\n\n";
-        md += "- **Elevation:** " + dp.name + " — " + dp.desc + ".\n";
-        md += "- **Corners:** " + cr.name + " (" + cr.value + ") on all containers, cards, and buttons.\n";
-        if (isDark) {
-          md += "- **Background layer:** " + (dn.name === "Tight" ? "Dense — grid patterns, data textures, structural elements" : dn.name === "Generous" ? "Atmospheric — radial glows, ghost text, subtle grain" : "Moderate — 1-2 decorative elements for depth") + ".\n";
-        } else {
-          md += "- **Background layer:** Light canvases need texture to avoid the blank-slide feel. Subtle grain, dot grid, or faint structural lines.\n";
+        var spec = {
+          name: (PROMPT && PROMPT.title) || "Untitled",
+          palette: { canvas: bg, text: fg, accent: ac, muted: mt },
+          typography: {
+            headline: { family: t.headline.family, weight: t.headline.weight },
+            body: { family: t.body.family, weight: t.body.weight }
+          },
+          surface: { corners: cr.value, elevation: dp.name, padding: padVal, gap: gapVal, shadow: dp.name === "Flat" ? "none" : "0 2px 12px rgba(0,0,0,0.08)" },
+          motion: easeObj ? { easing: easeObj.value, energy: easeObj.name.toLowerCase(), desc: easeObj.desc } : null,
+          background: bgpObj ? {
+            preset: bgpObj.name, type: bgpObj.type, shader: bgpObj.shader,
+            fragmentShader: bgpObj.fragmentShader || null,
+            colors: bgColors, density: bgpObj.density, speed: bgpObj.speed, strength: bgpObj.strength,
+            rotation: [bgpObj.rotX, bgpObj.rotY, bgpObj.rotZ],
+            camera: { distance: bgpObj.camDist, azimuth: bgpObj.camAz, polar: bgpObj.camPol, zoom: bgpObj.zoom || 1 },
+            position: [bgpObj.posX || 0, bgpObj.posY || 0, bgpObj.posZ || 0]
+          } : null,
+          structure: { name: a.name, tag: a.tag || "", mood: a.mood || "", description: a.description || "" },
+          density: { level: dn.name, desc: dn.desc },
+          dos: [
+            "Use accent (" + ac + ") for exactly the element the viewer should remember",
+            "Maintain " + cr.name.toLowerCase() + " corners (" + cr.value + ") on every container",
+            "Keep headline weight at " + t.headline.weight,
+            "Use " + t.body.family + " for all readable body text",
+            "Tint neutrals toward the accent hue"
+          ],
+          donts: [
+            "Don't introduce a second accent color",
+            "Don't use accent for background fills or large surfaces",
+            "Don't use body text under 24px in video compositions",
+            "Don't use the same entrance animation on every element",
+            isDark ? "Don't use pure #000 for canvas or pure #fff for text" : "Don't leave light backgrounds untextured"
+          ]
+        };
+
+        var h = '<!doctype html>\n<html lang="en">\n<head>\n';
+        h += '<meta charset="UTF-8">\n';
+        h += '<title>Design System — ' + spec.name + '</title>\n';
+        h += '<link rel="preconnect" href="https://fonts.googleapis.com">\n';
+        h += '<link href="https://fonts.googleapis.com/css2?family=' + t.headline.family.replace(/ /g,'+') + ':wght@' + t.headline.weight + '&family=' + t.body.family.replace(/ /g,'+') + ':wght@' + t.body.weight + '&display=swap" rel="stylesheet">\n';
+        h += '<style>\n:root {\n';
+        h += '  --bg: ' + bg + ';\n  --fg: ' + fg + ';\n  --accent: ' + ac + ';\n  --muted: ' + mt + ';\n';
+        h += '  --font-headline: "' + t.headline.family + '", serif;\n  --font-headline-weight: ' + t.headline.weight + ';\n';
+        h += '  --font-body: "' + t.body.family + '", sans-serif;\n  --font-body-weight: ' + t.body.weight + ';\n';
+        h += '  --corner-radius: ' + cr.value + ';\n  --padding: ' + padVal + ';\n  --gap: ' + gapVal + ';\n';
+        h += '  --shadow: ' + spec.surface.shadow + ';\n';
+        if (easeObj) h += '  --easing: ' + easeObj.value + ';\n';
+        h += '}\n';
+        h += 'body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-weight:var(--font-body-weight);}\n';
+        h += '</style>\n';
+        if (bgpObj) {
+          h += '<script src="https://cdn.jsdelivr.net/npm/gsap@3.14.2/dist/gsap.min.js"><\/script>\n';
+          h += '<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js"}}<\/script>\n';
         }
-        md += "- **Container treatment:** " + (dp.name === "Flat" ? "No shadows. Color-block separation only — contrast between canvas and content surfaces." : dp.name.indexOf("Subtle") >= 0 ? "Light shadows on elevated elements. Keep them small and tight." : "Visible shadows and glow on focal elements.") + "\n\n";
+        h += '</head>\n<body>\n\n';
 
-        // ── Motion Personality ──
-        md += "## Motion\n\n";
-        if (easeObj) {
-          md += "- **Entry easing:** `" + easeObj.value + "` — " + easeObj.desc + ". This is the brand's kinetic signature.\n";
-          md += "- **Energy:** " + easeObj.name + ".\n";
+        // Machine-readable spec
+        h += '<script type="application/json" id="design-spec">\n';
+        h += JSON.stringify(spec, null, 2) + '\n';
+        h += '<\/script>\n\n';
+
+        // Shader background module (if selected)
+        if (bgpObj) {
+          h += '<!-- Working Three.js shader background — copy this script into compositions -->\n';
+          h += '<canvas id="design-bg" style="position:fixed;inset:0;width:100%;height:100%;z-index:-1;"><\/canvas>\n';
+          h += '<script type="module" id="design-background">\n';
+          h += 'import * as THREE from "three";\n';
+          h += 'const spec = JSON.parse(document.getElementById("design-spec").textContent);\n';
+          h += 'const bg = spec.background;\n';
+          h += 'if (bg) {\n';
+          h += '  const canvas = document.getElementById("design-bg");\n';
+          h += '  const renderer = new THREE.WebGLRenderer({canvas, antialias:true, alpha:true});\n';
+          h += '  renderer.setPixelRatio(Math.min(devicePixelRatio, 2));\n';
+          h += '  const scene = new THREE.Scene();\n';
+          h += '  const camera = new THREE.PerspectiveCamera(45, innerWidth/innerHeight, 0.1, 100);\n';
+          h += '  const isSphere = bg.type === "sphere";\n';
+          h += '  const dist = isSphere ? 14 : bg.camera.distance;\n';
+          h += '  const az = bg.camera.azimuth * Math.PI / 180;\n';
+          h += '  const pol = bg.camera.polar * Math.PI / 180;\n';
+          h += '  camera.position.set(dist*Math.sin(pol)*Math.sin(az), dist*Math.cos(pol), dist*Math.sin(pol)*Math.cos(az));\n';
+          h += '  camera.lookAt(0,0,0);\n';
+          h += '  camera.zoom = isSphere ? bg.camera.zoom : 1;\n';
+          h += '  camera.updateProjectionMatrix();\n';
+          h += '  scene.add(new THREE.AmbientLight(0xffffff, 0.6));\n';
+          h += '  const dl = new THREE.DirectionalLight(0xffffff, 0.8); dl.position.set(5,5,5); scene.add(dl);\n\n';
+
+          // Vertex shader
+          var _sg = window._sgShaders || {};
+          h += '  const vertexShader = `' + (_sg.vertex || '') + '`;\n\n';
+
+          var fragSrc = bgpObj.fragmentShader || (_sg[bgpObj.shader]) || (_sg.defaults) || '';
+          h += '  const fragmentShader = `' + fragSrc.replace(/`/g, '\\`') + '`;\n';
+
+          h += '\n  const uniforms = {\n';
+          h += '    uTime:{value:0}, uSpeed:{value:' + bgpObj.speed + '}, uDensity:{value:' + bgpObj.density + '}, uStrength:{value:' + bgpObj.strength + '},\n';
+          h += '    uColor1:{value:new THREE.Color("' + bgColors[0] + '")},\n';
+          h += '    uColor2:{value:new THREE.Color("' + bgColors[1] + '")},\n';
+          h += '    uColor3:{value:new THREE.Color("' + bgColors[2] + '")}\n';
+          h += '  };\n';
+          h += '  const material = new THREE.ShaderMaterial({vertexShader, fragmentShader, uniforms, side:THREE.DoubleSide});\n';
+          h += '  const geometry = isSphere ? new THREE.SphereGeometry(1,256,256) : new THREE.PlaneGeometry(10,10,128,128);\n';
+          h += '  const mesh = new THREE.Mesh(geometry, material);\n';
+          h += '  mesh.rotation.set(' + (bgpObj.rotX*Math.PI/180).toFixed(3) + ',' + (bgpObj.rotY*Math.PI/180).toFixed(3) + ',' + (bgpObj.rotZ*Math.PI/180).toFixed(3) + ');\n';
+          h += '  mesh.position.set(' + (bgpObj.posX||0) + ',' + (bgpObj.posY||0) + ',' + (bgpObj.posZ||0) + ');\n';
+          h += '  scene.add(mesh);\n\n';
+          h += '  function animate(){const t=performance.now()*0.001;renderer.setSize(innerWidth,innerHeight,false);camera.aspect=innerWidth/innerHeight;camera.updateProjectionMatrix();uniforms.uTime.value=t;renderer.render(scene,camera);requestAnimationFrame(animate);}\n';
+          h += '  animate();\n';
+          h += '}\n';
+          h += '<\/script>\n\n';
         }
-        md += "- **Hero entrances:** " + (easeObj && easeObj.name === "Snappy" ? "`expo.out` slam — fast start, crisp stop. The viewer should feel the impact." : easeObj && easeObj.name === "Gentle" ? "`sine.inOut` float — soft acceleration, everything breathes." : easeObj && easeObj.name === "Bouncy" ? "`back.out` with overshoot — playful, energetic, things pop into place." : "`power3.out` — confident arrival, smooth deceleration.") + "\n";
-        md += "- **Stagger:** Overlap entries — don't wait for one element to finish before the next starts. Total stagger sequence under 500ms regardless of element count.\n";
-        md += "- **Ambient motion:** " + (dn.name === "Tight" ? "Active — background elements drift, pulse, or rotate continuously." : dn.name === "Generous" ? "Selective — one ambient motion per scene. Stillness between scenes is intentional." : "Moderate — decoratives breathe, content stays put.") + "\n";
-        md += "- **Number presentation:** " + (easeObj && (easeObj.name === "Snappy" || easeObj.name === "Sharp") ? "Count-up or slam — numbers are events, not static text." : "Fade-in or type-on — numbers appear calmly.") + "\n\n";
 
-        // ── Transitions ──
-        md += "## Transitions\n\n";
-        md += "- **Primary (60-70% of scene changes):** " + (easeObj && easeObj.name === "Gentle" ? "Blur crossfade, 0.5-0.7s — scenes melt into each other." : easeObj && (easeObj.name === "Snappy" || easeObj.name === "Sharp") ? "Velocity-matched upward, 0.3-0.4s — content exits accelerating up with blur, new content enters decelerating from below." : "Push slide or velocity-matched, 0.3-0.5s.") + "\n";
-        md += "- **Accent (1-2 key moments):** " + (easeObj && (easeObj.name === "Snappy" || easeObj.name === "Sharp") ? "Shader transition (cinematic zoom or glitch) for the peak/hero moment." : "Shader transition (cross-warp morph or thermal distortion) for emphasis.") + "\n";
-        md += "- **Scene rhythm:** Vary transition types by narrative position. Opening scenes can use harder cuts; emotional peaks earn shader transitions; the closing should feel resolved.\n\n";
+        h += '</body>\n</html>';
 
-        // ── Composition ──
-        md += "## Composition\n\n";
-        md += "- **Structure:** " + a.name + " — " + (a.tag || "") + ".\n";
-        md += "- **Density:** " + dn.name + " — " + dn.desc + ". " + (dn.name === "Tight" ? "Scenes earn their density through content, not decoration." : dn.name === "Generous" ? "Negative space is a feature. Not every scene needs filling." : "Balance content with breathing room.") + "\n";
-        md += "- **Text on screen:** At video pace, viewers read ~1 word per second. A 5-second scene holds ~5 readable words. Everything else is decorative or atmospheric — visible but not meant to be read.\n";
-        md += "- **Accent placement:** The accent-colored element should be the first thing the eye lands on in every scene. If nothing uses accent, the scene has no focal point.\n\n";
-
-        // ── Restrictions ──
-        md += "## Do's and Don'ts\n\n";
-        if (a.dos) {
-          md += a.dos + "\n";
-        } else {
-          md += "### Do\n";
-          md += "- Use accent (`" + ac + "`) for exactly the element the viewer should remember\n";
-          md += "- Maintain " + cr.name.toLowerCase() + " corners (" + cr.value + ") on every container\n";
-          md += "- Keep headline weight at " + t.headline.weight + " — don't soften it for video\n";
-          md += "- Use `" + t.body.family + "` for all readable body text\n";
-          md += "- Tint neutrals toward the accent hue — dead gray reads as undesigned\n\n";
-          md += "### Don't\n";
-          md += "- Don't introduce a second accent color — the single-accent rule is load-bearing\n";
-          md += "- Don't use accent for background fills or large surfaces — it's for focal points only\n";
-          md += "- Don't use body text under 24px in video compositions\n";
-          md += "- Don't use the same entrance animation on every element in a scene\n";
-          md += (isDark ? "- Don't use pure #000 for canvas or pure #fff for text — tint both\n" : "- Don't leave light backgrounds untextured — add subtle grain or pattern\n");
-          md += "- Don't add decorative elements that don't serve the scene's emotional beat\n";
-        }
-
-        document.getElementById("md-output").value = md;
+        document.getElementById("md-output").value = h;
         document.getElementById("md-overlay").classList.add("visible");
       }
 
@@ -1829,6 +2387,188 @@
           }, 2000);
         });
       });
+    </script>
+
+    <!-- Three.js shader gradient backgrounds (ES module) -->
+    <script type="module">
+    import * as THREE from 'three';
+
+    const vertexShader = `
+vec3 mod289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 mod289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 permute(vec4 x){return mod289(((x*34.0)+1.0)*x);}
+vec4 taylorInvSqrt(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+vec3 fade(vec3 t){return t*t*t*(t*(t*6.0-15.0)+10.0);}
+float cnoise(vec3 P){vec3 Pi0=floor(P);vec3 Pi1=Pi0+vec3(1.0);Pi0=mod289(Pi0);Pi1=mod289(Pi1);vec3 Pf0=fract(P);vec3 Pf1=Pf0-vec3(1.0);vec4 ix=vec4(Pi0.x,Pi1.x,Pi0.x,Pi1.x);vec4 iy=vec4(Pi0.yy,Pi1.yy);vec4 iz0=Pi0.zzzz;vec4 iz1=Pi1.zzzz;vec4 ixy=permute(permute(ix)+iy);vec4 ixy0=permute(ixy+iz0);vec4 ixy1=permute(ixy+iz1);vec4 gx0=ixy0*(1.0/7.0);vec4 gy0=fract(floor(gx0)*(1.0/7.0))-0.5;gx0=fract(gx0);vec4 gz0=vec4(0.5)-abs(gx0)-abs(gy0);vec4 sz0=step(gz0,vec4(0.0));gx0-=sz0*(step(0.0,gx0)-0.5);gy0-=sz0*(step(0.0,gy0)-0.5);vec4 gx1=ixy1*(1.0/7.0);vec4 gy1=fract(floor(gx1)*(1.0/7.0))-0.5;gx1=fract(gx1);vec4 gz1=vec4(0.5)-abs(gx1)-abs(gy1);vec4 sz1=step(gz1,vec4(0.0));gx1-=sz1*(step(0.0,gx1)-0.5);gy1-=sz1*(step(0.0,gy1)-0.5);vec3 g000=vec3(gx0.x,gy0.x,gz0.x);vec3 g100=vec3(gx0.y,gy0.y,gz0.y);vec3 g010=vec3(gx0.z,gy0.z,gz0.z);vec3 g110=vec3(gx0.w,gy0.w,gz0.w);vec3 g001=vec3(gx1.x,gy1.x,gz1.x);vec3 g101=vec3(gx1.y,gy1.y,gz1.y);vec3 g011=vec3(gx1.z,gy1.z,gz1.z);vec3 g111=vec3(gx1.w,gy1.w,gz1.w);vec4 norm0=taylorInvSqrt(vec4(dot(g000,g000),dot(g010,g010),dot(g100,g100),dot(g110,g110)));g000*=norm0.x;g010*=norm0.y;g100*=norm0.z;g110*=norm0.w;vec4 norm1=taylorInvSqrt(vec4(dot(g001,g001),dot(g011,g011),dot(g101,g101),dot(g111,g111)));g001*=norm1.x;g011*=norm1.y;g101*=norm1.z;g111*=norm1.w;float n000=dot(g000,Pf0);float n100=dot(g100,vec3(Pf1.x,Pf0.yz));float n010=dot(g010,vec3(Pf0.x,Pf1.y,Pf0.z));float n110=dot(g110,vec3(Pf1.xy,Pf0.z));float n001=dot(g001,vec3(Pf0.xy,Pf1.z));float n101=dot(g101,vec3(Pf1.x,Pf0.y,Pf1.z));float n011=dot(g011,vec3(Pf0.x,Pf1.yz));float n111=dot(g111,Pf1);vec3 fade_xyz=fade(Pf0);vec4 n_z=mix(vec4(n000,n100,n010,n110),vec4(n001,n101,n011,n111),fade_xyz.z);vec2 n_yz=mix(n_z.xy,n_z.zw,fade_xyz.y);return 2.2*mix(n_yz.x,n_yz.y,fade_xyz.x);}
+varying vec3 vPos;varying vec3 vNormal;varying vec3 vViewPos;
+uniform float uTime;uniform float uSpeed;uniform float uDensity;uniform float uStrength;
+void main(){
+  vNormal=normalize(normalMatrix*normal);
+  float t=uTime*uSpeed;
+  vec3 noisePos=0.43*position*uDensity;
+  float distortion=0.75*cnoise(noisePos+t);
+  vec3 pos=position+normal*distortion*uStrength;
+  vPos=pos;
+  vec4 mvPos=modelViewMatrix*vec4(pos,1.0);
+  vViewPos=mvPos.xyz;
+  gl_Position=projectionMatrix*mvPos;
+}`;
+
+    const FRAG_DEFAULTS = `varying vec3 vPos;varying vec3 vNormal;varying vec3 vViewPos;uniform vec3 uColor1;uniform vec3 uColor2;uniform vec3 uColor3;
+void main(){
+  vec3 base=mix(mix(uColor1,uColor2,smoothstep(-3.0,3.0,vPos.x)),uColor3,smoothstep(-2.0,2.0,vPos.z));
+  vec3 n=normalize(vNormal);vec3 v=normalize(-vViewPos);
+  vec3 l1=normalize(vec3(1,1,0.5));vec3 l2=normalize(vec3(-0.5,0.3,1));vec3 l3=normalize(vec3(0,-1,0.3));
+  float diff=max(dot(n,l1),0.0)*0.25+max(dot(n,l2),0.0)*0.15+max(dot(n,l3),0.0)*0.1;
+  float spec=pow(max(dot(n,normalize(l1+v)),0.0),64.0)*0.25+pow(max(dot(n,normalize(l2+v)),0.0),48.0)*0.15;
+  float fresnel=pow(1.0-max(dot(n,v),0.0),4.0);
+  vec3 col=base*(0.65+diff)+vec3(spec)+mix(base,vec3(1),0.3)*fresnel*0.2;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+    const FRAG_COSMIC = `varying vec3 vPos;varying vec3 vNormal;varying vec3 vViewPos;uniform vec3 uColor1;uniform vec3 uColor2;uniform vec3 uColor3;uniform float uTime;uniform float uSpeed;
+float hash(vec2 p){return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453123);}
+float noise2D(vec2 p){vec2 i=floor(p);vec2 f=fract(p);vec2 u=f*f*(3.0-2.0*f);return mix(mix(hash(i),hash(i+vec2(1,0)),u.x),mix(hash(i+vec2(0,1)),hash(i+vec2(1,1)),u.x),u.y);}
+void main(){
+  float t=uTime*uSpeed;vec3 n=normalize(vNormal);vec3 v=normalize(-vViewPos);
+  float i1=sin(vPos.x*20.0+t*3.0)*cos(vPos.y*15.0+t*2.0);
+  float i2=sin(vPos.x*35.0+t*4.0)*sin(vPos.y*30.0+t*3.5);
+  float i3=cos(vPos.x*50.0+t*5.0)*cos(vPos.y*45.0+t*4.5);
+  float holo=(i1+i2*0.5+i3*0.25)/1.75;
+  float shimmer=noise2D(vPos.xy*40.0+t*2.0)*0.3;float glow=noise2D(vPos.xy*8.0+t*0.5)*0.5;
+  vec3 shift=vec3(sin(vPos.x*10.0+t*2.0)*0.1,sin(vPos.x*10.0+t*2.0+2.094)*0.1,sin(vPos.x*10.0+t*2.0+4.188)*0.1);
+  float gx=smoothstep(-4.0,4.0,vPos.x+holo*2.0);
+  vec3 col=mix(mix(uColor1,uColor2,gx),uColor3,smoothstep(-2.0,2.0,vPos.z)*0.7);
+  col+=shift+vec3(glow*0.15,shimmer*0.1,(glow+shimmer)*0.08);
+  float irid=sin(vPos.x*25.0+t*3.0)*cos(vPos.y*20.0+t*2.5)*0.08;
+  col+=vec3(irid*0.2,irid*0.3,irid*0.4);
+  vec3 l1=normalize(vec3(1,1,0.5));vec3 l2=normalize(vec3(-0.5,0.3,1));
+  float diff=max(dot(n,l1),0.0)*0.2+max(dot(n,l2),0.0)*0.12;
+  float spec=pow(max(dot(n,normalize(l1+v)),0.0),64.0)*0.3+pow(max(dot(n,normalize(l2+v)),0.0),48.0)*0.15;
+  float fresnel=pow(1.0-max(dot(n,v),0.0),4.0);
+  col=col*(0.7+diff)+vec3(spec)+mix(col,vec3(1),0.3)*fresnel*0.25;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+    const FRAG_GLASS = `varying vec3 vPos;varying vec3 vNormal;varying vec3 vViewPos;uniform vec3 uColor1;uniform vec3 uColor2;uniform vec3 uColor3;
+void main(){
+  vec3 base=mix(mix(uColor1,uColor2,smoothstep(-3.0,3.0,vPos.x)),uColor3,smoothstep(-2.0,2.0,vPos.z));
+  vec3 n=normalize(vNormal);vec3 v=normalize(-vViewPos);
+  float fresnel=pow(1.0-max(dot(n,v),0.0),3.0);
+  vec3 l1=normalize(vec3(1,1,0.5));vec3 l2=normalize(vec3(-0.5,0.3,1));
+  float diff=max(dot(n,l1),0.0)*0.15+max(dot(n,l2),0.0)*0.1;
+  float spec=pow(max(dot(n,normalize(l1+v)),0.0),128.0)*0.5+pow(max(dot(n,normalize(l2+v)),0.0),96.0)*0.25;
+  vec3 col=mix(base,base*0.85+vec3(0.08),fresnel*0.6);
+  col=col*(0.75+diff)+vec3(spec)+mix(base,vec3(1),0.4)*fresnel*0.25;
+  gl_FragColor=vec4(col,1.0);
+}`;
+
+    const FRAGS = { defaults: FRAG_DEFAULTS, cosmic: FRAG_COSMIC, glass: FRAG_GLASS };
+    window._sgShaders = { vertex: vertexShader, defaults: FRAG_DEFAULTS, cosmic: FRAG_COSMIC, glass: FRAG_GLASS };
+
+    function degToRad(d) { return d * Math.PI / 180; }
+
+    let activeRenderers = [];
+
+    function destroyRenderers() {
+      activeRenderers.forEach(r => { r.renderer.dispose(); r.renderer.forceContextLoss(); });
+      activeRenderers = [];
+    }
+
+    let _sgDebounce = null;
+    window._sgUpdateBg = function() {
+      clearTimeout(_sgDebounce);
+      _sgDebounce = setTimeout(_sgUpdateBgNow, 80);
+    };
+    function _sgUpdateBgNow() {
+      destroyRenderers();
+      const bgMode = window.picks ? window.picks.bg_mode : 0;
+      if (!bgMode || bgMode <= 0) return;
+      const preset = window.BG_PRESETS ? window.BG_PRESETS[bgMode] : null;
+      if (!preset || !preset.type) return;
+
+      const colors = window.getBgColors ? window.getBgColors() : ["#ffffff","#888888","#444444"];
+      const cells = document.querySelectorAll('.scene-cell');
+      if (cells.length === 0) return;
+
+      cells.forEach(cell => {
+        cell.querySelectorAll('canvas.sg-bg').forEach(c => c.remove());
+
+        const canvas = document.createElement('canvas');
+        canvas.className = 'sg-bg';
+        canvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;z-index:0;pointer-events:none;';
+        cell.insertBefore(canvas, cell.firstChild);
+
+        const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
+
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(45, 16/9, 0.1, 100);
+
+        const isSphere = preset.type === 'sphere';
+        const dist = isSphere ? 14 : preset.camDist;
+        const az = degToRad(preset.camAz);
+        const pol = degToRad(preset.camPol);
+        camera.position.set(dist*Math.sin(pol)*Math.sin(az), dist*Math.cos(pol), dist*Math.sin(pol)*Math.cos(az));
+        camera.lookAt(0, 0, 0);
+        camera.zoom = isSphere ? (preset.zoom || 1) : 1;
+        camera.updateProjectionMatrix();
+
+        scene.add(new THREE.AmbientLight(0xffffff, 0.6));
+        const dir = new THREE.DirectionalLight(0xffffff, 0.8);
+        dir.position.set(5, 5, 5);
+        scene.add(dir);
+
+        const frag = preset.fragmentShader || FRAGS[preset.shader] || FRAG_DEFAULTS;
+        const uniforms = {
+          uTime: { value: 0 },
+          uSpeed: { value: preset.speed },
+          uDensity: { value: preset.density },
+          uStrength: { value: preset.strength },
+          uColor1: { value: new THREE.Color(colors[0]) },
+          uColor2: { value: new THREE.Color(colors[1]) },
+          uColor3: { value: new THREE.Color(colors[2]) }
+        };
+
+        const material = new THREE.ShaderMaterial({ vertexShader, fragmentShader: frag, uniforms, side: THREE.DoubleSide });
+
+        let geometry;
+        if (isSphere) geometry = new THREE.SphereGeometry(1, 256, 256);
+        else geometry = new THREE.PlaneGeometry(10, 10, 128, 128);
+
+        const mesh = new THREE.Mesh(geometry, material);
+        mesh.rotation.set(degToRad(preset.rotX), degToRad(preset.rotY), degToRad(preset.rotZ));
+        mesh.position.set(preset.posX || 0, preset.posY || 0, preset.posZ || 0);
+        scene.add(mesh);
+
+        const frame = cell.querySelector('.scene-frame');
+        if (frame) {
+          frame.style.background = 'transparent';
+          const root = frame.querySelector(':scope > div');
+          if (root) root.style.background = 'transparent';
+        }
+
+        activeRenderers.push({ renderer, scene, camera, uniforms, canvas });
+      });
+
+      if (!window._sgAnimating) {
+        window._sgAnimating = true;
+        function animate() {
+          const t = performance.now() * 0.001;
+          activeRenderers.forEach(s => {
+            const w = s.canvas.offsetWidth, h = s.canvas.offsetHeight;
+            if (w <= 0) return;
+            s.renderer.setSize(w, h, false);
+            s.camera.aspect = w / h;
+            s.camera.updateProjectionMatrix();
+            s.uniforms.uTime.value = t;
+            s.renderer.render(s.scene, s.camera);
+          });
+          requestAnimationFrame(animate);
+        }
+        animate();
+      }
+    };
     </script>
   </body>
 </html>

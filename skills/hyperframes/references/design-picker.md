@@ -29,29 +29,173 @@ Before generating anything, answer these questions about the specific brief:
 
 ### Step 2: Verbalized sampling
 
-Generate concepts from genuinely different reasoning paths. For each board, note which path produced it:
+Generate 9 video concepts for the brief using chain-of-thought reasoning.
 
-- **From the subject** — what is the visual world of this specific thing?
-- **From the emotion** — what does the target feeling look like as a layout?
-- **From the audience** — what does this viewer expect? What would surprise them?
-- **From the anti-pattern** — what does every competitor do? Do the opposite.
-- **From an unusual format** — a letter, a recipe, a countdown, a newspaper, a Q&A, a map, a poem. What non-video format could this content take?
+First, produce a single `reasoning` field — a string containing your step-by-step thought process through five genuinely different paths:
 
-**Rate each concept** as HIGH (every agent produces this), MID (some agents would), or LOW (most agents wouldn't). Keep at least 3 LOW boards. If you don't have 3 that make you uncomfortable, you haven't pushed far enough.
+1. **From the subject** — what is the visual world of this specific thing?
+2. **From the emotion** — what does the target feeling look like as a layout?
+3. **From the audience** — what does this viewer expect? What would surprise them?
+4. **From the anti-pattern** — what does every competitor do? Do the opposite.
+5. **From an unusual format** — a letter, a recipe, a countdown, a newspaper, a Q&A, a map, a poem. What non-video format could this content take?
 
-**Anti-mode-collapse check:** After generating all 9, verify no two boards share the same layout wireframe. Draw the bounding boxes of major elements — if two boards produce the same silhouette, replace one.
+Then return the concepts as JSON:
+
+```json
+{
+  "reasoning": "Step-by-step thought process through all 5 paths, generating 9 concepts from them...",
+  "responses": [
+    {
+      "text": "Video concept with layout wireframe description and silhouette of major elements",
+      "probability": 0.35
+    },
+    {
+      "text": "...",
+      "probability": 0.07
+    }
+  ]
+}
+```
+
+9 entries in `responses`. Each `text` describes the video concept including layout wireframe and silhouette of major elements. No extra explanation.
+
+Each `probability` is the estimated probability (0.0–1.0) of this response given the input prompt, relative to the full distribution.
+
+**Sample from the tails:** at least 3 of the 9 concepts MUST have probability < 0.10. These are the rare, unexpected directions that prevent mode collapse. If all 9 score above 0.10, you're reproducing the median — start over.
+
+**Anti-mode-collapse check:** verify no two concepts share the same layout silhouette. Draw the bounding boxes of major elements mentally — if two produce the same shape, replace one.
 
 ### Step 3: Generate the data
 
-Now — and only now — generate architectures, palettes, type pairings, and mood boards.
+Now — and only now — expand the 5 concepts into architectures, palettes, type pairings, and mood boards.
 
-**Mood boards** (9) — each tells a different STORY, not a different color scheme on the same layout.
+**Mood boards** (9) — one per concept. Each tells a different STORY, not a different color scheme on the same layout.
 
 **Architectures** (9) — one per mood board, each a different structural shape. See the structural diversity section below for layout shapes.
 
 **Palettes** (6-9) — named after the subject's world. A Santorini picker has "Aegean Blue", "Caldera Pink", "Oia Cream" — not "Dark Premium" or "Warm Editorial." Mix light + dark + tinted.
 
 **Type pairings** (6-9) — **RUN the font discovery script from typography.md FIRST.** Match the subject's energy.
+
+**Backgrounds** (one per architecture) — each mood board can have an animated 3D gradient background rendered with Three.js. The picker includes built-in presets PLUS 3 prompt-contextual options you generate.
+
+#### Built-in presets
+
+These are baked into the picker template. The user selects one and tweaks its controls:
+
+| Preset       | Geometry   | Shader   | Feel                                      |
+| ------------ | ---------- | -------- | ----------------------------------------- |
+| None         | —          | —        | Flat color, no animation                  |
+| Halo         | plane      | defaults | Warm flowing gradient, organic undulation |
+| Mint         | waterPlane | defaults | Cool water surface, gentle waves          |
+| Cosmic       | sphere     | cosmic   | Holographic nebula, iridescent shimmer    |
+| Nighty Night | waterPlane | defaults | Dark moody waves, deep atmosphere         |
+| Sunset       | sphere     | defaults | Warm sphere glow, gentle color blend      |
+| Cotton Candy | waterPlane | defaults | Pastel soft waves, light and airy         |
+| Glass        | waterPlane | glass    | Refractive surface, specular highlights   |
+| Blob         | sphere     | defaults | Wiggly organic shape, high displacement   |
+
+Each preset has contextual controls (speed, wave height, wobble, etc.) that the user adjusts live.
+
+#### Prompt-contextual backgrounds (generate 3)
+
+In addition to the built-in presets, generate **3 entirely new background styles** — new fragment shaders, new configurations, new control sets. The built-in presets (`defaults`, `cosmic`, `glass`) are templates showing how the Three.js pipeline works. Your 3 backgrounds should be original visual effects that match the prompt's world.
+
+##### How the pipeline works
+
+Each background is a Three.js scene with:
+
+1. **Geometry** — `sphere` (SphereGeometry), `water` or `plane` (PlaneGeometry with subdivisions)
+2. **Vertex shader** — shared across all backgrounds. Applies 3D Perlin noise displacement to vertices. Controlled by `uDensity` (noise scale), `uSpeed` (animation rate), `uStrength` (displacement magnitude).
+3. **Fragment shader** — this is where you create the visual effect. Receives `vPos` (displaced vertex position), `vNormal`, `vViewPos`, `uColor1/2/3` (3 palette colors), `uTime`, `uSpeed`. Must output `gl_FragColor`.
+4. **Camera** — positioned via spherical coordinates (`camAz`, `camPol`, `camDist`). Spheres always use distance 14 with `zoom` controlling magnification. Planes/water use `camDist` directly.
+5. **Controls** — 2-3 sliders the user adjusts live. Each maps to a uniform or mesh property.
+
+##### Writing a custom fragment shader
+
+The fragment shader receives these varyings/uniforms:
+
+```glsl
+varying vec3 vPos;      // displaced vertex position in model space
+varying vec3 vNormal;   // surface normal (for lighting)
+varying vec3 vViewPos;  // view-space position (for fresnel/specular)
+uniform vec3 uColor1, uColor2, uColor3;  // 3 palette colors
+uniform float uTime, uSpeed;             // animation time + speed
+```
+
+Use `vPos` for spatial color mapping — the gradient pattern comes from mapping colors to vertex positions. Use `vNormal` and `vViewPos` for lighting (diffuse, specular, fresnel). Add custom visual effects: interference patterns, noise-based distortion, view-dependent color shifts, rim glow, etc.
+
+Example — a "coral reef" fragment shader for a tropical video:
+
+```glsl
+void main() {
+  vec3 base = mix(mix(uColor1, uColor2, smoothstep(-3.0, 3.0, vPos.x)),
+                  uColor3, smoothstep(-2.0, 2.0, vPos.z));
+  vec3 n = normalize(vNormal);
+  vec3 v = normalize(-vViewPos);
+  // Subsurface scattering — warm glow through the surface
+  float sss = pow(max(0.0, dot(-n, v)), 2.0) * 0.3;
+  vec3 sssColor = mix(uColor2, uColor1, 0.5);
+  // Caustic ripples on the surface
+  float t = uTime * uSpeed;
+  float caustic = abs(sin(vPos.x * 15.0 + t * 2.0) * cos(vPos.y * 12.0 + t * 1.5)) * 0.15;
+  // Lighting
+  vec3 l = normalize(vec3(1, 1, 0.5));
+  float diff = max(dot(n, l), 0.0) * 0.25;
+  float spec = pow(max(dot(n, normalize(l + v)), 0.0), 64.0) * 0.2;
+  float fresnel = pow(1.0 - max(dot(n, v), 0.0), 4.0);
+  vec3 col = base * (0.65 + diff) + vec3(spec) + sssColor * sss + vec3(caustic);
+  col += mix(base, vec3(1), 0.3) * fresnel * 0.15;
+  gl_FragColor = vec4(col, 1.0);
+}
+```
+
+##### Custom preset format
+
+```json
+{
+  "name": "Coral Reef",
+  "desc": "Warm underwater glow with caustic ripples",
+  "type": "water",
+  "shader": "coral_reef",
+  "fragmentShader": "void main() { ... }",
+  "density": 1.4,
+  "speed": 0.15,
+  "strength": 2.8,
+  "rotX": 40,
+  "rotY": 0,
+  "rotZ": 10,
+  "camDist": 4.0,
+  "camAz": 175,
+  "camPol": 75,
+  "zoom": 1,
+  "posX": 0,
+  "posY": 0.5,
+  "posZ": 0,
+  "controls": [
+    { "label": "Speed", "key": "speed", "min": 0.05, "max": 0.5, "step": 0.05 },
+    { "label": "Wave height", "key": "strength", "min": 0.5, "max": 5.0, "step": 0.2 },
+    { "label": "Caustic intensity", "key": "density", "min": 0.5, "max": 3.0, "step": 0.1 }
+  ]
+}
+```
+
+When `fragmentShader` is present, the picker uses it directly instead of looking up `shader` in the built-in library. The `shader` field is still set for the design.md export (agents use it as a label).
+
+##### Guidelines
+
+- **Write new GLSL, don't just reconfigure existing presets.** The visual effect should be unique to the prompt. A PSA video gets a "biohazard pulse" shader with expanding rings and scan lines. A food video gets an "oil shimmer" shader with heat-distorted refraction. A music video gets a "frequency" shader with audio-reactive bands.
+- **Match the subject's physical world.** The shader should feel like looking at the subject's environment at a microscopic or atmospheric level.
+- **Pick geometry by metaphor.** `sphere` = contained, focused. `water` = expansive, environmental. `plane` = flat, graphic.
+- **Name after the prompt's world**, not the technique.
+- **2-3 controls per preset** that expose the parameters most relevant to the visual effect.
+
+Camera rules:
+
+- **sphere**: `camDist` ignored (always 14). `zoom` controls magnification (1 = full sphere, 15+ = surface detail). Higher zoom needs lower `strength`.
+- **water/plane**: `camDist` controls distance. `zoom` always 1. `posY` shifts the mesh vertically.
+
+Append the 3 custom backgrounds to the `BG_PRESETS` array via `BG_PRESETS.push(...)` after the built-in presets. If the preset has a `fragmentShader` field, register it in the `FRAGS` object so the Three.js module can use it.
 
 2. `mkdir -p .hyperframes` then copy [../templates/design-picker.html](../templates/design-picker.html) to `.hyperframes/pick-design.html`.
 3. Replace these placeholders using Python (don't hand-escape quotes in sed):
@@ -63,13 +207,16 @@ Now — and only now — generate architectures, palettes, type pairings, and mo
 
 ### Architecture data format
 
-Each architecture object must include a `preview_html` field — the HTML that renders in the preview panel. Use token placeholders that the template replaces at runtime: `{{bg}}`, `{{fg}}`, `{{ac}}`, `{{mt}}`, `{{hf}}`, `{{hw}}`, `{{bf}}`, `{{bw}}`, `{{cr}}` (corner radius), `{{pad}}`, `{{gap}}`, `{{shadow}}`, `{{g}}` (grid line color), `{{fg3}}`/`{{fg6}}`/`{{fg8}}`/`{{fg15}}` (fg at opacity), `{{ac3}}`/`{{ac5}}`/`{{ac25}}` (accent at opacity).
+Each architecture object must include a `preview_frames` field — an array of 4 HTML strings, one per beat (hook, proof, action, close). Each frame renders in the mood board card carousel and in the fine-tune scene grid. The template falls back to `[preview_html]` if `preview_frames` is missing, but this produces a single-frame card with no carousel — always provide 4 frames.
+
+Use token placeholders that the template replaces at runtime: `{{bg}}`, `{{fg}}`, `{{ac}}`, `{{mt}}`, `{{hf}}`, `{{hw}}`, `{{bf}}`, `{{bw}}`, `{{cr}}` (corner radius), `{{pad}}`, `{{gap}}`, `{{shadow}}`, `{{g}}` (grid line color), `{{fg3}}`/`{{fg6}}`/`{{fg8}}`/`{{fg15}}` (fg at opacity), `{{ac3}}`/`{{ac5}}`/`{{ac25}}` (accent at opacity).
 
 **Use tokens everywhere — never hardcode colors, fonts, spacing, or radii.** The preview updates live as the user changes options in Phase 2. If you write `padding: 80px` instead of `padding: {{pad}}`, changing the density option does nothing. If you write `color: #CC2200` instead of `color: {{ac}}`, changing the palette does nothing. Every color, font-family, font-weight, padding, gap, border-radius, and shadow MUST use tokens. The only exception is structural values like `width: 1920px` or `flex: 1`.
 
 **Density matches the concept.** The preview should look like a real frame from the actual video — not a UI component showcase. A single-stat direction has 2-3 elements. A data-grid direction has 12+. Match the architecture's intent.
 
 **Build preview frames like real compositions.** Read [video-composition.md](video-composition.md), [../house-style.md](../house-style.md), and [motion-principles.md](motion-principles.md) when generating preview frame HTML. The frames are static but should look like they were paused mid-animation:
+
 - Apply accent color to exactly the focal element per frame
 - Use video-scale typography (80-140px heroes, 24-36px body, 14-20px labels)
 - Respect the density philosophy — high-energy frames earn more elements, contemplative frames earn fewer
@@ -87,6 +234,98 @@ Optionally include `components` and `dos` as strings — these appear in the gen
 **Image URLs:** When using background images in `preview_html`, use `url(path/to/image.jpg)` WITHOUT quotes around the path. Single quotes like `url('path.jpg')` break because `preview_html` is inside a `style='...'` attribute — the inner single quotes terminate the outer attribute.
 
 **Palette variety:** Always include a mix of light, dark, and tinted backgrounds across the 6 palettes — even for calm/wellness prompts.
+
+### Strict data schemas
+
+The template will crash if these shapes are wrong. Do not deviate.
+
+**Palette object — EXACT field names required:**
+
+```json
+{
+  "name": "Palette Name",
+  "background": "#hex",
+  "foreground": "#hex",
+  "accent": "#hex",
+  "muted": "#hex",
+  "desc": "One-line description"
+}
+```
+
+Fields are `background`, `foreground`, `accent`, `muted`. NOT `bg`/`fg`/`ac`/`mt`. The template reads `p.background`, `p.accent`, etc. — short names will render as `undefined`.
+
+**Type pair object — EXACT field names required:**
+
+```json
+{
+  "name": "Pair Name",
+  "headline": { "family": "Font Name", "weight": 700 },
+  "body": { "family": "Font Name", "weight": 400 },
+  "preview": "The Island Awaits",
+  "body_preview": "Wake with the sun, sleep with the stars.",
+  "desc": "One-line description"
+}
+```
+
+Fields are nested: `headline.family`, `headline.weight`, `body.family`, `body.weight`. NOT `headFont`/`bodyFont`/`headWeight`/`bodyWeight`. The template reads `tp.headline.family` — flat keys will crash.
+
+`preview` is the headline specimen text shown in the type card. `body_preview` is the body specimen text. Both are REQUIRED — without them the cards show "undefined". Use real content from the prompt, not generic lorem ipsum.
+
+**Architecture object — MUST have 4 frames:**
+
+```json
+{
+  "name": "...",
+  "description": "...",
+  "tag": "...",
+  "mood": "...",
+  "bg_preset": "Halo",
+  "preview_frames": [
+    "<div style='...'>Hook frame — grab attention</div>",
+    "<div style='...'>Proof frame — deliver the message</div>",
+    "<div style='...'>Action frame — what to do</div>",
+    "<div style='...'>Close frame — final frame</div>"
+  ]
+}
+```
+
+Field is `preview_frames` (array of 4 HTML strings), NOT `preview_html` (single string). The template renders these as a carousel in Phase 1 and a scene grid in Phase 2. Using `preview_html` produces a single-frame card with no carousel — the user cannot evaluate the video's arc from one frame.
+
+`bg_preset` (optional) is the name of a background preset to pre-select when this mood board is chosen. Must match a name in `BG_PRESETS` (either built-in or custom). Omit for no background.
+
+**Mood board object:**
+
+```json
+{
+  "name": "...",
+  "description": "...",
+  "theme": "dark|light",
+  "arch_index": 0,
+  "palette_index": 0,
+  "type_index": 0,
+  "corners_index": 0,
+  "density_index": 0,
+  "depth_index": 0,
+  "easing_index": 0,
+  "corners": "4px",
+  "padding": "24px",
+  "gap": "16px",
+  "shadow": "0 2px 12px rgba(0,0,0,0.08)"
+}
+```
+
+All `*_index` fields are zero-based indices into their respective arrays (ARCHITECTURES, PALETTES, TYPEPAIRS, CORNERS, DENSITIES, DEPTHS, EASINGS).
+
+**Prompt context object:**
+
+```json
+{
+  "title": "...",
+  "headline": "...",
+  "subline": "...",
+  "section_desc": "..."
+}
+```
 
 ### Example architecture object
 
