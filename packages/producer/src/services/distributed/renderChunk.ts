@@ -25,8 +25,11 @@
  *     (`buildVirtualTimeShim({ seedRandomFromFrame: true })`) so any
  *     composition that uses `Math.random` / `crypto.getRandomValues`
  *     produces byte-identical pixels per `(planDir, chunkIndex)`.
- *   - One `discardWarmupCapture` runs before the chunk's first real frame
- *     to prime the BeginFrame `lastFrameCache`.
+ *   - The `lastFrameCache` priming step that earlier versions tried to
+ *     emit before the first capture was removed — every frame in the
+ *     capture loop seeks fresh DOM, so the cache is never consulted on
+ *     the read path, and emitting the priming beginFrame at the chunk's
+ *     first absolute frame deadlocked Chrome's compositor.
  *   - The chunk's encode runs with `lockGopForChunkConcat: true` and
  *     `gopSize === framesInChunk` so concat-copy at assemble time is safe.
  *
@@ -45,7 +48,6 @@ import {
   type CaptureSession,
   closeCaptureSession,
   createCaptureSession,
-  discardWarmupCapture,
   type EngineConfig,
   getEncoderPreset,
   initializeSession,
@@ -412,30 +414,36 @@ export async function renderChunk(
       await assertSwiftShader(session.page, readWebGlVendorInfoFromCanvas);
       await initializeSession(session);
 
-      // Prime BeginFrame's `lastFrameCache` so the chunk's first real capture
-      // reports `hasDamage` the same as an in-process render at the same
-      // absolute frame would. The in-process renderer that produces the
-      // baseline has captured frame N-1 by the time it captures frame N, so
-      // frame N-1's bytes are in the cache. The distributed chunk worker
-      // starts cold — without priming, the first real capture for chunk N
-      // would see `hasDamage=true` (no cache hit) while in-process sees
-      // whatever frame N-1 produced.
+      // Note: `discardWarmupCapture` is intentionally NOT called here.
       //
-      // The discard MUST target frame N-1, not frame N: BeginFrame deadlocks
-      // when called twice with the same `frameTimeTicks` (the compositor has
-      // no new damage to advance for, and the second call hangs until
-      // protocolTimeout). Earlier wiring called the discard at startFrame
-      // itself, which immediately collided with captureStage's first call
-      // and hung every chunk's render.
+      // The helper was originally added to prime Chrome's
+      // `lastFrameCache` so that — if the chunk's first real capture
+      // happened to return `hasDamage=false` — the cached bytes would
+      // match what an in-process renderer's cache held at the same
+      // absolute frame index. In practice, every frame in the chunk's
+      // capture loop seeks fresh DOM via `__hf.seek(absoluteTime)`
+      // before the screenshot, which means `hasDamage=true` on every
+      // frame and `lastFrameCache` is never consulted on the read path.
       //
-      // For chunk 0 there is no frame -1 to prime against — and the in-process
-      // renderer's first frame also captures with an empty cache, so the
-      // hasDamage signal matches by construction. Skip the discard entirely.
-      if (slice.startFrame > 0) {
-        const priorFrame = slice.startFrame - 1;
-        const priorTime = (priorFrame * plan.dimensions.fpsDen) / plan.dimensions.fpsNum;
-        await discardWarmupCapture(session, priorFrame, priorTime);
-      }
+      // Two failure modes made the call actively harmful:
+      //   - calling it with the chunk's first absolute frame caused
+      //     captureStage to issue a second `HeadlessExperimental.beginFrame`
+      //     at the same `frameTimeTicks` Chrome's compositor had just
+      //     advanced to. Chrome blocks the second call indefinitely
+      //     waiting for new damage; the render hangs at protocolTimeout.
+      //   - calling it with `startFrame - 1` (an attempt to prime against
+      //     the prior frame) advanced compositor time past the chunk's
+      //     first capture, then the first real capture asked the
+      //     compositor to go backward in time, which wedged it the same
+      //     way.
+      //
+      // The byte-identical-retry contract holds without the priming:
+      // both retries of the same `(planDir, chunkIndex)` enter the
+      // capture loop in identical state (fresh session, locked warmup,
+      // virtual-time-shimmed page) and seek the same absolute times in
+      // the same order. The lastFrameCache fallback only matters for a
+      // hasDamage=false frame, which doesn't appear under fresh-seek
+      // captures.
 
       // ── Capture the chunk's range via runCaptureStage ──
       await runCaptureStage({
