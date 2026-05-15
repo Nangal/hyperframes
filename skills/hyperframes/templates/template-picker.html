@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Template Picker</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: system-ui, -apple-system, sans-serif;
+  background: #0e0e0e;
+  color: #eee;
+  min-height: 100vh;
+  font-size: 13px;
+  -webkit-font-smoothing: antialiased;
+}
+.header {
+  padding: 16px 32px;
+  border-bottom: 1px solid #1a1a1a;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #111;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.header h1 { font-size: 15px; font-weight: 600; }
+.header .sub { font-size: 11px; color: #666; }
+.palette-bar {
+  padding: 12px 32px;
+  border-bottom: 1px solid #1a1a1a;
+  display: flex;
+  align-items: stretch;
+  gap: 10px;
+  background: #111;
+  position: sticky;
+  top: 49px;
+  z-index: 100;
+  overflow-x: auto;
+  flex-wrap: nowrap;
+}
+#pchips {
+  display: flex;
+  gap: 10px;
+  flex-wrap: nowrap;
+}
+.palette-bar label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; margin-right: 4px; flex-shrink: 0; }
+.pchip {
+  flex-shrink: 0;
+  width: 110px;
+  border: 1px solid #282828;
+  border-radius: 6px;
+  cursor: pointer;
+  overflow: hidden;
+  transition: border-color 0.15s, transform 0.1s;
+}
+.pchip:hover { border-color: #555; transform: translateY(-1px); }
+.pchip.on { border-color: #4ade80; }
+.pchip-body {
+  padding: 8px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.pchip-headline {
+  font-size: 15px;
+  font-weight: 900;
+  font-family: system-ui, sans-serif;
+  line-height: 1;
+}
+.pchip-body-text {
+  font-size: 8px;
+  line-height: 1.3;
+}
+.pchip-accent-bar {
+  width: 28px;
+  height: 3px;
+  border-radius: 1px;
+  margin-top: 3px;
+}
+.pchip-footer {
+  padding: 3px 10px;
+  display: flex;
+  align-items: center;
+}
+.pchip-footer .nm { font-size: 8px; }
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+  gap: 20px;
+  padding: 24px 32px;
+}
+.card {
+  background: #161616;
+  border: 1px solid #222;
+  overflow: hidden;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+.card:hover { border-color: #444; }
+.card.sel { border-color: #4ade80; border-width: 2px; }
+.cprev {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: #000;
+  overflow: hidden;
+}
+.cprev iframe {
+  width: 1920px;
+  height: 1080px;
+  border: none;
+  transform-origin: top left;
+  pointer-events: none;
+}
+.cnav {
+  position: absolute;
+  bottom: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: rgba(0,0,0,0.75);
+  padding: 3px 10px;
+  border-radius: 16px;
+  z-index: 10;
+}
+.cnav button {
+  background: none;
+  border: none;
+  color: #999;
+  font-size: 14px;
+  cursor: pointer;
+  padding: 1px 5px;
+  line-height: 1;
+}
+.cnav button:hover { color: #fff; }
+.cnav .sn { font-size: 10px; color: #777; font-variant-numeric: tabular-nums; min-width: 36px; text-align: center; }
+.cinfo {
+  padding: 10px 14px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.cinfo .nm { font-size: 13px; font-weight: 600; }
+.cinfo .tl { font-size: 10px; color: #777; max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cinfo .badges { display: flex; gap: 6px; }
+.cinfo .bg {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border: 1px solid #333;
+  color: #777;
+}
+.loading-msg {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  background: #222;
+  color: #888;
+  padding: 8px 16px;
+  font-size: 11px;
+  border: 1px solid #333;
+  z-index: 200;
+  display: none;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div>
+    <h1>Template Picker</h1>
+    <div class="sub">__PROMPT_DESC__ &middot; Pick palette &middot; Arrows cycle slides</div>
+  </div>
+</div>
+<div class="palette-bar">
+  <label>Palette</label>
+  <div id="pchips"></div>
+</div>
+<div id="phase1">
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="loading-msg" id="loading">Loading templates...</div>
+
+<script>
+var PALETTES = __PALETTES_JSON__;
+
+var PROMPT_TEXT = __PROMPT_TEXT_JSON__;
+
+var ALL_TEMPLATES = __TEMPLATES_JSON__;
+
+var states = {};
+var activePal = 0;
+var loadedCount = 0;
+
+function hexToHSL(hex) {
+  hex = hex.replace('#','');
+  if (hex.length === 3) hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+  var r = parseInt(hex.substring(0,2),16)/255;
+  var g = parseInt(hex.substring(2,4),16)/255;
+  var b = parseInt(hex.substring(4,6),16)/255;
+  var max = Math.max(r,g,b), min = Math.min(r,g,b);
+  var h=0, s=0, l=(max+min)/2;
+  if (max !== min) {
+    var d = max-min;
+    s = l > 0.5 ? d/(2-max-min) : d/(max+min);
+    if (max===r) h = ((g-b)/d + (g<b?6:0))/6;
+    else if (max===g) h = ((b-r)/d+2)/6;
+    else h = ((r-g)/d+4)/6;
+  }
+  return {h:h*360, s:s*100, l:l*100};
+}
+
+function luminance(hex) {
+  return hexToHSL(hex).l;
+}
+
+function buildPalChips() {
+  var c = document.getElementById("pchips");
+  c.innerHTML = "";
+  PALETTES.forEach(function(p, i) {
+    var ch = document.createElement("div");
+    ch.className = "pchip" + (i === activePal ? " on" : "");
+    if (i === 0) {
+      ch.innerHTML =
+        '<div class="pchip-body" style="background:#1a1a1a;padding:12px 10px;">' +
+          '<div class="pchip-headline" style="color:#888;">—</div>' +
+          '<div class="pchip-body-text" style="color:#555;">Original colors</div>' +
+        '</div>' +
+        '<div class="pchip-footer" style="background:#111;"><span class="nm" style="color:#666;">Default</span></div>';
+    } else {
+      ch.innerHTML =
+        '<div class="pchip-body" style="background:'+p.bg+';">' +
+          '<div class="pchip-headline" style="color:'+p.fg+';">Aa</div>' +
+          '<div class="pchip-body-text" style="color:'+p.mt+';">Body text</div>' +
+          '<div class="pchip-accent-bar" style="background:'+p.ac+';"></div>' +
+        '</div>' +
+        '<div class="pchip-footer" style="background:'+p.fg+';"><span class="nm" style="color:'+p.bg+';">'+p.name+'</span></div>';
+    }
+    ch.onclick = function() { activePal = i; buildPalChips(); applyAll(); };
+    c.appendChild(ch);
+  });
+}
+
+function applyAll() {
+  ALL_TEMPLATES.forEach(function(t) { applyPal(t.slug); });
+}
+
+function applyPal(slug) {
+  var ifr = document.getElementById("ifr-" + slug);
+  if (!ifr || !ifr.contentDocument) return;
+  var doc = ifr.contentDocument;
+  var style = doc.getElementById("pal-override");
+  if (!style) {
+    style = doc.createElement("style");
+    style.id = "pal-override";
+    doc.head.appendChild(style);
+  }
+
+  if (activePal === 0) {
+    style.textContent = "";
+    return;
+  }
+
+  var p = PALETTES[activePal];
+  var t = null;
+  for (var i = 0; i < ALL_TEMPLATES.length; i++) {
+    if (ALL_TEMPLATES[i].slug === slug) { t = ALL_TEMPLATES[i]; break; }
+  }
+  if (!t) return;
+
+  var cvars = t.colorVars || [];
+  if (cvars.length === 0) {
+    style.textContent = "";
+    return;
+  }
+
+  var rootEl = doc.documentElement;
+  var cs = ifr.contentWindow.getComputedStyle(rootEl);
+  var css = ":root {\n";
+
+  cvars.forEach(function(v) {
+    var orig = cs.getPropertyValue(v).trim();
+    if (!orig) return;
+    var origL = luminance(orig.indexOf('#') === 0 ? orig : '#888888');
+
+    var target;
+    if (origL > 85) target = p.bg;
+    else if (origL < 20) target = p.fg;
+    else if (origL > 60) target = p.mt;
+    else target = p.ac;
+
+    css += "  " + v + ": " + target + " !important;\n";
+  });
+
+  css += "}\n";
+  style.textContent = css;
+}
+
+function goSlide(slug, delta) {
+  var s = states[slug];
+  if (!s) return;
+  var n = s.cur + delta;
+  if (n < 0) n = s.tot - 1;
+  if (n >= s.tot) n = 0;
+  s.cur = n;
+
+  var ifr = document.getElementById("ifr-" + slug);
+  if (!ifr || !ifr.contentDocument) return;
+  var slides = ifr.contentDocument.querySelectorAll(".slide");
+  slides.forEach(function(sl, i) {
+    if (i === n) { sl.classList.add("active"); sl.style.display = "flex"; }
+    else { sl.classList.remove("active"); sl.style.display = "none"; }
+  });
+
+  var num = document.getElementById("num-" + slug);
+  if (num) num.textContent = (n+1) + "/" + s.tot;
+  var p2num = document.getElementById("p2-num");
+  if (p2num && slug === selectedSlug) p2num.textContent = (n+1) + "/" + s.tot;
+}
+
+function onLoad(slug) {
+  var ifr = document.getElementById("ifr-" + slug);
+  if (!ifr || !ifr.contentDocument) return;
+  var doc = ifr.contentDocument;
+  var slides = doc.querySelectorAll(".slide");
+  states[slug] = { cur: 0, tot: slides.length };
+
+  slides.forEach(function(sl, i) {
+    if (i === 0) { sl.classList.add("active"); sl.style.display = "flex"; }
+    else { sl.classList.remove("active"); sl.style.display = "none"; }
+  });
+
+  doc.querySelectorAll("script").forEach(function(s) { s.remove(); });
+
+  var card = ifr.closest(".cprev");
+  if (card) {
+    var scale = card.offsetWidth / 1920;
+    ifr.style.transform = "scale(" + scale + ")";
+  }
+
+  var num = document.getElementById("num-" + slug);
+  if (num) num.textContent = "1/" + slides.length;
+
+  loadedCount++;
+  var msg = document.getElementById("loading");
+  if (loadedCount < ALL_TEMPLATES.length) {
+    msg.style.display = "block";
+    msg.textContent = "Loading " + loadedCount + "/" + ALL_TEMPLATES.length + "...";
+  } else {
+    msg.style.display = "none";
+  }
+
+  if (activePal > 0) applyPal(slug);
+  injectText(slug);
+}
+
+function injectText(slug) {
+  var ifr = document.getElementById("ifr-" + slug);
+  if (!ifr || !ifr.contentDocument) return;
+  var doc = ifr.contentDocument;
+  var win = ifr.contentWindow;
+  var t = null;
+  for (var i = 0; i < ALL_TEMPLATES.length; i++) {
+    if (ALL_TEMPLATES[i].slug === slug) { t = ALL_TEMPLATES[i]; break; }
+  }
+  if (!t) return;
+
+  var tone = "bold";
+  if (t.scheme === "dark") tone = "dark";
+  else if (t.density === "low") tone = "warm";
+  else if (t.density === "high") tone = "technical";
+  else if (t.tagline.match(/playful|cheerful|friendly|fun/i)) tone = "playful";
+  else if (t.tagline.match(/editorial|serif|literary|magazine/i)) tone = "editorial";
+
+  var display = [
+    PROMPT_TEXT.taglines[tone],
+    "HEYGEN",
+    "AI VIDEO",
+    "CREATE"
+  ];
+  var headlines = [
+    "AI Avatars That Look Real",
+    "175+ Languages. One Click.",
+    "Script to Video in 5 Minutes",
+    "Clone Any Voice Instantly",
+    "Enterprise-Grade Video API",
+    "Translate Videos Globally",
+    "Your Brand. Your Avatar.",
+    "Video at the Speed of Text",
+    "From Idea to Video in Minutes",
+    "The Camera-Free Studio"
+  ];
+  var body = [
+    "Create studio-quality videos with AI avatars, voice cloning, and automatic translation — no camera or crew needed.",
+    "HeyGen turns scripts into professional videos in over 175 languages with realistic AI-generated presenters.",
+    "Skip the studio. Skip the editing. Write your script, pick an avatar, and render in minutes.",
+    "Enterprise teams use HeyGen to produce training videos, product demos, and marketing content at scale.",
+    "One script becomes 40 localized videos. Same avatar, same tone, every language your audience speaks.",
+    "API-first video generation. Integrate AI video into your product, your workflow, your pipeline.",
+    "Real-time avatar streaming for customer support, sales calls, and interactive experiences.",
+    "Custom avatars trained on your team. Your face, your voice, your brand — generated by AI."
+  ];
+  var stats = ["10M+","5 min","175+","99.9%","300K+","40x","2B+","85%","50ms","4K"];
+  var statLabels = ["Videos Created","Avg Render Time","Languages","Uptime","Users","Faster","Views","Cost Savings","Latency","Resolution"];
+  var labels = ["AVATARS","VOICES","LANGUAGES","API","ENTERPRISE","TEMPLATES","STREAMING","TRANSLATION","ANALYTICS","BRAND KIT","RENDERING","INTEGRATIONS"];
+  var smalls = ["heygen.com","Start Creating →","Try Free","Watch Demo","Learn More","See Pricing","Book a Demo","Get Started","Read Case Study","View Docs","Sign Up Free","Contact Sales"];
+
+  var di = 0, hi = 0, bi = 0, si = 0, sli = 0, li = 0, smi = 0;
+
+  function isLeaf(el) {
+    for (var c = el.firstChild; c; c = c.nextSibling) {
+      if (c.nodeType === 1 && c.textContent.trim().length > 0) return false;
+    }
+    return true;
+  }
+
+  var slides = doc.querySelectorAll(".slide");
+  slides.forEach(function(slide) {
+    var els = slide.querySelectorAll("*");
+    els.forEach(function(el) {
+      if (!isLeaf(el)) return;
+      var text = el.textContent.trim();
+      if (!text || text.length < 1) return;
+      var cs = win.getComputedStyle(el);
+      if (cs.display === "none" || cs.visibility === "hidden") return;
+      var fs = parseFloat(cs.fontSize);
+
+      if (fs >= 60) {
+        el.textContent = display[di % display.length];
+        di++;
+      } else if (fs >= 32) {
+        el.textContent = headlines[hi % headlines.length];
+        hi++;
+      } else if (fs >= 18 && text.length > 20) {
+        el.textContent = body[bi % body.length];
+        bi++;
+      } else if (fs >= 18 && text.length <= 20) {
+        el.textContent = smalls[smi % smalls.length];
+        smi++;
+      } else if (/^\d/.test(text) && text.length < 10) {
+        el.textContent = stats[si % stats.length];
+        si++;
+      } else if (fs < 14 && text.length < 30 && text === text.toUpperCase()) {
+        el.textContent = labels[li % labels.length];
+        li++;
+      } else if (fs < 14) {
+        el.textContent = statLabels[sli % statLabels.length];
+        sli++;
+      } else if (text.length > 20) {
+        el.textContent = body[bi % body.length];
+        bi++;
+      } else {
+        el.textContent = smalls[smi % smalls.length];
+        smi++;
+      }
+    });
+  });
+}
+
+function buildGrid() {
+  var grid = document.getElementById("grid");
+  grid.innerHTML = "";
+
+  ALL_TEMPLATES.forEach(function(t) {
+    var card = document.createElement("div");
+    card.className = "card";
+    card.id = "card-" + t.slug;
+    card.innerHTML =
+      '<div class="cprev">' +
+        '<iframe id="ifr-' + t.slug + '" src="/templates/' + t.slug + '/template.html" sandbox="allow-same-origin" loading="lazy"></iframe>' +
+        '<div class="cnav">' +
+          '<button onclick="event.stopPropagation();goSlide(\'' + t.slug + '\',-1)">&#9664;</button>' +
+          '<span class="sn" id="num-' + t.slug + '">...</span>' +
+          '<button onclick="event.stopPropagation();goSlide(\'' + t.slug + '\',1)">&#9654;</button>' +
+        '</div>' +
+      '</div>' +
+      '<div class="cinfo">' +
+        '<div><div class="nm">' + t.name + '</div><div class="tl">' + t.tagline + '</div></div>' +
+        '<div class="badges"><span class="bg">' + t.scheme + '</span><span class="bg">' + t.density + '</span></div>' +
+      '</div>';
+    card.addEventListener("click", (function(s) { return function() { selectTemplate(s); }; })(t.slug));
+    grid.appendChild(card);
+
+    var ifr = card.querySelector("iframe");
+    ifr.addEventListener("load", function() { onLoad(t.slug); });
+  });
+
+  document.getElementById("loading").style.display = "block";
+  document.getElementById("loading").textContent = "Loading 0/" + ALL_TEMPLATES.length + "...";
+}
+
+var selectedSlug = null;
+var customColors = {bg:"#FFFFFF", fg:"#000000", ac:"#0000FF", mt:"#666666"};
+var selectedCorner = 0;
+var selectedDensity = 1;
+var CORNERS = ["0px","4px","8px","16px","9999px"];
+var DENSITIES = ["Tight","Normal","Generous","Spacious"];
+
+function selectTemplate(slug) {
+  var t = null;
+  for (var i = 0; i < ALL_TEMPLATES.length; i++) {
+    if (ALL_TEMPLATES[i].slug === slug) { t = ALL_TEMPLATES[i]; break; }
+  }
+  if (!t) return;
+
+  var pal = activePal > 0 ? PALETTES[activePal] : null;
+  var msg = {
+    type: "templatePick",
+    slug: slug,
+    name: t.name,
+    tagline: t.tagline,
+    scheme: t.scheme,
+    palette: pal ? {bg: pal.bg, fg: pal.fg, accent: pal.ac, muted: pal.mt} : null
+  };
+
+  if (window.parent !== window) {
+    window.parent.postMessage(msg, "*");
+  } else {
+    sessionStorage.setItem("templatePick", JSON.stringify(msg));
+    window.location = "pick-design.html";
+  }
+}
+
+buildPalChips();
+buildGrid();
+</script>
+</body>
+</html>
