@@ -591,8 +591,8 @@ function selectTemplate(slug) {
     var cy = rect.top + rect.height / 2;
     var vw = window.innerWidth;
     var vh = window.innerHeight;
-    var ox = ((vw / 2 - cx) / rect.width * 100 + 50) + "%";
-    var oy = ((vh / 2 - cy) / rect.height * 100 + 50) + "%";
+    var ox = ((cx - vw / 2) / rect.width * 100 + 50) + "%";
+    var oy = ((cy - vh / 2) / rect.height * 100 + 50) + "%";
     card.style.transformOrigin = ox + " " + oy;
     card.classList.add("selected-exit");
   }
