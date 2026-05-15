@@ -2414,6 +2414,13 @@
           });
           overridePalette = bestIdx;
         }
+        // Rewire Phase 1 tab to go back to template picker
+        var tabMood = document.getElementById("tab-mood");
+        if (tabMood) {
+          tabMood.textContent = "← Template";
+          tabMood.onclick = function() { window.location = "template-picker.html"; };
+        }
+
         selectedMood = 0;
         setTimeout(function() {
           goToTune();
