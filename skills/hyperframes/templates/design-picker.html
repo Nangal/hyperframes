@@ -974,25 +974,13 @@
   </head>
   <body>
     <div class="phase-bar">
-      <div class="phase-tab active" id="tab-mood" onclick="showPhase('mood')">1. Direction</div>
+      <div class="phase-tab active" id="tab-mood" onclick="showPhase('mood')">1. Template</div>
       <div class="phase-tab disabled" id="tab-tune" onclick="showPhase('tune')">2. Fine-tune</div>
     </div>
 
-    <!-- Phase 1: Mood boards -->
+    <!-- Phase 1: Template picker (embedded) -->
     <div class="phase active" id="phase-mood" style="flex-direction: column">
-      <div class="mood-header">
-        <h2 id="mood-title">Pick a direction</h2>
-        <p id="mood-subtitle">
-          Each option is a complete visual identity. Pick one, then fine-tune.
-        </p>
-      </div>
-      <div class="pal-bar" id="pal-bar"><span class="pal-bar-label">Palette</span></div>
-      <div class="mood-grid" id="mood-grid"></div>
-      <div class="mood-next">
-        <button class="mood-next-btn" id="mood-next-btn" onclick="goToTune()">
-          Customize this direction →
-        </button>
-      </div>
+      <iframe id="template-picker-frame" src="template-picker.html" style="width:100%;flex:1;border:none;min-height:0;"></iframe>
     </div>
 
     <!-- Phase 2: Fine-tune -->
