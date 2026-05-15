@@ -361,6 +361,18 @@ function onLoad(slug) {
 
   doc.querySelectorAll("script").forEach(function(s) { s.remove(); });
 
+  // Reset animation start states — templates set opacity:0 for entrance animations
+  // that never fire because we removed the scripts
+  doc.querySelectorAll("*").forEach(function(el) {
+    var cs = ifr.contentWindow.getComputedStyle(el);
+    if (cs.opacity === "0" && cs.display !== "none") {
+      el.style.opacity = "1";
+    }
+    if (cs.transform && cs.transform !== "none" && cs.transform.indexOf("matrix") !== -1) {
+      el.style.transform = "none";
+    }
+  });
+
   var info = getSlides(doc);
   var slides = info.slides;
   states[slug] = { cur: 0, tot: slides.length, mode: info.mode };
