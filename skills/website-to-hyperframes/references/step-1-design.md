@@ -13,9 +13,9 @@ You read `tokens.json` and `design-styles.json` in Step 0. If you still have tha
 
 `design-styles.json` is your primary data source for Sections 3-6. It gives you exact computed values — don't estimate from screenshots what you can read from this file. Cross-reference with screenshots for visual context and anything the extractor missed.
 
-## The 9 Sections
+## The 8 Sections
 
-Write every section below. Target 200-400 lines total — though a simple site with a small design system will produce a shorter document, and that's correct. **Document everything meaningful; skip what the brand doesn't actually use.** A site with 6 real button variants and 7 real colors should have a DESIGN.md with exactly those — not 12 padded variants and 10 colors invented to hit a target. Each section should feel like you reverse-engineered the site's design system from scratch — because that's exactly what you're doing.
+Write every section below. **Document everything meaningful; skip what the brand doesn't actually use.** A site with 6 real button variants and 7 real colors should have a DESIGN.md with exactly those — not 12 padded variants and 10 colors invented to hit a target. Each section should feel like you reverse-engineered the site's design system from scratch — because that's exactly what you're doing.
 
 ---
 
@@ -214,7 +214,7 @@ For each button variant (primary, secondary/ghost, icon):
 
 **Example**
 
-```markdown
+````markdown
 #### Standard Card
 
 - **Background**: `#FFFFFF`
@@ -242,100 +242,6 @@ For each button variant (primary, secondary/ghost, icon):
 - **Background**: Diagonal linear gradient `135deg, #533AFD 0%, #FF6118 100%)`
 - **Opacity**: Layer as `rgba(..., 0.15)` over white background for subtle effect
 - **Text Color**: `#FFFFFF` or `#061B31` depending on overlay contrast
-
-### Inputs & Forms
-
-#### Text Input
-
-- **Background**: `#FFFFFF`
-- **Text Color**: `#000000`
-- **Font Size**: `14px`
-- **Font Weight**: `400`
-- **Padding**: `12px 16px`
-- **Border Radius**: `4px`
-- **Border**: `1px solid #D4DEE9`
-- **Height**: `40px`
-- **Line Height**: `14px`
-- **Focus State**: Border `2px solid #533AFD`, box-shadow `0px 0px 0px 3px rgba(83, 58, 253, 0.1)`
-- **Error State**: Border `1px solid #EF4444`, color `#DC2626`
-- **Placeholder Text**: Color `#64748D`, opacity `0.7`
-
-#### Form Label
-
-- **Font Size**: `14px`
-- **Font Weight**: `400`
-- **Color**: `#061B31`
-- **Margin Bottom**: `8px`
-- **Display**: `block`
-
-#### Checkbox / Radio
-
-- **Size**: `18px × 18px`
-- **Border Radius**: `3px` (checkbox), `50%` (radio)
-- **Border**: `1px solid #D4DEE9`
-- **Checked Background**: `#533AFD`
-- **Checked Checkmark**: `#FFFFFF`
-- **Hover Border**: `#B8CCDB`
-```
-
-#### Navigation
-
-- Background (often semi-transparent), height, padding
-- Link styling, hover/active states
-
-**Example**
-
-```markdown
-### Top Navigation Bar
-
-- **Background**: `#FFFFFF`
-- **Height**: `64px`
-- **Padding**: `10px 16px`
-- **Border Bottom**: `1px solid #E5EDF5`
-- **Text Color**: `#061B31`
-- **Font Size**: `14px` (nav items), `16px` (logo/primary)
-- **Font Weight**: `400`
-- **Display**: `flex`, align-items `center`, justify-content `space-between`
-
-#### Navigation Link
-
-- **Color**: `#061B31`
-- **Font Size**: `14px`
-- **Font Weight**: `400`
-- **Padding**: `8px 12px`
-- **Border Radius**: `4px`
-- **Hover State**: Background `#F3F3F3`, color `#533AFD`
-- **Active State**: Color `#533AFD`, border-bottom `2px solid #533AFD`
-
-#### Dropdown Menu
-
-- **Background**: `#FFFFFF`
-- **Border**: `1px solid #D4DEE9`
-- **Border Radius**: `6px`
-- **Box Shadow**: `0px 10px 40px rgba(0, 0, 0, 0.1)`
-- **Padding**: `8px 0px`
-- **Min Width**: `200px`
-
-### Links
-
-#### Standard Link
-
-- **Color**: `#533AFD`
-- **Font Size**: `16px`
-- **Font Weight**: `400`
-- **Text Decoration**: `none`
-- **Hover State**: Color `#4329E8`, text-decoration `underline`
-- **Visited State**: Color `#7060F5` (slightly lighter purple)
-- **Line Height**: `normal`
-
-#### Secondary Link
-
-- **Color**: `#061B31`
-- **Font Size**: `14px`
-- **Font Weight**: `400`
-- **Padding**: `12px 0px`
-- **Hover State**: Color `#533AFD`, text-decoration `underline`
-```
 
 #### Other Components
 
@@ -380,6 +286,7 @@ Name and describe any distinctive components visible in screenshots:
 - **Border Radius**: `3px`
 - **Border**: `1px solid #C9C3F0`
 ```
+````
 
 For each, use the same property-level detail as buttons and cards. Name them descriptively — "Glass Card with grain overlay" not "Card."
 
@@ -571,85 +478,7 @@ Then a short **Shadow Philosophy** paragraph: does the site use shadows sparingl
 
 ---
 
-### `## 8. Responsive Behavior`
-
-How the design adapts across screen sizes. Even though the video is fixed resolution, this section matters — you'll compose device mockup shots (laptop + phone frames) and need to know what the mobile layout looks like.
-
-Three sub-sections:
-
-#### Breakpoints
-
-A table with width ranges and key changes at each:
-
-**Example**
-
-```markdown
-| Name    | Width            | Key Changes                                                                                              |
-| ------- | ---------------- | -------------------------------------------------------------------------------------------------------- |
-| Mobile  | `< 640px`        | Single column, `12px` gutters, `20px`–`40px` padding, `12px` font baseline, touch targets `44px × 44px`  |
-| Tablet  | `640px`–`1024px` | 2–3 columns, `16px` gutters, `32px`–`40px` padding, `14px` font baseline, touch targets `40px × 40px`    |
-| Desktop | `≥ 1024px`       | 12-column grid, `20px` gutters, `40px`–`80px` padding, `14px` font baseline, mouse interaction optimized |
-| Wide    | `≥ 1440px`       | Max container width enforced, centered layout, full `160px` edge padding possible                        |
-```
-
-#### Touch Targets
-
-Minimum sizes for interactive elements (buttons, links, form fields). Useful for knowing how the mobile UI looks in device frame compositions.
-
-**Example**
-
-```markdown
-- **Minimum touch target size**: `44px × 44px` on mobile, `40px × 40px` on tablet and desktop
-- **Button padding**: `8px` minimum horizontal, `6px` vertical for icon buttons; `10px` minimum horizontal for text buttons
-- **Link underline thickness**: `1px` on default, `2px` on hover (visual confirmation)
-- **Form field height**: `36px` minimum on mobile (comfortable thumb reach), `32px` on desktop
-- **Icon size**: `24px` for standard icons, `32px` for primary CTA icons
-- **Spacing between interactive elements**: `12px` minimum on mobile, `8px` on desktop (avoid accidental touches)
-```
-
-#### Collapsing Strategy
-
-How navigation, grids, typography, and spacing change across breakpoints. Brief bullet points per category.
-
-**Example:**
-
-```markdown
-**Navigation**:
-
-- Desktop: Horizontal menu bar with `64px` height
-- Tablet: Horizontal menu with wrapping or abbreviated labels
-- Mobile: Hamburger menu (icon button `44px × 44px`) with slide-out drawer or dropdown
-
-**Typography**:
-
-- Display 1 scales from `110px` (desktop) → `62px` (tablet) → `36px` (mobile)
-- Heading 1 scales from `62px` → `48px` → `28px`
-- Body text: Fixed `14px` on desktop/tablet, optional `13px` on mobile for readability
-- Always maintain minimum `12px` font size to avoid over-shrinking
-
-**Spacing**:
-
-- Section gaps: `100px` (desktop) → `60px` (tablet) → `40px` (mobile)
-- Container padding: `80px` (desktop) → `40px` (tablet) → `20px` (mobile)
-- Horizontal margins: `160px` edge (desktop) → `40px` (tablet) → `16px` (mobile)
-
-**Grid Collapse**:
-
-- Desktop: 12 columns, fixed `20px` gutters
-- Tablet: 8 columns or 4 columns (depending on content), `16px` gutters
-- Mobile: 4 columns (single column for full-width blocks), `12px` gutters
-- Feature cards transition from 3-up (desktop) → 2-up (tablet) → 1-up (mobile)
-
-**Button & Form Collapse**:
-
-- Desktop: Inline buttons with standard padding
-- Tablet: Slightly larger touch targets (`40px` height)
-- Mobile: Full-width primary buttons, stacked secondary buttons
-```
-
----
-
-### `## 9. Agent Prompt Guide`
+### `## 8. Agent Prompt Guide`
 
 This is the section agents consult most during Step 5 (Build). It has two parts:
 

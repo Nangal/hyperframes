@@ -113,6 +113,14 @@ Beat entrance animations scheduled early in the timeline may have already "playe
 
 Not a skill issue but tooling friction. Workaround: Bash `cat <<'EOF'`.
 
+### loom.com (v3 run, added post-round)
+
+- **Beat 5 CTA blank in snapshots — 30min debug, render was fine.** Snapshot tool still unreliable for verifying the last beat. Agent spent the entire debug cycle on a problem that didn't exist in the render. The right call: run a quick draft render to verify rather than trusting snapshots for the last scene.
+- **`timeline: tl` passed to HyperShader.init()** — wrong pattern, breaks scrubber. Agent tried it and HyperShader transitions stopped working. Fixed in RULES.
+- **Counter animation proxy+onUpdate doesn't fire in seek mode.** `tl.fromTo(proxy, {}, {val, onUpdate: () => el.textContent = proxy.val})` — the onUpdate callback never runs when the render engine seeks directly to a time. Agent fixed it by using 30 discrete `tl.set(el, {textContent: value}, t)` calls instead. New finding — documented in RULES.
+- **Snapshot tool appended old frames, mixed into contact sheets.** Fixed in CLI — snapshot now auto-clears directory before running.
+- **Charlie Display bold weight not captured** — only thin/light in captured fonts. Fell back to Inter. Expected behavior for commercial fonts.
+
 ### P1 (Post-run investigation): `data-start="0"` on all beats → all beats blank after ~5s
 
 **Arc-launch v3 rendered blank from t=5.5s onwards.** Diagnosed from render frames: content disappeared exactly at t=5.5s — the BEAT constant in beat-2's GSAP timeline. Root cause confirmed: the arc agent set `data-start="0"` and `data-duration="26"` (total video length) on ALL beat host divs. The HyperFrames engine seeks each sub-composition timeline to `global_time - data_start`. With `data-start=0`, beat-2's 5.5s GSAP timeline is seeked to global_t=7 at t=7s — past its end. Engine marks the sub-composition invisible. All beats go blank as soon as their individual GSAP timelines are exhausted.

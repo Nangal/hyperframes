@@ -237,38 +237,6 @@ FORMAT EXAMPLE of structure (write the real choreography for THIS beat):
 - `0.Xs`: [next event — either exact values or precise behavioral description]
 - `[beat-end - 0.4s]`: [exit / transition fires]
 
-### Implementation References (sub-agent read list)
-
-The sub-agent has zero context. Tell it exactly what to read for THIS beat — file, section, line range. No vague "read techniques.md" — name the specific technique, section, or pattern the sub-agent needs for this beat specifically.
-
-**Techniques** (`skills/hyperframes/references/techniques.md`):
-
-- [Technique N: name — lines X–Y — needed for: which part of this beat]
-
-**Capabilities** (`skills/website-to-hyperframes/references/capabilities.md`):
-
-- [Section N: name — lines X–Y — needed for: which part of this beat]
-
-**Patterns** (if HTML-in-Canvas or other pattern files needed):
-
-- [file — Pattern N: name — lines X–Y — needed for: which part]
-
-**Transitions** (for the beat exit):
-
-- [transition type and where to read about it]
-
-**Shader** (if recreating a WebGL effect from the captured site):
-
-- `capture/extracted/shaders.json` — [which shader, what to extract]
-
-**Text effects** (only the ones used in Text Animations above):
-
-- `skills/hyperframes/assets/text-effects/effects/[id].json` — [per effect named above]
-
-**Registry blocks** (if applicable):
-
-- [block name and install command if not installed]
-
 ---
 
 ## Production Architecture

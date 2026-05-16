@@ -48,7 +48,7 @@ Run the capture, read ALL extracted data (screenshots, tokens, design styles, te
 
 **Read:** [references/step-1-design.md](references/step-1-design.md)
 
-Write DESIGN.md — a comprehensive brand cheat sheet with 9 sections: Visual Theme, Color Palette, Typography, Component Stylings, Layout Principles, Depth & Elevation, Do's/Don'ts, Responsive Behavior, Agent Prompt Guide. Use `design-styles.json` for exact computed values.
+Write DESIGN.md — a brand cheat sheet with 8 sections: Visual Theme, Color Palette, Typography, Component Stylings (buttons + cards), Layout Principles, Depth & Elevation, Do's/Don'ts, Agent Prompt Guide. Use `design-styles.json` for exact computed values.
 
 **Gate:** `DESIGN.md` exists in the project directory with all 9 sections complete. User review done (colors/fonts/tone confirmed or corrected).
 
@@ -92,17 +92,6 @@ If the Creative Brief says no narration — ask about background music, then ski
 Build index.html and each beat composition. Use captured screenshots at full frame size, not CSS recreations. Hero beats use HTML-in-Canvas for cinematic treatment. Every beat needs 25+ GSAP calls with continuous motion.
 
 **Gate:** Every composition self-reviewed. Frames are full, elements readable, concept clear.
-
----
-
-## Step 5.5: Self-Critique (before validating)
-
-Before running lint and taking snapshots, do a quick critic pass on the storyboard and compositions:
-
-1. Name 3 things in this video that feel generic — something that could appear in ANY video for ANY brand.
-2. For at least one of them: replace it with something specifically tied to this brand's captured assets, typography, colors, or the user's stated direction.
-
-This is cheap. One revision here costs 5 minutes. One revision after the user sees it costs 30 minutes. The goal: nothing in the final video should look like it was generated from a lookup table.
 
 ---
 
