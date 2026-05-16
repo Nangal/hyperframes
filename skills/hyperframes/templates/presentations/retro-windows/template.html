@@ -9,35 +9,29 @@
   @import url('https://fonts.googleapis.com/css2?family=VT323&family=Press+Start+2P&display=swap');
 
   :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #c0c0c0;
-  --tp-fg: #000000;
-  --tp-ac: #000080;
-  --tp-mt: #d4d0c8;
-  --tp-surface: #808080;
-  --tp-border: #d4d0c8;
-  --tp-hf: "MS Sans Serif";
-  --tp-bf: "Press Start 2P";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #000000;
+    --tp-secondary: #c0c0c0;
+    --tp-tertiary: #808080;
+    --tp-accent: #000080;
 
-    --bg-gray: var(--tp-bg, #c0c0c0);
-    --bg-light: var(--tp-bg, #d4d0c8);
-    --bg-dark: var(--tp-surface, #808080);
-    --blue-navy: var(--tp-ac, #000080);
-    --blue-bright: var(--tp-ac, #0000a0);
-    --blue-light: var(--tp-ac, #1084d0);
-    --white: var(--tp-bg, #ffffff);
-    --black: var(--tp-fg, #000000);
-    --text-dark: var(--tp-fg, #222222);
-    --btn-face: var(--tp-mt, #d4d0c8);
-    --btn-highlight: var(--tp-ac, #ffffff);
-    --btn-shadow: var(--tp-surface, #404040);
-    --btn-dark-shadow: var(--tp-fg, #000000);
-    --green-retro: var(--tp-ac, #008000);
-    --red-retro: var(--tp-ac, #800000);
-    --yellow-retro: var(--tp-ac, #808000);
-    --cyan-retro: var(--tp-ac, #008080);
+    --bg-gray: var(--tp-secondary, #c0c0c0);
+    --bg-light: #d4d0c8;
+    --bg-dark: var(--tp-tertiary, #808080);
+    --blue-navy: var(--tp-accent, #000080);
+    --blue-bright: #0000a0;
+    --blue-light: #1084d0;
+    --white: #ffffff;
+    --black: var(--tp-primary, #000000);
+    --text-dark: #222222;
+    --btn-face: #d4d0c8;
+    --btn-highlight: #ffffff;
+    --btn-shadow: #404040;
+    --btn-dark-shadow: #000000;
+    --green-retro: #008000;
+    --red-retro: #800000;
+    --yellow-retro: #808000;
+    --cyan-retro: #008080;
   }
 
   * {
@@ -50,7 +44,7 @@
     width: 100%;
     height: 100%;
     overflow: hidden;
-    font-family: var(--tp-hf), "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    font-family: "MS Sans Serif", "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
     font-size: 16px;
     background: var(--bg-dark);
     color: var(--text-dark);
@@ -121,7 +115,7 @@
   }
 
   .win-titlebar.inactive {
-    background: linear-gradient(90deg, var(--tp-surface) 0%, var(--tp-mt) 100%);
+    background: linear-gradient(90deg, #808080 0%, #a0a0a0 100%);
   }
 
   .win-title-left {
@@ -261,7 +255,7 @@
 
   /* === TEXT STYLES === */
   .pixel-font {
-    font-family: var(--tp-bf), cursive;
+    font-family: 'Press Start 2P', cursive;
   }
 
   .terminal-font {
@@ -280,7 +274,7 @@
   .text-blue { color: var(--blue-navy); }
   .text-green { color: var(--green-retro); }
   .text-red { color: var(--red-retro); }
-  .text-gray { color: var(--tp-surface); }
+  .text-gray { color: #555; }
 
   /* === LAYOUT UTILITIES === */
   .flex { display: flex; }
@@ -434,7 +428,7 @@
     bottom: 10px;
     left: 16px;
     font-size: 16px;
-    color: var(--tp-surface);
+    color: #505050;
     z-index: 100;
     font-family: 'VT323', monospace;
   }
@@ -461,7 +455,7 @@
   }
 
   table.retro-table tr:nth-child(even) td {
-    background: var(--tp-bg);
+    background: #f0f0f0;
   }
 
   /* === MARQUEE === */
@@ -831,19 +825,19 @@
           <div class="group-box">
             <span class="group-box-title">Segment Breakdown</span>
             <div class="flex justify-between items-center p-2 mb-1" style="background: rgba(0,0,128,0.06);">
-              <span class="text-md"><span style="color: var(--blue-navy);">&var(--tp-surface);</span> Enterprise</span>
+              <span class="text-md"><span style="color: var(--blue-navy);">&#9632;</span> Enterprise</span>
               <span class="text-md" style="font-weight: bold;">42%</span>
             </div>
             <div class="flex justify-between items-center p-2 mb-1">
-              <span class="text-md"><span style="color: var(--green-retro);">&var(--tp-surface);</span> Mid-Market</span>
+              <span class="text-md"><span style="color: var(--green-retro);">&#9632;</span> Mid-Market</span>
               <span class="text-md" style="font-weight: bold;">28%</span>
             </div>
             <div class="flex justify-between items-center p-2 mb-1" style="background: rgba(0,0,128,0.06);">
-              <span class="text-md"><span style="color: var(--cyan-retro);">&var(--tp-surface);</span> Small Business</span>
+              <span class="text-md"><span style="color: var(--cyan-retro);">&#9632;</span> Small Business</span>
               <span class="text-md" style="font-weight: bold;">18%</span>
             </div>
             <div class="flex justify-between items-center p-2">
-              <span class="text-md"><span style="color: var(--yellow-retro);">&var(--tp-surface);</span> Government</span>
+              <span class="text-md"><span style="color: var(--yellow-retro);">&#9632;</span> Government</span>
               <span class="text-md" style="font-weight: bold;">12%</span>
             </div>
           </div>
@@ -877,25 +871,25 @@
         <div class="group-box text-center">
           <span class="group-box-title">Revenue</span>
           <p class="text-xl" style="font-size: 30px; margin: 10px 0; color: var(--blue-navy);">$2.1M</p>
-          <p class="text-sm text-green" style="font-weight: bold;">&var(--tp-surface); +18.3%</p>
+          <p class="text-sm text-green" style="font-weight: bold;">&#9650; +18.3%</p>
           <p class="text-xs text-gray mt-1">vs previous quarter</p>
         </div>
         <div class="group-box text-center">
           <span class="group-box-title">Customers</span>
           <p class="text-xl" style="font-size: 30px; margin: 10px 0; color: var(--blue-navy);">1,482</p>
-          <p class="text-sm text-green" style="font-weight: bold;">&var(--tp-surface); +124</p>
+          <p class="text-sm text-green" style="font-weight: bold;">&#9650; +124</p>
           <p class="text-xs text-gray mt-1">new this quarter</p>
         </div>
         <div class="group-box text-center">
           <span class="group-box-title">Retention</span>
           <p class="text-xl" style="font-size: 30px; margin: 10px 0; color: var(--blue-navy);">94.2%</p>
-          <p class="text-sm text-green" style="font-weight: bold;">&var(--tp-surface); +2.1%</p>
+          <p class="text-sm text-green" style="font-weight: bold;">&#9650; +2.1%</p>
           <p class="text-xs text-gray mt-1">annual rate</p>
         </div>
         <div class="group-box text-center">
           <span class="group-box-title">NPS Score</span>
           <p class="text-xl" style="font-size: 30px; margin: 10px 0; color: var(--blue-navy);">72</p>
-          <p class="text-sm text-green" style="font-weight: bold;">&var(--tp-surface); +5</p>
+          <p class="text-sm text-green" style="font-weight: bold;">&#9650; +5</p>
           <p class="text-xs text-gray mt-1">industry avg: 45</p>
         </div>
       </div>
@@ -918,7 +912,7 @@
           </div>
           <div class="panel-sunken shrink-0 flex items-center justify-between">
             <span class="text-sm text-gray">All systems operational</span>
-            <span class="text-sm text-green" style="font-weight: bold;">&var(--tp-surface); LIVE</span>
+            <span class="text-sm text-green" style="font-weight: bold;">&#9679; LIVE</span>
           </div>
         </div>
       </div>
@@ -944,31 +938,31 @@
           <p class="text-sm text-gray mb-2 shrink-0">C:\ORG\STRUCTURE</p>
           <div class="flex-1 flex flex-col justify-around" style="overflow: auto;">
             <div>
-              <div class="tree-item"><span class="tree-icon">-</span>&var(--tp-ac); <strong>Executive Leadership</strong></div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Office of the CEO</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Chief of Staff</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">-</span>&var(--tp-ac); Board Relations</div>
-              <div class="tree-item" style="padding-left: 44px;"><span class="tree-icon">&nbsp;</span>&var(--tp-ac); Governance</div>
-              <div class="tree-item" style="padding-left: 44px;"><span class="tree-icon">&nbsp;</span>&var(--tp-ac); Committees</div>
+              <div class="tree-item"><span class="tree-icon">-</span>&#128193; <strong>Executive Leadership</strong></div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Office of the CEO</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Chief of Staff</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">-</span>&#128193; Board Relations</div>
+              <div class="tree-item" style="padding-left: 44px;"><span class="tree-icon">&nbsp;</span>&#128196; Governance</div>
+              <div class="tree-item" style="padding-left: 44px;"><span class="tree-icon">&nbsp;</span>&#128196; Committees</div>
             </div>
             <div>
-              <div class="tree-item"><span class="tree-icon">-</span>&var(--tp-ac); <strong>Engineering</strong></div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Platform Team</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Product Engineering</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Infrastructure</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); QA &amp; DevOps</div>
+              <div class="tree-item"><span class="tree-icon">-</span>&#128193; <strong>Engineering</strong></div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Platform Team</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Product Engineering</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Infrastructure</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; QA &amp; DevOps</div>
             </div>
             <div>
-              <div class="tree-item"><span class="tree-icon">-</span>&var(--tp-ac); <strong>Commercial</strong></div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Sales</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Marketing</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Customer Success</div>
+              <div class="tree-item"><span class="tree-icon">-</span>&#128193; <strong>Commercial</strong></div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Sales</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Marketing</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Customer Success</div>
             </div>
             <div>
-              <div class="tree-item"><span class="tree-icon">-</span>&var(--tp-ac); <strong>Operations</strong></div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Finance</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); Legal &amp; Compliance</div>
-              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&var(--tp-ac); People &amp; Culture</div>
+              <div class="tree-item"><span class="tree-icon">-</span>&#128193; <strong>Operations</strong></div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Finance</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; Legal &amp; Compliance</div>
+              <div class="tree-item" style="padding-left: 24px;"><span class="tree-icon">+</span>&#128193; People &amp; Culture</div>
             </div>
           </div>
         </div>
@@ -1220,8 +1214,8 @@ function renderBarChart() {
       datasets: [{
         label: 'Revenue ($M)',
         data: [1.2, 1.5, 1.9, 2.1],
-        backgroundColor: ['var(--tp-ac)', 'var(--tp-ac)', 'var(--tp-ac)', 'var(--tp-ac)'],
-        borderColor: 'var(--tp-fg)',
+        backgroundColor: ['#000080', '#0000a0', '#1084d0', '#000080'],
+        borderColor: '#000000',
         borderWidth: 1
       }]
     },
@@ -1230,8 +1224,8 @@ function renderBarChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { font: { family: var(--tp-hf), size: 12 }, color: 'var(--tp-fg)' }, grid: { display: false } },
-        y: { ticks: { font: { family: var(--tp-hf), size: 12 }, color: 'var(--tp-fg)' }, grid: { color: 'var(--tp-bg)', lineWidth: 1 }, beginAtZero: true }
+        x: { ticks: { font: { family: 'MS Sans Serif', size: 12 }, color: '#222' }, grid: { display: false } },
+        y: { ticks: { font: { family: 'MS Sans Serif', size: 12 }, color: '#222' }, grid: { color: '#c0c0c0', lineWidth: 1 }, beginAtZero: true }
       }
     }
   });
@@ -1246,8 +1240,8 @@ function renderPieChart() {
       labels: ['Enterprise', 'Mid-Market', 'Small Business', 'Government'],
       datasets: [{
         data: [42, 28, 18, 12],
-        backgroundColor: ['var(--tp-ac)', 'var(--tp-ac)', 'var(--tp-ac)', 'var(--tp-ac)'],
-        borderColor: 'var(--tp-bg)',
+        backgroundColor: ['#000080', '#008000', '#008080', '#808000'],
+        borderColor: '#d4d0c8',
         borderWidth: 2
       }]
     },
@@ -1255,7 +1249,7 @@ function renderPieChart() {
       responsive: true,
       maintainAspectRatio: false,
       plugins: {
-        legend: { position: 'bottom', labels: { font: { family: var(--tp-hf), size: 12 }, color: 'var(--tp-fg)', padding: 14 } }
+        legend: { position: 'bottom', labels: { font: { family: 'MS Sans Serif', size: 12 }, color: '#222', padding: 14 } }
       }
     }
   });
@@ -1271,12 +1265,12 @@ function renderLineChart() {
       datasets: [{
         label: 'Active Users (K)',
         data: [42, 48, 55, 62, 71, 78],
-        borderColor: 'var(--tp-ac)',
+        borderColor: '#000080',
         backgroundColor: 'rgba(0,0,128,0.1)',
         fill: true,
         tension: 0.3,
-        pointBackgroundColor: 'var(--tp-ac)',
-        pointBorderColor: 'var(--tp-bg)',
+        pointBackgroundColor: '#000080',
+        pointBorderColor: '#ffffff',
         pointBorderWidth: 2,
         pointRadius: 5
       }]
@@ -1286,8 +1280,8 @@ function renderLineChart() {
       maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        x: { ticks: { font: { family: var(--tp-hf), size: 11 }, color: 'var(--tp-fg)' }, grid: { display: false } },
-        y: { ticks: { font: { family: var(--tp-hf), size: 11 }, color: 'var(--tp-fg)' }, grid: { color: 'var(--tp-bg)' }, beginAtZero: false }
+        x: { ticks: { font: { family: 'MS Sans Serif', size: 11 }, color: '#222' }, grid: { display: false } },
+        y: { ticks: { font: { family: 'MS Sans Serif', size: 11 }, color: '#222' }, grid: { color: '#d4d0c8' }, beginAtZero: false }
       }
     }
   });

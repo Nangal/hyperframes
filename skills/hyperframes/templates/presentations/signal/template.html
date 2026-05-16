@@ -28,47 +28,41 @@
    ║  Never write raw hex values, font names, or px sizes outside here.   ║
    ╚══════════════════════════════════════════════════════════════════════╝ */
       :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #f0ece3;
-  --tp-fg: #e2dcd0;
-  --tp-ac: #c8a870;
-  --tp-mt: #cac4b4;
-  --tp-surface: #1c2644;
-  --tp-border: #2e3d5c;
-  --tp-hf: "9.5vw";
-  --tp-bf: "1.05vw";
-  --tp-mf: "IBM Plex Mono";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #e2dcd0;
+    --tp-secondary: #1c2644;
+    --tp-tertiary: #2e3d5c;
+    --tp-accent: #c8a870;
 
         /* ── Palette ──────────────────────────────────────────────────────── */
         /* Dark navy: intelligence, authority, depth — the editorial tone */
-        --c-bg: var(--tp-surface, #1c2644);
+        --c-bg: var(--tp-secondary, #1c2644);
         /* Slightly lighter navy for secondary dark surfaces */
-        --c-bg-alt: var(--tp-surface, #232f55);
+        --c-bg-alt: #232f55;
         /* Warm cream: the light slide background, like aged paper */
-        --c-bg-light: var(--tp-bg, #f0ece3);
+        --c-bg-light: #f0ece3;
         /* Slightly cooler cream for secondary light surfaces */
-        --c-bg-light-alt: var(--tp-bg, #e6e0d4);
+        --c-bg-light-alt: #e6e0d4;
 
         /* Primary text on dark: warm off-white, never pure white */
-        --c-fg: var(--tp-fg, #e2dcd0);
+        --c-fg: var(--tp-primary, #e2dcd0);
         /* Secondary text on dark: muted blue-grey */
-        --c-fg-2: var(--tp-fg, #8a96a8);
+        --c-fg-2: #8a96a8;
         /* Tertiary / hint text on dark */
-        --c-fg-3: var(--tp-fg, #4e5a6e);
+        --c-fg-3: #4e5a6e;
         /* Primary text on light: very dark navy near-black */
-        --c-fg-light: var(--tp-fg, #1a2030);
+        --c-fg-light: #1a2030;
         /* Secondary text on light */
-        --c-fg-light-2: var(--tp-fg, #5a6270);
+        --c-fg-light-2: #5a6270;
         /* Tertiary text on light */
-        --c-fg-light-3: var(--tp-fg, #9aa0a8);
+        --c-fg-light-3: #9aa0a8;
 
         /* Accent: warm antique gold — the single hot colour; used for italic serif em */
-        --c-accent: var(--tp-ac, #c8a870);
+        --c-accent: var(--tp-accent, #c8a870);
         /* Dividers on dark: dark navy border */
-        --c-border: var(--tp-border, #2e3d5c);
+        --c-border: var(--tp-tertiary, #2e3d5c);
         /* Dividers on light: warm greige border */
-        --c-border-light: var(--tp-mt, #cac4b4);
+        --c-border-light: #cac4b4;
 
         /* ── Typography ──────────────────────────────────────────────────── */
         /* Display + Heading: Source Serif 4 — editorial, authoritative.
@@ -131,7 +125,7 @@
       }
 
       /* Deck container — all slides sit side by side in one horizontal strip */
-      var(--tp-bg)k {
+      #deck {
         display: flex;
         height: 100vh;
         transition: transform var(--dur-slide) var(--ease-slide);
@@ -2153,9 +2147,9 @@
               style="
                 background: conic-gradient(
                   var(--c-accent) 0% 35%,
-                  var(--tp-ac) 35% 65%,
-                  var(--tp-surface) 65% 87%,
-                  var(--tp-ac) 87% 100%
+                  #3d5475 35% 65%,
+                  #526880 65% 87%,
+                  #2d3f55 87% 100%
                 );
               "
             ></div>
@@ -2171,17 +2165,17 @@
                 <span class="pie-item-val">35%</span>
               </div>
               <div class="pie-item">
-                <div class="pie-swatch" style="background: var(--tp-ac)"></div>
+                <div class="pie-swatch" style="background: #3d5475"></div>
                 <span class="pie-item-label">Category B</span>
                 <span class="pie-item-val">30%</span>
               </div>
               <div class="pie-item">
-                <div class="pie-swatch" style="background: var(--tp-surface)"></div>
+                <div class="pie-swatch" style="background: #526880"></div>
                 <span class="pie-item-label">Category C</span>
                 <span class="pie-item-val">22%</span>
               </div>
               <div class="pie-item">
-                <div class="pie-swatch" style="background: var(--tp-ac)"></div>
+                <div class="pie-swatch" style="background: #2d3f55"></div>
                 <span class="pie-item-label">Category D</span>
                 <span class="pie-item-val">13%</span>
               </div>

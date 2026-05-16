@@ -10,32 +10,26 @@
 <script src="deck-stage.js"></script>
 <style>
   :root{
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #F2D86A;
-  --tp-fg: #7A1F35;
-  --tp-ac: #F2B6C6;
-  --tp-mt: #F2B6C6;
-  --tp-surface: #F2D86A;
-  --tp-border: #F2B6C6;
-  --tp-hf: "Bricolage Grotesque";
-  --tp-bf: "JetBrains Mono";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #7A1F35;
+    --tp-secondary: #F2D86A;
+    --tp-tertiary: #7A1F35;
+    --tp-accent: #F2B6C6;
 
-    --pink: var(--tp-ac, #F2B6C6);
-    --pink-deep: var(--tp-ac, #F2B6C6);
-    --cream: var(--tp-bg, #F2D86A);
-    --navy: var(--tp-ac, #7A1F35);
-    --forest: var(--tp-ac, #7A1F35);
-    --burgundy: var(--tp-ac, #7A1F35);
-    --lime: var(--tp-ac, #F2D86A);
-    --sky: var(--tp-mt, #F2B6C6);
-    --terracotta: var(--tp-ac, #F2D86A);
-    --butter: var(--tp-ac, #F2D86A);
-    --ink: var(--tp-fg, #7A1F35);
+    --pink: var(--tp-accent, #F2B6C6);
+    --pink-deep:#F2B6C6;
+    --cream: var(--tp-secondary, #F2D86A);
+    --navy: var(--tp-tertiary, #7A1F35);
+    --forest:#7A1F35;
+    --burgundy:#7A1F35;
+    --lime:#F2D86A;
+    --sky:#F2B6C6;
+    --terracotta:#F2D86A;
+    --butter:#F2D86A;
+    --ink: var(--tp-primary, #7A1F35);
   }
-  html, body { margin:0; padding:0; background:var(--tp-ac); }
-  body { font-family: var(--tp-hf), sans-serif; color: var(--ink); }
+  html, body { margin:0; padding:0; background:#7A1F35; }
+  body { font-family: "Bricolage Grotesque", sans-serif; color: var(--ink); }
 
   deck-stage section {
     width:1920px; height:1080px;
@@ -44,22 +38,22 @@
     box-sizing:border-box;
   }
 
-  .mono { font-family:var(--tp-bf), monospace; }
+  .mono { font-family:"JetBrains Mono", monospace; }
   .serif { font-family:"Instrument Serif", serif; font-weight:400; }
-  .grotesk { font-family:var(--tp-hf), sans-serif; }
+  .grotesk { font-family:"Bricolage Grotesque", sans-serif; }
 
   .pill {
     display:inline-flex; align-items:center; justify-content:center;
     padding: 0.35em 0.9em;
     border-radius: 999px;
-    font-family:var(--tp-hf), sans-serif;
+    font-family:"Bricolage Grotesque", sans-serif;
     font-weight:500;
     line-height:1;
     white-space:nowrap;
   }
 
   .label {
-    font-family:var(--tp-bf), monospace;
+    font-family:"JetBrains Mono", monospace;
     font-size:24px;
     letter-spacing: 0.15em;
     text-transform: uppercase;
@@ -68,7 +62,7 @@
   .footer {
     position:absolute; left:64px; right:64px; bottom:36px;
     display:flex; justify-content:space-between; align-items:center;
-    font-family:var(--tp-bf), monospace;
+    font-family:"JetBrains Mono", monospace;
     font-size:16px;
     letter-spacing: 0.12em;
     text-transform: uppercase;
@@ -90,7 +84,7 @@
   .s-cover .wordmark {
     position:absolute;
     left:64px; right:64px; bottom:80px;
-    font-family:var(--tp-hf), sans-serif;
+    font-family:"Bricolage Grotesque", sans-serif;
     font-weight:800;
     font-size: 300px;
     line-height: 0.82;
@@ -104,7 +98,7 @@
   .s-cover .meta {
     position:absolute; top:64px; left:64px; right:64px;
     display:flex; justify-content:space-between;
-    font-family:var(--tp-bf), monospace;
+    font-family:"JetBrains Mono", monospace;
     font-size:24px; letter-spacing:0.15em; text-transform:uppercase;
   }
 
@@ -124,14 +118,14 @@
   }
   .s-manifesto .chapter sup { font-size: 0.35em; vertical-align: super; opacity:0.6; }
   .s-manifesto .lede {
-    font-family:var(--tp-hf), sans-serif;
+    font-family:"Bricolage Grotesque", sans-serif;
     font-size: 56px; line-height:1.05;
     font-weight:500; letter-spacing:-0.02em;
     max-width: 720px;
   }
   .s-manifesto .lede em { font-family:"Instrument Serif", serif; font-weight:400; color:var(--terracotta); }
   .s-manifesto .right h3 {
-    font-family:var(--tp-bf), monospace;
+    font-family:"JetBrains Mono", monospace;
     font-size: 24px; letter-spacing:0.18em; text-transform:uppercase;
     margin: 0 0 32px; color: var(--butter); font-weight:500;
   }
@@ -148,7 +142,7 @@
   .s-grid { background: var(--pink); padding: 72px 64px 80px; }
   .s-grid h2 {
     margin:0 0 32px; font-size: 76px; line-height:1;
-    font-family:var(--tp-hf), sans-serif; font-weight:700;
+    font-family:"Bricolage Grotesque", sans-serif; font-weight:700;
     letter-spacing:-0.02em; color: var(--burgundy);
     max-width: 1100px;
   }
@@ -165,7 +159,7 @@
     position:relative; overflow:hidden;
   }
   .s-grid .card .num {
-    font-family:var(--tp-bf), monospace;
+    font-family:"JetBrains Mono", monospace;
     font-size: 24px; letter-spacing:0.15em;
     opacity:0.7;
   }
@@ -180,12 +174,12 @@
   /* ========== SLIDE 4: BIG STAT / EDITORIAL ========== */
   .s-stat { background: var(--burgundy); color: var(--cream); padding: 96px 64px; position:relative; }
   .s-stat .toprow { display:flex; justify-content:space-between; align-items:flex-start; }
-  .s-stat .kicker { font-family:var(--tp-bf), monospace; font-size:24px; letter-spacing:0.18em; text-transform:uppercase; color: var(--butter); }
+  .s-stat .kicker { font-family:"JetBrains Mono", monospace; font-size:24px; letter-spacing:0.18em; text-transform:uppercase; color: var(--butter); }
   .s-stat .swatches { display:flex; gap:10px; }
   .s-stat .swatches i { width:36px; height:36px; border-radius:999px; display:block; }
   .s-stat .figure {
     margin-top: 20px;
-    font-family:var(--tp-hf), sans-serif;
+    font-family:"Bricolage Grotesque", sans-serif;
     font-weight:700;
     font-size: 540px;
     line-height: 0.78;
@@ -205,10 +199,10 @@
     font-size: 24px;
   }
   .s-stat .breakdown .row:last-child { border-bottom: 1px solid rgba(246,237,220,0.25); }
-  .s-stat .breakdown .row .lbl { font-family:var(--tp-bf), monospace; font-size:24px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.7; }
+  .s-stat .breakdown .row .lbl { font-family:"JetBrains Mono", monospace; font-size:24px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.7; }
   .s-stat .breakdown .row .bar { height:10px; border-radius:999px; background: rgba(246,237,220,0.15); position:relative; overflow:hidden; }
   .s-stat .breakdown .row .bar i { display:block; height:100%; border-radius:999px; }
-  .s-stat .breakdown .row .val { font-family:var(--tp-bf), monospace; font-size:24px; text-align:right; }
+  .s-stat .breakdown .row .val { font-family:"JetBrains Mono", monospace; font-size:24px; text-align:right; }
 
   /* ========== SLIDE 5: TIMELINE ========== */
   .s-timeline { background: var(--butter); padding: 96px 80px; }
@@ -219,7 +213,7 @@
     max-width: 1100px;
   }
   .s-timeline .head h2 em { font-family:"Instrument Serif", serif; font-weight:400; color: var(--burgundy); }
-  .s-timeline .head .meta { font-family:var(--tp-bf), monospace; font-size:24px; letter-spacing:0.15em; text-transform:uppercase; text-align:right; line-height:1.5; color: var(--burgundy); flex-shrink:0; }
+  .s-timeline .head .meta { font-family:"JetBrains Mono", monospace; font-size:24px; letter-spacing:0.15em; text-transform:uppercase; text-align:right; line-height:1.5; color: var(--burgundy); flex-shrink:0; }
   .s-timeline .head .meta span { display:block; opacity:0.55; margin-top: 4px; }
   .s-timeline .track {
     position:relative;
@@ -258,7 +252,7 @@
     border-radius: 999px;
     padding: 24px 44px;
     display:flex; justify-content:space-between; align-items:center;
-    font-family:var(--tp-bf), monospace; font-size: 24px; letter-spacing:0.15em; text-transform:uppercase;
+    font-family:"JetBrains Mono", monospace; font-size: 24px; letter-spacing:0.15em; text-transform:uppercase;
   }
   .s-timeline .ribbon strong { font-family:"Instrument Serif", serif; font-weight:400; font-size:30px; letter-spacing:0; text-transform:none; color: var(--pink); }
 
@@ -276,7 +270,7 @@
   }
   .s-chart .l .legend .item { display:flex; align-items:center; gap: 14px; font-size:24px; }
   .s-chart .l .legend .item i { width:14px; height:14px; border-radius:4px; display:block; }
-  .s-chart .l .legend .item .cat { font-family:var(--tp-bf), monospace; font-size:24px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.7; margin-left:auto; }
+  .s-chart .l .legend .item .cat { font-family:"JetBrains Mono", monospace; font-size:24px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.7; margin-left:auto; }
   .s-chart .r {
     background: var(--cream); color: var(--ink);
     border-radius: 32px;
@@ -286,9 +280,9 @@
   }
   .s-chart .r .head { display:flex; justify-content:space-between; align-items:center; margin-bottom: 32px; }
   .s-chart .r .head .ttl { font-family:"Instrument Serif", serif; font-size: 40px; }
-  .s-chart .r .head .unit { font-family:var(--tp-bf), monospace; font-size:24px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.6; }
+  .s-chart .r .head .unit { font-family:"JetBrains Mono", monospace; font-size:24px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.6; }
   .s-chart svg.chart { width:100%; flex:0 0 auto; max-height: 480px; }
-  .s-chart .r .xax { display:grid; grid-template-columns: repeat(6, 1fr); margin-top: 12px; font-family:var(--tp-bf), monospace; font-size:24px; opacity:0.6; letter-spacing:0.1em; }
+  .s-chart .r .xax { display:grid; grid-template-columns: repeat(6, 1fr); margin-top: 12px; font-family:"JetBrains Mono", monospace; font-size:24px; opacity:0.6; letter-spacing:0.1em; }
 
   /* ========== SLIDE 7: QUOTE / EDITORIAL SPLIT ========== */
   .s-quote { background: var(--lime); color: var(--ink); padding: 0; display:grid; grid-template-columns: 0.95fr 1fr; }
@@ -302,11 +296,11 @@
     color: var(--ink);
     max-width: 760px;
   }
-  .s-quote .l blockquote b { font-family:var(--tp-hf), sans-serif; font-style:normal; font-weight:600; color: var(--burgundy); }
+  .s-quote .l blockquote b { font-family:"Bricolage Grotesque", sans-serif; font-style:normal; font-weight:600; color: var(--burgundy); }
   .s-quote .l .attribution { display:flex; align-items:center; gap:20px; }
   .s-quote .l .avatar { width:72px; height:72px; border-radius:999px; background: var(--burgundy); border:3px solid var(--burgundy); }
   .s-quote .l .who { font-size:26px; font-weight:600; }
-  .s-quote .l .who small { display:block; font-family:var(--tp-bf), monospace; font-size:24px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.65; font-weight:400; margin-top:4px; }
+  .s-quote .l .who small { display:block; font-family:"JetBrains Mono", monospace; font-size:24px; letter-spacing:0.1em; text-transform:uppercase; opacity:0.65; font-weight:400; margin-top:4px; }
   .s-quote .r {
     background: var(--burgundy); color: var(--butter);
     padding: 96px 80px;
@@ -328,10 +322,10 @@
   /* ========== SLIDE 8: CLOSER / INDEX ========== */
   .s-closer { background: var(--ink); color: var(--cream); padding: 96px 64px; position:relative; }
   .s-closer .top { display:flex; justify-content:space-between; align-items:flex-start; }
-  .s-closer .top .kicker { font-family:var(--tp-bf), monospace; font-size:24px; letter-spacing:0.18em; text-transform:uppercase; color: var(--lime); }
+  .s-closer .top .kicker { font-family:"JetBrains Mono", monospace; font-size:24px; letter-spacing:0.18em; text-transform:uppercase; color: var(--lime); }
   .s-closer .big {
     margin-top: 40px;
-    font-family:var(--tp-hf), sans-serif;
+    font-family:"Bricolage Grotesque", sans-serif;
     font-weight:700;
     font-size: 320px;
     line-height: 0.82;
@@ -347,7 +341,7 @@
   }
   .s-closer .grid .col h6 {
     margin: 0 0 16px;
-    font-family:var(--tp-bf), monospace;
+    font-family:"JetBrains Mono", monospace;
     font-size:24px; letter-spacing:0.15em; text-transform:uppercase;
     color: var(--lime); font-weight:500;
   }
@@ -414,7 +408,7 @@
       </div>
       <div>
         <div class="signature">— with warmth,</div>
-        <div style="font-family:var(--tp-bf), monospace; font-size:24px; letter-spacing:0.18em; text-transform:uppercase; margin-top: 12px; color: var(--butter);">The Editorial Desk</div>
+        <div style="font-family:'JetBrains Mono', monospace; font-size:24px; letter-spacing:0.18em; text-transform:uppercase; margin-top: 12px; color: var(--butter);">The Editorial Desk</div>
       </div>
     </div>
   </section>
@@ -592,7 +586,7 @@
       </div>
       <svg class="chart" viewBox="0 0 720 380" preserveAspectRatio="none">
         <!-- gridlines -->
-        <g stroke="var(--tp-ac)" stroke-opacity="0.15" stroke-width="1">
+        <g stroke="#7A1F35" stroke-opacity="0.15" stroke-width="1">
           <line x1="60" y1="40"  x2="720" y2="40"  />
           <line x1="60" y1="125" x2="720" y2="125" />
           <line x1="60" y1="210" x2="720" y2="210" />
@@ -600,7 +594,7 @@
           <line x1="60" y1="380" x2="720" y2="380" />
         </g>
         <!-- y labels -->
-        <g font-family="var(--tp-bf), monospace" font-size="24" fill="var(--tp-ac)" fill-opacity="0.6">
+        <g font-family="JetBrains Mono, monospace" font-size="24" fill="#7A1F35" fill-opacity="0.6">
           <text x="0" y="48">40</text>
           <text x="0" y="133">30</text>
           <text x="0" y="218">20</text>
@@ -610,12 +604,12 @@
 
         <!-- Series A (pink area, burgundy stroke) -->
         <path d="M 60 230 Q 120 200 180 180 T 300 145 T 420 120 T 540 100 T 660 80 L 660 380 L 60 380 Z"
-              fill="var(--tp-ac)" fill-opacity="0.85"/>
+              fill="#F2B6C6" fill-opacity="0.85"/>
         <path d="M 60 230 Q 120 200 180 180 T 300 145 T 420 120 T 540 100 T 660 80"
-              fill="none" stroke="var(--tp-ac)" stroke-width="3"/>
+              fill="none" stroke="#7A1F35" stroke-width="3"/>
 
         <!-- Series C bars (burgundy, dark on yellow) -->
-        <g fill="var(--tp-ac)">
+        <g fill="#7A1F35">
           <rect x="80"  y="320" width="22" height="60" rx="4"/>
           <rect x="190" y="300" width="22" height="80" rx="4"/>
           <rect x="300" y="285" width="22" height="95" rx="4"/>
@@ -626,8 +620,8 @@
 
         <!-- Series B (yellow circles + burgundy line) -->
         <path d="M 90 280 L 200 250 L 310 235 L 420 215 L 530 200 L 640 175"
-              fill="none" stroke="var(--tp-ac)" stroke-width="3"/>
-        <g fill="var(--tp-bg)" stroke="var(--tp-ac)" stroke-width="3">
+              fill="none" stroke="#7A1F35" stroke-width="3"/>
+        <g fill="#F2D86A" stroke="#7A1F35" stroke-width="3">
           <circle cx="90" cy="280" r="8"/>
           <circle cx="200" cy="250" r="8"/>
           <circle cx="310" cy="235" r="8"/>
@@ -638,7 +632,7 @@
 
         <!-- Series D (burgundy dotted) -->
         <path d="M 90 350 L 200 345 L 310 348 L 420 338 L 530 340 L 640 332"
-              fill="none" stroke="var(--tp-ac)" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round" stroke-opacity="0.6"/>
+              fill="none" stroke="#7A1F35" stroke-width="3" stroke-dasharray="2 10" stroke-linecap="round" stroke-opacity="0.6"/>
       </svg>
       <div class="xax">
         <span>W·01</span><span>W·05</span><span>W·09</span><span>W·13</span><span>W·17</span><span>W·24</span>
@@ -725,9 +719,9 @@
       </div>
       <div class="col">
         <h6>Type</h6>
-        <p>var(--tp-hf)</p>
+        <p>Bricolage Grotesque</p>
         <p>Instrument Serif</p>
-        <p>var(--tp-bf)</p>
+        <p>JetBrains Mono</p>
       </div>
       <div class="col">
         <h6>Printed by</h6>

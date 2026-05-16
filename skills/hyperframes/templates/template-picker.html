@@ -6,13 +6,17 @@
 <script src="https://cdn.jsdelivr.net/npm/@hyperframes/player/dist/hyperframes-player.global.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  height: 100%;
+}
 body {
   font-family: system-ui, -apple-system, sans-serif;
   background: #0e0e0e;
   color: #eee;
-  min-height: 100vh;
+  min-height: 100%;
   font-size: 13px;
   -webkit-font-smoothing: antialiased;
+  overflow-y: auto;
 }
 .header {
   padding: 16px 32px;

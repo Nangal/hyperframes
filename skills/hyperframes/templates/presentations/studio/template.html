@@ -28,45 +28,39 @@
    ║  Never write raw hex values, font names, or px sizes outside here.   ║
    ╚══════════════════════════════════════════════════════════════════════╝ */
       :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #f5d200;
-  --tp-fg: #f5d200;
-  --tp-ac: #f5d200;
-  --tp-mt: #888888;
-  --tp-surface: #1c1c1c;
-  --tp-border: #2e2e2c;
-  --tp-hf: "12vw";
-  --tp-bf: "1.15vw";
-  --tp-mf: "IBM Plex Mono";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #f5d200;
+    --tp-secondary: #1c1c1c;
+    --tp-tertiary: #2e2e2c;
+    --tp-accent: #f5d200;
 
         /* ── Palette ──────────────────────────────────────────────────────── */
         /* Near-black: the dark slide background — warm dark, not cold neutral */
-        --c-bg: var(--tp-surface, #1c1c1c);
+        --c-bg: var(--tp-secondary, #1c1c1c);
         /* Slightly lighter near-black for secondary dark surfaces */
-        --c-bg-alt: var(--tp-surface, #242422);
+        --c-bg-alt: #242422;
         /* Acid yellow: THE light slide background — yellow is the environment, not an accent */
-        --c-bg-light: var(--tp-bg, #f5d200);
+        --c-bg-light: #f5d200;
         /* Slightly cooler yellow for secondary light surfaces */
-        --c-bg-light-alt: var(--tp-bg, #f0cc00);
+        --c-bg-light-alt: #f0cc00;
 
         /* Primary text on dark: acid yellow — the only colour on dark slides */
-        --c-fg: var(--tp-fg, #f5d200);
+        --c-fg: var(--tp-primary, #f5d200);
         /* Secondary text on dark: yellow at 58% opacity — muted but still warm */
         --c-fg-2: rgba(245, 210, 0, 0.58);
         /* Tertiary / hint text on dark: yellow at 32% */
         --c-fg-3: rgba(245, 210, 0, 0.32);
         /* Primary text on light: near-black on yellow */
-        --c-fg-light: var(--tp-fg, #1c1c1c);
+        --c-fg-light: #1c1c1c;
         /* Secondary text on light: near-black at 62% */
         --c-fg-light-2: rgba(28, 28, 28, 0.62);
         /* Tertiary text on light */
         --c-fg-light-3: rgba(28, 28, 28, 0.35);
 
         /* Accent: yellow on dark / same yellow (var reused by engine) */
-        --c-accent: var(--tp-ac, #f5d200);
+        --c-accent: var(--tp-accent, #f5d200);
         /* Dividers on dark: very dark warm border */
-        --c-border: var(--tp-border, #2e2e2c);
+        --c-border: var(--tp-tertiary, #2e2e2c);
         /* Dividers on light: near-black at 18% opacity on yellow */
         --c-border-light: rgba(28, 28, 28, 0.18);
 
@@ -130,7 +124,7 @@
       }
 
       /* Deck container — all slides sit side by side in one horizontal strip */
-      var(--tp-bg)k {
+      #deck {
         display: flex;
         height: 100vh;
         transition: transform var(--dur-slide) var(--ease-slide);

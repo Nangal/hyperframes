@@ -9,24 +9,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&family=Space+Mono:wght@400;700&family=Tektur:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
   <style>
     :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #ffffff;
-  --tp-fg: #0F1B3D;
-  --tp-ac: #F0A6CA;
-  --tp-mt: #E2D5F2;
-  --tp-surface: #ffffff;
-  --tp-border: #E2D5F2;
-  --tp-hf: "Tektur";
-  --tp-bf: "Chakra Petch";
-  --tp-mf: "Space Mono";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #0A0E27;
+    --tp-secondary: #0F1B3D;
+    --tp-tertiary: #E2D5F2;
+    --tp-accent: #F0A6CA;
 
-      --neon-pink: var(--tp-ac, #F0A6CA);
-      --neon-cyan: var(--tp-ac, #5EDCF4);
-      --neon-yellow: var(--tp-ac, #F4D03F);
-      --deep-navy: var(--tp-fg, #0F1B3D);
-      --dark-void: var(--tp-fg, #0A0E27);
-      --soft-lavender: var(--tp-mt, #E2D5F2);
+      --neon-pink: var(--tp-accent, #F0A6CA);
+      --neon-cyan: #5EDCF4;
+      --neon-yellow: #F4D03F;
+      --deep-navy: #0F1B3D;
+      --dark-void: var(--tp-secondary, #0A0E27);
+      --soft-lavender: var(--tp-tertiary, #E2D5F2);
       --pixel-size: 4px;
       --font-display: 'Tektur', cursive;
       --font-body: 'Chakra Petch', sans-serif;

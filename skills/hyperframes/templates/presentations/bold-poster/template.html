@@ -7,22 +7,16 @@
   <link href="https://fonts.googleapis.com/css2?family=Shrikhand&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #FFFFFF;
-  --tp-fg: #1C1410;
-  --tp-ac: #D8000F;
-  --tp-mt: #F5F2EF;
-  --tp-surface: #FFFFFF;
-  --tp-border: #F5F2EF;
-  --tp-hf: "Libre Baskerville";
-  --tp-bf: "Space Grotesk";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #1C1410;
+    --tp-secondary: #FFFFFF;
+    --tp-tertiary: #F5F2EF;
+    --tp-accent: #D8000F;
 
-      --bg: var(--tp-bg, #FFFFFF);
-      --dark: var(--tp-fg, #1C1410);
-      --red: var(--tp-ac, #D8000F);
-      --light: var(--tp-mt, #F5F2EF);
+      --bg: var(--tp-secondary, #FFFFFF);
+      --dark: var(--tp-primary, #1C1410);
+      --red: var(--tp-accent, #D8000F);
+      --light: var(--tp-tertiary, #F5F2EF);
     }
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -31,7 +25,7 @@
       width: 100%; height: 100%;
       overflow: hidden;
       background: var(--bg);
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       color: var(--dark);
     }
 
@@ -43,13 +37,13 @@
     }
     .counter {
       position: fixed; bottom: 18px; right: 24px; z-index: 100;
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
       font-weight: 600; color: var(--dark); opacity: 0.5;
     }
     .hint {
       position: fixed; bottom: 18px; left: 50%; transform: translateX(-50%);
-      z-index: 100; font-family: var(--tp-bf), sans-serif;
+      z-index: 100; font-family: 'Space Grotesk', sans-serif;
       font-size: 10px; letter-spacing: 1.5px; text-transform: uppercase;
       color: var(--dark); opacity: 0; transition: opacity 0.4s ease;
       background: var(--light); padding: 6px 14px; border-radius: 4px;
@@ -74,14 +68,14 @@
 
     /* ---------- UTILITIES ---------- */
     .font-display { font-family: 'Shrikhand', cursive; }
-    .font-serif { font-family: var(--tp-hf), serif; }
-    .font-sans { font-family: var(--tp-bf), sans-serif; }
+    .font-serif { font-family: 'Libre Baskerville', serif; }
+    .font-sans { font-family: 'Space Grotesk', sans-serif; }
 
     .bullet-list {
       list-style: none; padding: 0; margin: 0;
     }
     .bullet-list li {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(10px, 0.9vw, 12px);
       line-height: 1.45; color: var(--dark); opacity: 0.8;
       padding-left: 14px; position: relative; margin-bottom: 5px;
@@ -98,7 +92,7 @@
       padding-top: 5vh; padding-left: 7vw;
     }
     .hero-meta {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(11px, 1vw, 14px);
       color: var(--dark); opacity: 0.6;
       margin-bottom: 1.5vh; letter-spacing: 0.5px;
@@ -127,13 +121,13 @@
       text-align: right; max-width: 300px;
     }
     .hero-tagline .tag-label {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(10px, 0.9vw, 12px);
       letter-spacing: 3px; text-transform: uppercase;
       font-weight: 600; color: var(--red); margin-bottom: 8px;
     }
     .hero-tagline .tag-body {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(13px, 1.2vw, 16px);
       line-height: 1.6; color: var(--dark); 
     }
@@ -151,7 +145,7 @@
       max-width: 900px;
     }
     .red-cite {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(13px, 1.3vw, 16px);
       margin-top: 3vh; opacity: 0.85;
     }
@@ -174,12 +168,12 @@
       gap: 48px; margin-bottom: 4vh;
     }
     .summary-col {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(13px, 1.2vw, 16px);
       line-height: 1.75; color: var(--dark);
     }
     .summary-col strong {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-weight: 600; font-size: 0.95em;
       letter-spacing: 0.3px;
     }
@@ -197,13 +191,13 @@
       color: var(--red); line-height: 1; margin-bottom: 6px;
     }
     .summary-hl .hl-label {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10px; letter-spacing: 2px;
       text-transform: uppercase; font-weight: 600;
       color: var(--dark); margin-bottom: 4px;
     }
     .summary-hl .hl-body {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(11px, 1vw, 13px);
       line-height: 1.5; color: var(--dark); opacity: 0.75;
     }
@@ -233,19 +227,19 @@
       color: var(--red); line-height: 1; margin-bottom: 8px;
     }
     .fin-cell .fc-label {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10px; letter-spacing: 2px;
       text-transform: uppercase; font-weight: 600;
       color: var(--dark); margin-bottom: 6px;
     }
     .fin-cell .fc-body {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(11px, 1vw, 13px);
       line-height: 1.55; color: var(--dark); opacity: 0.8;
       margin-bottom: 10px;
     }
     .fin-cell .fc-micro {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10px; color: var(--dark); opacity: 0.5;
       line-height: 1.4; margin-top: auto;
     }
@@ -274,13 +268,13 @@
       color: var(--dark); line-height: 1;
     }
     .stat-item .si-label {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10px; letter-spacing: 2px;
       text-transform: uppercase; font-weight: 600;
       color: var(--dark); margin-top: 4px;
     }
     .stat-context {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(13px, 1.2vw, 16px);
       color: var(--dark); opacity: 0.7;
       margin-top: 3vh; max-width: 520px; line-height: 1.6;
@@ -310,7 +304,7 @@
       line-height: 1.1; color: var(--dark); margin-bottom: 8px;
     }
     .svc-card .svc-body {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(12px, 1.1vw, 14px);
       line-height: 1.6; color: var(--dark); opacity: 0.8;
       margin-bottom: 10px;
@@ -319,7 +313,7 @@
       list-style: none; padding: 0; margin: 0;
     }
     .svc-card .svc-bullets li {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(10px, 0.9vw, 12px);
       line-height: 1.45; color: var(--dark); opacity: 0.7;
       padding-left: 12px; position: relative; margin-bottom: 3px;
@@ -345,7 +339,7 @@
       padding-left: 16px;
     }
     .rm-phase .rm-label {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 9px; letter-spacing: 3px;
       text-transform: uppercase; font-weight: 600;
       color: var(--red); margin-bottom: 6px;
@@ -356,7 +350,7 @@
       line-height: 1.1; color: var(--bg); margin-bottom: 8px;
     }
     .rm-phase .rm-body {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(11px, 1vw, 13px);
       line-height: 1.6; color: var(--bg); opacity: 0.65;
       margin-bottom: 10px;
@@ -365,7 +359,7 @@
       list-style: none; padding: 0; margin: 0;
     }
     .rm-phase .rm-bullets li {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(10px, 0.85vw, 11px);
       line-height: 1.4; color: var(--bg); opacity: 0.5;
       padding-left: 12px; position: relative; margin-bottom: 3px;
@@ -399,7 +393,7 @@
       color: var(--dark); line-height: 1.15; margin-bottom: 12px;
     }
     .pillar .p-lead {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(12px, 1.1vw, 14px);
       line-height: 1.6; color: var(--dark); 
       margin-bottom: 12px;
@@ -408,7 +402,7 @@
       list-style: none; padding: 0; margin: 0; width: 100%;
     }
     .pillar .p-bullets li {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(10px, 0.9vw, 12px);
       line-height: 1.45; color: var(--dark); opacity: 0.75;
       padding: 5px 0; border-bottom: 1px solid rgba(28,20,16,0.08);
@@ -436,7 +430,7 @@
       display: flex; flex-direction: column;
     }
     .global-card .gc-label {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10px; letter-spacing: 2px;
       text-transform: uppercase; font-weight: 600;
       color: var(--red); margin-bottom: 10px;
@@ -447,7 +441,7 @@
       color: var(--dark); line-height: 1.1; margin-bottom: 10px;
     }
     .global-card .gc-body {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(12px, 1.1vw, 14px);
       line-height: 1.65; color: var(--dark); opacity: 0.8;
     }
@@ -455,7 +449,7 @@
       display: flex; gap: 20px; margin-top: 14px;
     }
     .global-card .gc-stat {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 10px; color: var(--dark); opacity: 0.6;
       line-height: 1.4;
     }
@@ -478,14 +472,14 @@
       transform: rotate(-5deg); display: inline-block;
     }
     .close-sub {
-      font-family: var(--tp-hf), serif;
+      font-family: 'Libre Baskerville', serif;
       font-size: clamp(14px, 1.5vw, 18px);
       color: var(--dark);
       margin-top: 4vh; max-width: 520px; line-height: 1.6;
     }
     .close-links {
       margin-top: 5vh; display: flex; gap: 32px;
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(10px, 0.9vw, 12px);
       letter-spacing: 2px; text-transform: uppercase;
       font-weight: 600;
@@ -518,7 +512,7 @@
 
   <div class="progress" id="progress"></div>
   <div class="counter" id="counter">01 / 10</div>
-  <div class="hint"><span>&var(--tp-surface);</span> Click or Swipe <span>&var(--tp-surface);</span></div>
+  <div class="hint"><span>&#8592;</span> Click or Swipe <span>&#8594;</span></div>
 
   <div class="slides" id="slides">
 

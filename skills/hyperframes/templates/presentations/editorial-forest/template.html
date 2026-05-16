@@ -9,30 +9,24 @@
 <script src="deck-stage.js"></script>
 <style>
   :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #efe7d4;
-  --tp-fg: #1a1a17;
-  --tp-ac: #2e4a2a;
-  --tp-mt: #888888;
-  --tp-surface: #efe7d4;
-  --tp-border: #888888;
-  --tp-hf: "system-ui";
-  --tp-bf: "system-ui";
-  --tp-mf: "JetBrains Mono";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #1a1a17;
+    --tp-secondary: #efe7d4;
+    --tp-tertiary: #3a5a36;
+    --tp-accent: #2e4a2a;
 
-    --green: var(--tp-ac, #2e4a2a);
-    --green-deep: var(--tp-ac, #243a21);
-    --green-lite: var(--tp-ac, #3a5a36);
-    --pink: var(--tp-ac, #e89cb1);
-    --pink-deep: var(--tp-ac, #d27e96);
-    --cream: var(--tp-bg, #efe7d4);
-    --cream-2: var(--tp-bg, #e6dcc4);
-    --ink: var(--tp-fg, #1a1a17);
+    --green: var(--tp-accent, #2e4a2a);
+    --green-deep: #243a21;
+    --green-lite: var(--tp-tertiary, #3a5a36);
+    --pink: #e89cb1;
+    --pink-deep: #d27e96;
+    --cream: var(--tp-secondary, #efe7d4);
+    --cream-2: #e6dcc4;
+    --ink: var(--tp-primary, #1a1a17);
     --serif: "Source Serif 4", "Source Serif Pro", Georgia, serif;
     --mono: "JetBrains Mono", ui-monospace, Menlo, monospace;
   }
-  html, body { margin: 0; padding: 0; background: var(--tp-fg); }
+  html, body { margin: 0; padding: 0; background: #111; }
   deck-stage { font-family: var(--serif); color: var(--ink); }
 
   section {
@@ -698,7 +692,7 @@
     <div class="col-text">
       <div class="eyebrow">The big shift</div>
       <h2>Fewer bets, stronger commitments.</h2>
-      <p>Placeholder body copy sits here as a stand&var(--tp-surface);in for the supporting narrative. Open with the point you want the audience to remember when they walk out of the room.</p>
+      <p>Placeholder body copy sits here as a stand&#8209;in for the supporting narrative. Open with the point you want the audience to remember when they walk out of the room.</p>
       <p>Use the second paragraph to add proof &mdash; a customer, a moment in market, a number that earns the claim. Keep one idea per paragraph; trust the audience to follow.</p>
       <dl class="meta">
         <div><dt>Owner</dt><dd>Team Placeholder</dd></div>
@@ -816,7 +810,7 @@
       <div class="kpi">
         <span class="tag">Retention</span>
         <span class="big">94<span class="unit">%</span></span>
-        <p class="desc">Net retention across the top customer cohort, a four&var(--tp-surface);point lift from last year.</p>
+        <p class="desc">Net retention across the top customer cohort, a four&#8209;point lift from last year.</p>
       </div>
       <div class="kpi">
         <span class="tag">Reach</span>

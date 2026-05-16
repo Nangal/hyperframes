@@ -10,32 +10,26 @@
 <script src="deck-stage.js"></script>
 <style>
   :root{
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #EFE9D9;
-  --tp-fg: #0F0F0F;
-  --tp-ac: #1F8A4C;
-  --tp-mt: #888888;
-  --tp-surface: #EFE9D9;
-  --tp-border: #0F0F0F;
-  --tp-hf: "Space Grotesk";
-  --tp-bf: "Archivo Black";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #0F0F0F;
+    --tp-secondary: #EFE9D9;
+    --tp-tertiary: #2A2A2A;
+    --tp-accent: #1F8A4C;
 
-    --cream: var(--tp-bg, #EFE9D9);
-    --cream-2: var(--tp-bg, #E4DCC4);
-    --green: var(--tp-ac, #1F8A4C);
-    --green-dark: var(--tp-ac, #136636);
-    --pink: var(--tp-ac, #F06CA8);
-    --pink-dark: var(--tp-ac, #D14E8B);
-    --orange: var(--tp-ac, #E85A1F);
-    --yellow: var(--tp-ac, #F5C518);
-    --ink: var(--tp-fg, #0F0F0F);
-    --ink-2: var(--tp-fg, #2A2A2A);
-    --rule: var(--tp-border, #0F0F0F);
+    --cream: var(--tp-secondary, #EFE9D9);
+    --cream-2:#E4DCC4;
+    --green: var(--tp-accent, #1F8A4C);
+    --green-dark:#136636;
+    --pink:#F06CA8;
+    --pink-dark:#D14E8B;
+    --orange:#E85A1F;
+    --yellow:#F5C518;
+    --ink: var(--tp-primary, #0F0F0F);
+    --ink-2: var(--tp-tertiary, #2A2A2A);
+    --rule:#0F0F0F;
   }
   html, body { margin:0; padding:0; background:#000; }
-  body { font-family:var(--tp-hf), system-ui, sans-serif; color:var(--ink); }
+  body { font-family:"Space Grotesk", system-ui, sans-serif; color:var(--ink); }
 
   deck-stage > section{
     width:1920px; height:1080px;
@@ -47,9 +41,9 @@
   }
 
   /* shared */
-  .display { font-family:var(--tp-bf), sans-serif; letter-spacing:-.01em; line-height:.92; text-transform:uppercase; }
+  .display { font-family:"Archivo Black", sans-serif; letter-spacing:-.01em; line-height:.92; text-transform:uppercase; }
   .mono { font-family:"JetBrains Mono", monospace; }
-  .body { font-family:var(--tp-hf), sans-serif; }
+  .body { font-family:"Space Grotesk", sans-serif; }
 
   .slide-meta{
     position:absolute; left:64px; right:64px; bottom:40px;
@@ -88,7 +82,7 @@
   }
   .s1 .poster .switch .lever{
     position:absolute; top:64px; left:64px; width:240px; height:170px;
-    background:var(--tp-mt); border:4px solid var(--ink);
+    background:#FBD0E3; border:4px solid var(--ink);
     transform: skewY(-8deg);
   }
   .s1 .poster .switch .lever:after{
@@ -96,11 +90,11 @@
     background:var(--pink-dark); border:4px solid var(--ink); border-top:0;
   }
   .s1 .poster .switch .label-on{
-    position:absolute; top:78px; right:60px; font-family:var(--tp-bf); font-size:32px; color:var(--ink);
+    position:absolute; top:78px; right:60px; font-family:"Archivo Black"; font-size:32px; color:var(--ink);
   }
   .s1 .poster .switch .label-off{
     position:absolute; bottom:48px; left:0; right:0; text-align:center;
-    font-family:var(--tp-bf); font-size:32px; color:var(--ink);
+    font-family:"Archivo Black"; font-size:32px; color:var(--ink);
   }
   .s1 .tagline{
     position:absolute; left:96px; top:160px;
@@ -110,7 +104,7 @@
   .s1 .tagline span{ display:inline-block; width:60px; height:3px; background:var(--ink); vertical-align:middle; margin-right:18px; transform:translateY(-3px);}
   .s1 .footnote{
     position:absolute; left:96px; bottom:140px;
-    font-family:var(--tp-hf), sans-serif; font-size:24px; color:var(--ink-2); max-width:640px; line-height:1.4;
+    font-family:"Space Grotesk", sans-serif; font-size:24px; color:var(--ink-2); max-width:640px; line-height:1.4;
   }
 
   /* --- SLIDE 2: SECTION INTRO / TWO COL --- */
@@ -133,7 +127,7 @@
     position:absolute; left:96px; bottom:160px;
     width:560px; height:120px; background:var(--pink); border:4px solid var(--ink);
     display:flex; align-items:center; justify-content:center;
-    font-family:var(--tp-bf); font-size:46px;
+    font-family:"Archivo Black"; font-size:46px;
   }
   .s2 .marker:after{
     content:""; position:absolute; right:-24px; bottom:-24px; width:100%; height:100%;
@@ -164,7 +158,7 @@
     display:flex; flex-direction:column; justify-content:space-between;
   }
   .s3 .cell .num-wrap{ padding-top:32px; }
-  .s3 .cell .num{ font-family:var(--tp-bf); font-size:96px; line-height:.9; }
+  .s3 .cell .num{ font-family:"Archivo Black"; font-size:96px; line-height:.9; }
   .s3 .cell .lbl{ font-family:"JetBrains Mono", monospace; font-size:24px; letter-spacing:.12em; text-transform:uppercase; }
   .s3 .cell .desc{ font-size:24px; line-height:1.3; max-width:520px; color:var(--ink-2); margin-top:6px;}
   .s3 .c1{ background:var(--green); color:var(--cream); }
@@ -226,7 +220,7 @@
   }
   .s5 .bar .v{
     position:absolute; left:0; right:0; top:-44px; text-align:center;
-    font-family:var(--tp-bf); font-size:30px;
+    font-family:"Archivo Black"; font-size:30px;
   }
   .s5 .bar .x{
     position:absolute; left:0; right:0; bottom:-50px; text-align:center;
@@ -255,8 +249,8 @@
     border:4px solid var(--ink); padding:28px; height:420px; position:relative;
     display:flex; flex-direction:column;
   }
-  .s6 .step .n{ font-family:var(--tp-bf); font-size:140px; line-height:.85; }
-  .s6 .step .t{ font-family:var(--tp-bf); font-size:34px; margin-top:16px; line-height:1; text-transform:uppercase; }
+  .s6 .step .n{ font-family:"Archivo Black"; font-size:140px; line-height:.85; }
+  .s6 .step .t{ font-family:"Archivo Black"; font-size:34px; margin-top:16px; line-height:1; text-transform:uppercase; }
   .s6 .step .d{ font-size:24px; line-height:1.4; margin-top:14px; color:var(--ink-2); }
   .s6 .step .arrow{
     position:absolute; right:-22px; top:50%; transform:translateY(-50%);
@@ -296,17 +290,17 @@
   .s7 .table .row > div:last-child{ border-right:0; }
   .s7 .table .head{ background:var(--ink); color:var(--cream); }
   .s7 .table .head > div{
-    font-family:var(--tp-bf); font-size:28px; text-transform:uppercase;
+    font-family:"Archivo Black"; font-size:28px; text-transform:uppercase;
     border-right:3px solid var(--cream);
   }
-  .s7 .table .row .label{ font-family:var(--tp-bf); font-size:28px; text-transform:uppercase; background:var(--cream);}
+  .s7 .table .row .label{ font-family:"Archivo Black"; font-size:28px; text-transform:uppercase; background:var(--cream);}
   .s7 .table .row .col-pink{ background:var(--pink); }
   .s7 .table .row .col-green{ background:var(--green); color:var(--cream); }
   .s7 .table .row .col-orange{ background:var(--orange); color:var(--cream); }
   .s7 .badge{
     position:absolute; right:120px; top:240px;
     background:var(--yellow); border:4px solid var(--ink);
-    padding:14px 22px; font-family:var(--tp-bf); font-size:28px; text-transform:uppercase;
+    padding:14px 22px; font-family:"Archivo Black"; font-size:28px; text-transform:uppercase;
     transform:rotate(-4deg);
   }
 
@@ -335,7 +329,7 @@
     display:flex; flex-direction:column; align-items:center; justify-content:center;
     text-align:center; padding:20px; box-sizing:border-box;
   }
-  .s8 .stamp .num{ font-family:var(--tp-bf); font-size:64px; line-height:.9; margin-bottom:10px; }
+  .s8 .stamp .num{ font-family:"Archivo Black"; font-size:64px; line-height:.9; margin-bottom:10px; }
   .s8 .stamp .lbl{ font-family:"JetBrains Mono"; font-size:24px; letter-spacing:.12em; text-transform:uppercase; margin-top:6px;}
 
 </style>

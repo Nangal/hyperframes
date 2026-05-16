@@ -8,32 +8,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:wght@500;700;800;900&family=Playfair+Display:wght@700;800;900&family=DM+Serif+Display:wght@400&family=Rozha+One&family=Yeseva+One&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #F1E9D6;
-  --tp-fg: #0F1A5C;
-  --tp-ac: #0F1A5C;
-  --tp-mt: #888888;
-  --tp-surface: #3CD896;
-  --tp-border: #888888;
-  --tp-hf: "Bodoni Moda";
-  --tp-bf: "system-ui";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #0F1A5C;
+    --tp-secondary: #3CD896;
+    --tp-tertiary: #3A4593;
+    --tp-accent: #25B377;
 
-    --bg: var(--tp-surface, #3CD896);
-    --bg-2: var(--tp-surface, #2DC684);
-    --bg-3: var(--tp-surface, #25B377);
-    --ink: var(--tp-fg, #0F1A5C);
-    --ink-2: var(--tp-fg, #1B2774);
-    --ink-3: var(--tp-fg, #3A4593);
-    --paper: var(--tp-bg, #F1E9D6);
+    --bg: var(--tp-secondary, #3CD896);
+    --bg-2: #2DC684;
+    --bg-3: var(--tp-accent, #25B377);
+    --ink: var(--tp-primary, #0F1A5C);
+    --ink-2: #1B2774;
+    --ink-3: var(--tp-tertiary, #3A4593);
+    --paper: #F1E9D6;
     --rule: rgba(15, 26, 92, 0.22);
     --rule-strong: rgba(15, 26, 92, 0.85);
     --display-font: 'Bodoni Moda', serif;
   }
 
-  html, body { margin: 0; padding: 0; background: var(--tp-fg); }
-  deck-stage { background: var(--tp-fg); }
+  html, body { margin: 0; padding: 0; background: #0a0a0a; }
+  deck-stage { background: #0a0a0a; }
 
   section.slide {
     width: 1920px;
@@ -46,7 +40,7 @@
     box-sizing: border-box;
   }
 
-  /* Bold display serif — var(--tp-hf) heavy */
+  /* Bold display serif — Bodoni Moda heavy */
   .display {
     font-family: var(--display-font);
     font-weight: 900;

@@ -28,43 +28,37 @@
    ║  Never write raw hex values, font names, or px sizes outside here.   ║
    ╚══════════════════════════════════════════════════════════════════════╝ */
       :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #e8e4d6;
-  --tp-fg: #d4cfbf;
-  --tp-ac: #c8524a;
-  --tp-mt: #888888;
-  --tp-surface: #192b1b;
-  --tp-border: #888888;
-  --tp-hf: "10vw";
-  --tp-bf: "1.05vw";
-  --tp-mf: "JetBrains Mono";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #d4cfbf;
+    --tp-secondary: #192b1b;
+    --tp-tertiary: #dedad0;
+    --tp-accent: #c8524a;
 
         /* ── Palette ──────────────────────────────────────────────────────── */
         /* Deep forest green: grounded, considered, editorial — the Grove base */
-        --c-bg: var(--tp-surface, #192b1b);
+        --c-bg: var(--tp-secondary, #192b1b);
         /* Slightly lighter forest green for secondary dark surfaces */
-        --c-bg-alt: var(--tp-surface, #1e3221);
+        --c-bg-alt: #1e3221;
         /* Warm parchment: light slide background — feels like good paper */
-        --c-bg-light: var(--tp-bg, #e8e4d6);
+        --c-bg-light: #e8e4d6;
         /* Slightly cooler parchment for secondary light surfaces */
-        --c-bg-light-alt: var(--tp-bg, #dedad0);
+        --c-bg-light-alt: var(--tp-tertiary, #dedad0);
 
         /* Primary text on dark: warm cream, never pure white */
-        --c-fg: var(--tp-fg, #d4cfbf);
+        --c-fg: var(--tp-primary, #d4cfbf);
         /* Secondary text on dark: muted cream at 60% opacity */
         --c-fg-2: rgba(212, 207, 191, 0.6);
         /* Tertiary / hint text on dark: 32% opacity — near-invisible */
         --c-fg-3: rgba(212, 207, 191, 0.32);
         /* Primary text on light: forest green near-black */
-        --c-fg-light: var(--tp-fg, #192b1b);
+        --c-fg-light: #192b1b;
         /* Secondary text on light */
         --c-fg-light-2: rgba(25, 43, 27, 0.58);
         /* Tertiary text on light */
         --c-fg-light-3: rgba(25, 43, 27, 0.33);
 
         /* Accent: terracotta coral — the single warm note; used sparingly */
-        --c-accent: var(--tp-ac, #c8524a);
+        --c-accent: var(--tp-accent, #c8524a);
         /* Dividers on dark: faint cream border at 12% opacity */
         --c-border: rgba(212, 207, 191, 0.12);
         /* Dividers on light: faint green border at 14% opacity */
@@ -133,7 +127,7 @@
       }
 
       /* Deck container — all slides sit side by side in one horizontal strip */
-      var(--tp-bg)k {
+      #deck {
         display: flex;
         height: 100vh;
         transition: transform var(--dur-slide) var(--ease-slide);
@@ -646,7 +640,7 @@
         padding-top: var(--gap-sm);
       }
       /* Body copy on the list slide: bumped up for legibility. The default
-         --sz-body of var(--tp-bf) reads as ~12px on typical laptop viewports. */
+         --sz-body of 1.05vw reads as ~12px on typical laptop viewports. */
       .slide--list .body,
       .slide--list .bullet-list {
         font-size: max(1.4vw, 17px);

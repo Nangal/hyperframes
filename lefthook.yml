@@ -3,9 +3,11 @@ pre-commit:
   commands:
     lint:
       glob: "*.{js,jsx,ts,tsx}"
+      exclude: "deck-stage\\.js$"
       run: bunx oxlint {staged_files}
     format:
       glob: "*.{js,jsx,ts,tsx,json,md,yaml,yml}"
+      exclude: "deck-stage\\.js$"
       # --no-error-on-unmatched-pattern: don't fail when staged files all
       # fall under .prettierignore (e.g. docs-only changes to docs/docs.json).
       run: bunx oxfmt --check --no-error-on-unmatched-pattern {staged_files}

@@ -23,38 +23,32 @@
    ║  Never write raw hex values, font names, or px sizes outside here.   ║
    ╚══════════════════════════════════════════════════════════════════════╝ */
       :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #ffffff;
-  --tp-fg: #f0ece5;
-  --tp-ac: #e85d26;
-  --tp-mt: #282826;
-  --tp-surface: #111111;
-  --tp-border: #282826;
-  --tp-hf: "13vw";
-  --tp-bf: "1.2vw";
-  --tp-mf: "IBM Plex Mono";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #f0ece5;
+    --tp-secondary: #111111;
+    --tp-tertiary: #282826;
+    --tp-accent: #e85d26;
 
         /* ── Palette ──────────────────────────────────────────────────────── */
-        --c-bg: var(--tp-surface, #111111); /* near-black — the default slide background  */
-        --c-bg-alt: var(--tp-surface, #1a1a18); /* secondary surface on dark slides            */
+        --c-bg: var(--tp-secondary, #111111); /* near-black — the default slide background  */
+        --c-bg-alt: #1a1a18; /* secondary surface on dark slides            */
 
         /* Broadside has NO light slides. These vars are overridden to dark
            so any accidental .light class still renders dark. */
-        --c-bg-light: var(--tp-surface, #111111);
-        --c-bg-light-alt: var(--tp-surface, #1a1a18);
+        --c-bg-light: #111111;
+        --c-bg-light-alt: #1a1a18;
 
         /* The signature: orange is not an accent here — it is the ENVIRONMENT.
            Cover and chapter slides use this as their full background fill. */
-        --c-bg-orange: var(--tp-ac, #e85d26);
+        --c-bg-orange: var(--tp-accent, #e85d26);
 
-        --c-fg: var(--tp-fg, #f0ece5); /* primary text on dark slides                 */
-        --c-fg-2: var(--tp-fg, #888880); /* secondary / muted text on dark              */
-        --c-fg-3: var(--tp-fg, #505048); /* tertiary / hint text on dark                */
+        --c-fg: var(--tp-primary, #f0ece5); /* primary text on dark slides                 */
+        --c-fg-2: #888880; /* secondary / muted text on dark              */
+        --c-fg-3: #505048; /* tertiary / hint text on dark                */
 
         /* Text colours for orange slides — ink on fire */
-        --c-fg-light: var(--tp-fg, #111111); /* primary text on orange                */
-        --c-fg-light-2: var(--tp-fg, #2a1810); /* muted text on orange                  */
+        --c-fg-light: #111111; /* primary text on orange                */
+        --c-fg-light-2: #2a1810; /* muted text on orange                  */
         --c-fg-light-3: rgba(
           17,
           17,
@@ -62,9 +56,9 @@
           0.55
         ); /* hint text on orange               */
 
-        --c-accent: var(--tp-ac, #e85d26); /* orange = accent everywhere on dark slides   */
-        --c-border: var(--tp-border, #282826); /* divider lines on dark slides                */
-        --c-border-light: var(--tp-mt, #282826); /* same dark border even on "light" (overridden)*/
+        --c-accent: var(--tp-accent, #e85d26); /* orange = accent everywhere on dark slides   */
+        --c-border: var(--tp-tertiary, #282826); /* divider lines on dark slides                */
+        --c-border-light: #282826; /* same dark border even on "light" (overridden)*/
 
         /* ── Typography ──────────────────────────────────────────────────── */
         /* Barlow: the defining typeface. Condensed grotesque. Always heavy.
@@ -126,7 +120,7 @@
       }
 
       /* Deck container — all slides sit side by side */
-      var(--tp-bg)k {
+      #deck {
         display: flex;
         height: 100vh;
         /* Width = N * 100vw, set dynamically by JS */
@@ -394,7 +388,7 @@
       .orange .h1,
       .orange .h2,
       .orange .h3 {
-        color: var(--tp-surface);
+        color: #111111;
       }
       .orange .lead,
       .orange .body {
@@ -405,7 +399,7 @@
       }
       /* On orange, .accent still means "the contrast pop" — use sparingly */
       .orange .accent {
-        color: var(--tp-surface);
+        color: #111111;
       }
 
       /* ╔══════════════════════════════════════════════════════════════════════╗
@@ -507,7 +501,7 @@
       .chapter-rule {
         width: 36px;
         height: 2px;
-        background: var(--tp-surface); /* dark rule on orange */
+        background: #111111; /* dark rule on orange */
         margin-bottom: var(--gap-md);
       }
       .dark .chapter-rule {
@@ -745,7 +739,7 @@
         background: var(--c-accent);
       }
       .orange .rule {
-        background: var(--tp-surface);
+        background: #111111;
       }
       .rule.full {
         width: 100%;
@@ -780,7 +774,7 @@
         line-height: 1;
       }
       .orange .tag {
-        color: var(--tp-surface);
+        color: #111111;
         border-color: rgba(17, 17, 17, 0.4);
       }
 
@@ -852,7 +846,7 @@
         font-size: 7.5vw;
         font-weight: 900;
         letter-spacing: -0.03em;
-        color: var(--tp-surface);
+        color: #111111;
         line-height: 1;
       }
       .fadelist-item:nth-child(2) {
@@ -867,13 +861,13 @@
         font-weight: 900;
         line-height: 0.9;
         letter-spacing: -0.04em;
-        color: var(--tp-surface);
+        color: #111111;
         align-self: flex-end;
       }
 
       /* Stats on orange: dark ink instead of cream */
       .orange .stat-value {
-        color: var(--tp-surface);
+        color: #111111;
       }
       .orange .stat-label {
         color: rgba(17, 17, 17, 0.65);
@@ -895,13 +889,13 @@
         border-color: rgba(17, 17, 17, 0.22);
       }
       .compare-panel.panel-orange .h3 {
-        color: var(--tp-surface);
+        color: #111111;
       }
       .compare-panel.panel-orange .lead {
         color: rgba(17, 17, 17, 0.7);
       }
       .compare-panel.panel-orange .bullet-list li {
-        color: var(--tp-surface);
+        color: #111111;
       }
       .compare-panel.panel-orange .bullet-list li::before {
         color: rgba(17, 17, 17, 0.45);
@@ -959,7 +953,7 @@
         background: rgba(17, 17, 17, 0.22);
       }
       .orange .bar-fill.accent {
-        background: var(--tp-surface);
+        background: #111111;
       }
       .bar-x-label {
         font-family: var(--f-mono);
@@ -985,7 +979,7 @@
         color: rgba(17, 17, 17, 0.55);
       }
       .orange .bar-val.hi {
-        color: var(--tp-surface);
+        color: #111111;
       }
       .chart-baseline {
         height: 1px;
@@ -1047,7 +1041,7 @@
         color: var(--c-fg);
       }
       .orange .flow-title {
-        color: var(--tp-surface);
+        color: #111111;
       }
       .flow-desc {
         font-family: var(--f-body);
@@ -1136,7 +1130,7 @@
         color: var(--c-accent);
       }
       .orange .pie-item-val {
-        color: var(--tp-fg);
+        color: #111;
       }
       .pie-total {
         margin-top: var(--gap-sm);
@@ -1613,7 +1607,7 @@
               class="bullet-list"
               data-anim="fade-up"
               data-delay="3"
-              style="--sz-lead: var(--tp-bf)"
+              style="--sz-lead: 1.2vw"
             >
               <li>Waterfall planning, quarterly roadmaps</li>
               <li>User testing at the end, not the start</li>
@@ -1628,7 +1622,7 @@
               class="h3"
               data-anim="fade-up"
               data-delay="1"
-              style="color: var(--tp-fg)"
+              style="color: #111"
             >
               two-week iteration loops
             </h3>
@@ -1645,7 +1639,7 @@
               class="bullet-list"
               data-anim="fade-up"
               data-delay="3"
-              style="--sz-lead: var(--tp-bf)"
+              style="--sz-lead: 1.2vw"
             >
               <li>Weekly user sessions, continuous discovery</li>
               <li>Metrics reviewed daily, not quarterly</li>
@@ -1714,7 +1708,7 @@
         <div class="slide-body">
           <h2
             class="h2"
-            style="color: var(--tp-fg); letter-spacing: -0.02em"
+            style="color: #111; letter-spacing: -0.02em"
             data-anim="fade-up"
             data-delay="0"
           >
@@ -1784,9 +1778,9 @@
               style="
                 background: conic-gradient(
                   var(--c-accent) 0% 40%,
-                  var(--tp-surface) 40% 68%,
-                  var(--tp-surface) 68% 88%,
-                  var(--tp-border) 88% 100%
+                  #3a3a38 40% 68%,
+                  #555550 68% 88%,
+                  #282826 88% 100%
                 );
               "
             ></div>
@@ -1800,17 +1794,17 @@
                 <span class="pie-item-val">40%</span>
               </div>
               <div class="pie-item">
-                <div class="pie-swatch" style="background: var(--tp-surface)"></div>
+                <div class="pie-swatch" style="background: #3a3a38"></div>
                 <span class="pie-item-label">Challenger</span>
                 <span class="pie-item-val">28%</span>
               </div>
               <div class="pie-item">
-                <div class="pie-swatch" style="background: var(--tp-surface)"></div>
+                <div class="pie-swatch" style="background: #555550"></div>
                 <span class="pie-item-label">Followers</span>
                 <span class="pie-item-val">20%</span>
               </div>
               <div class="pie-item">
-                <div class="pie-swatch" style="background: var(--tp-border)"></div>
+                <div class="pie-swatch" style="background: #282826"></div>
                 <span class="pie-item-label">Other</span>
                 <span class="pie-item-val">12%</span>
               </div>
@@ -1992,7 +1986,7 @@
           data-anim="fade-up"
           data-delay="1"
           style="
-            color: var(--tp-fg);
+            color: #111;
             max-width: 80%;
             line-height: 0.9;
             letter-spacing: -0.04em;
@@ -2024,7 +2018,7 @@
         </div>
       </section>
     </div>
-    <!-- /var(--tp-bg)k -->
+    <!-- /#deck -->
 
     <nav id="nav-dots" aria-label="Slide navigation"></nav>
     <div id="slide-counter"></div>

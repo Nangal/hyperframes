@@ -28,37 +28,31 @@
    ║  Cream type floating directly on the field.                          ║
    ╚══════════════════════════════════════════════════════════════════════╝ */
       :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #ede6d0;
-  --tp-fg: #f0e8d2;
-  --tp-ac: #c07030;
-  --tp-mt: #888888;
-  --tp-surface: #232e26;
-  --tp-border: #888888;
-  --tp-hf: "12vw";
-  --tp-bf: "1.05vw";
-  --tp-mf: "DM Mono";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #f0e8d2;
+    --tp-secondary: #232e26;
+    --tp-tertiary: #2e3d30;
+    --tp-accent: #c07030;
 
         /* ── Palette — dark green surface with warm material tones ─────── */
-        --c-bg: var(--tp-surface, #232e26); /* dark forest green — the surface       */
-        --c-bg-alt: var(--tp-surface, #2e3d30); /* slightly lighter green surface        */
-        --c-bg-light: var(--tp-bg, #ede6d0); /* warm cream — info card + light slides */
-        --c-bg-light-alt: var(--tp-bg, #e4dac4);
+        --c-bg: var(--tp-secondary, #232e26); /* dark forest green — the surface       */
+        --c-bg-alt: var(--tp-tertiary, #2e3d30); /* slightly lighter green surface        */
+        --c-bg-light: #ede6d0; /* warm cream — info card + light slides */
+        --c-bg-light-alt: #e4dac4;
 
-        --c-fg: var(--tp-fg, #f0e8d2); /* warm cream — primary text on dark     */
+        --c-fg: var(--tp-primary, #f0e8d2); /* warm cream — primary text on dark     */
         --c-fg-2: rgba(240, 232, 210, 0.58);
         --c-fg-3: rgba(240, 232, 210, 0.3);
-        --c-fg-light: var(--tp-fg, #1e2820); /* dark green — text on cream slides     */
+        --c-fg-light: #1e2820; /* dark green — text on cream slides     */
         --c-fg-light-2: rgba(30, 40, 32, 0.6);
         --c-fg-light-3: rgba(30, 40, 32, 0.3);
 
-        --c-accent: var(--tp-ac, #c07030); /* warm orange accent                    */
+        --c-accent: var(--tp-accent, #c07030); /* warm orange accent                    */
         --c-border: rgba(240, 232, 210, 0.12);
         --c-border-light: rgba(30, 40, 32, 0.14);
 
         /* Wood warm tone — used for the atmospheric bottom-right glow */
-        --c-wood: var(--tp-ac, #7a4e24);
+        --c-wood: #7a4e24;
 
         /* ── Typography ──────────────────────────────────────────────────── */
         /* Display/Heading: Bricolage Grotesque — heavy, rounded, mixed case.
@@ -120,7 +114,7 @@
       }
 
       /* Deck container — all slides sit side by side horizontally */
-      var(--tp-bg)k {
+      #deck {
         display: flex;
         height: 100vh;
         /* Width = N * 100vw, set dynamically by JS */
@@ -202,7 +196,7 @@
    ║  Headings are ALWAYS mixed case — never uppercase.                   ║
    ╚══════════════════════════════════════════════════════════════════════╝ */
 
-      /* Display: the massive cover title. var(--tp-hf), very tight leading. */
+      /* Display: the massive cover title. 12vw, very tight leading. */
       .display {
         font-family: var(--f-display);
         font-size: var(--sz-display);
@@ -1134,7 +1128,7 @@
               Works until it does not. Warps in heat, discolors with use, and
               feels like an afterthought.
             </p>
-            <ul class="bullet-list" style="--sz-lead: var(--tp-bf)">
+            <ul class="bullet-list" style="--sz-lead: 1.05vw">
               <li>Slips on polished surfaces without a grip layer</li>
               <li>Grooves deepen and skew precision over time</li>
               <li>Replaced every six months on average</li>
@@ -1151,7 +1145,7 @@
               A surface that gets better with use. The material compresses and
               recovers, keeping edges clean.
             </p>
-            <ul class="bullet-list" style="--sz-lead: var(--tp-bf)">
+            <ul class="bullet-list" style="--sz-lead: 1.05vw">
               <li>Self-heals around use lines, keeping the surface flat</li>
               <li>Grip base holds any workbench without adhesives</li>
               <li>
@@ -1264,7 +1258,7 @@
         </div>
       </section>
     </div>
-    <!-- /var(--tp-bg)k -->
+    <!-- /#deck -->
 
     <nav id="nav-dots" aria-label="Slide navigation"></nav>
     <div id="slide-counter"></div>

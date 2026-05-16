@@ -15,29 +15,23 @@
   }
 
   :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #F5F5F0;
-  --tp-fg: #1A1A1A;
-  --tp-ac: #E85D4E;
-  --tp-mt: #C5B5E0;
-  --tp-surface: #F5F5F0;
-  --tp-border: #1E1E1E;
-  --tp-hf: "Bodoni Moda";
-  --tp-bf: "Space Grotesk";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #1A1A1A;
+    --tp-secondary: #F5F5F0;
+    --tp-tertiary: #1E1E1E;
+    --tp-accent: #E85D4E;
 
-    --bg: var(--tp-bg, #F5F5F0);
-    --fg: var(--tp-fg, #1A1A1A);
-    --coral: var(--tp-ac, #E85D4E);
-    --lime: var(--tp-ac, #C4D94E);
-    --lavender: var(--tp-mt, #C5B5E0);
-    --sky: var(--tp-ac, #8BB4F7);
-    --violet: var(--tp-ac, #A06CE8);
-    --yellow: var(--tp-ac, #F2D160);
-    --peach: var(--tp-mt, #F5B895);
-    --mint: var(--tp-mt, #A8E6CF);
-    --outline: var(--tp-border, #1E1E1E);
+    --bg: var(--tp-secondary, #F5F5F0);
+    --fg: var(--tp-primary, #1A1A1A);
+    --coral: var(--tp-accent, #E85D4E);
+    --lime: #C4D94E;
+    --lavender: #C5B5E0;
+    --sky: #8BB4F7;
+    --violet: #A06CE8;
+    --yellow: #F2D160;
+    --peach: #F5B895;
+    --mint: #A8E6CF;
+    --outline: var(--tp-tertiary, #1E1E1E);
     --shadow: rgba(26, 26, 26, 0.08);
     --font-display: 'Bodoni Moda', serif;
     --font-body: 'Space Grotesk', sans-serif;

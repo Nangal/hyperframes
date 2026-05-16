@@ -20,35 +20,29 @@
    ║  Cormorant Garamond serifs, Courier Prime mono attributions.        ║
    ╚══════════════════════════════════════════════════════════════════════╝ */
       :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #ffffff;
-  --tp-fg: #E8D85C;
-  --tp-ac: #3a7878;
-  --tp-mt: #888888;
-  --tp-surface: #2a3870;
-  --tp-border: #888888;
-  --tp-hf: "11vw";
-  --tp-bf: "1.05vw";
-  --tp-mf: "Courier Prime";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #E8D85C;
+    --tp-secondary: #2a3870;
+    --tp-tertiary: #343f80;
+    --tp-accent: #3a7878;
 
         /* Vellum: deep navy with warm yellow type. Single palette across all
            slides. The "light" tokens are aliased to "dark" so any inline
            reference to --c-bg-light or --c-fg-light renders identically. */
-        --c-bg: var(--tp-surface, #2a3870);       /* deep periwinkle — every slide        */
-        --c-bg-alt: var(--tp-surface, #343f80);
-        --c-bg-light: var(--tp-surface, #2a3870); /* alias — no inverted theme            */
-        --c-bg-light-alt: var(--tp-surface, #343f80);
+        --c-bg: var(--tp-secondary, #2a3870);       /* deep periwinkle — every slide        */
+        --c-bg-alt: var(--tp-tertiary, #343f80);
+        --c-bg-light: #2a3870; /* alias — no inverted theme            */
+        --c-bg-light-alt: #343f80;
 
-        --c-fg: var(--tp-fg, #E8D85C);       /* warm yellow type — every slide       */
+        --c-fg: var(--tp-primary, #E8D85C);       /* warm yellow type — every slide       */
         --c-fg-2: rgba(232, 216, 92, 0.62);
         --c-fg-3: rgba(232, 216, 92, 0.32);
-        --c-fg-light: var(--tp-fg, #E8D85C); /* alias                                */
+        --c-fg-light: #E8D85C; /* alias                                */
         --c-fg-light-2: rgba(232, 216, 92, 0.62);
         --c-fg-light-3: rgba(232, 216, 92, 0.32);
 
-        --c-accent: var(--tp-ac, #3a7878);       /* dusty teal — only used on the large quote-mark glyph */
-        --c-emphasis: var(--tp-ac, #F5E168);     /* brighter yellow — used for <em> emphasis and small accent text */
+        --c-accent: var(--tp-accent, #3a7878);       /* dusty teal — only used on the large quote-mark glyph */
+        --c-emphasis: #F5E168;     /* brighter yellow — used for <em> emphasis and small accent text */
         --c-border: rgba(232, 216, 92, 0.20);
         --c-border-light: rgba(232, 216, 92, 0.20);
 
@@ -113,7 +107,7 @@
       }
 
       /* Deck container — all slides sit side by side */
-      var(--tp-bg)k {
+      #deck {
         display: flex;
         height: 100vh;
         /* Width = N * 100vw, set dynamically by JS */
@@ -619,11 +613,11 @@
       /* Two visually distinct navy shades.
          Left = darker (the past, the unedited). Right = lighter (the present). */
       .compare-panel.left {
-        background: var(--tp-ac);   /* darker navy */
+        background: #1f2858;   /* darker navy */
         color: var(--c-fg);
       }
       .compare-panel.right {
-        background: var(--tp-ac);   /* lighter navy */
+        background: #34407a;   /* lighter navy */
         color: var(--c-fg);
         border-left: 1px solid rgba(232, 216, 92, 0.18);
       }
@@ -984,7 +978,7 @@
         </div>
       </section>
     </div>
-    <!-- /var(--tp-bg)k -->
+    <!-- /#deck -->
 
     <nav id="nav-dots" aria-label="Slide navigation"></nav>
     <div id="slide-counter"></div>

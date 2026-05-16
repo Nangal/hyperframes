@@ -60,6 +60,7 @@
       .phase {
         display: none;
         flex: 1;
+        height: 100%;
         overflow: auto;
       }
       .phase.active {
@@ -1008,6 +1009,141 @@
         font-weight: 500;
         color: #888;
       }
+
+      /* ── Template picker (Phase 1, embedded) ── */
+      #phase-mood .tp-header {
+        padding: 16px 32px;
+        border-bottom: 1px solid #1a1a1a;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: #111;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+      }
+      #phase-mood .tp-header h1 { font-size: 15px; font-weight: 600; }
+      #phase-mood .tp-header .sub { font-size: 11px; color: #666; }
+      #phase-mood .tp-palette-bar {
+        padding: 12px 32px;
+        border-bottom: 1px solid #1a1a1a;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: #111;
+        position: sticky;
+        top: 49px;
+        z-index: 100;
+        overflow: visible;
+      }
+      #phase-mood .tp-palette-bar label { font-size: 10px; color: #555; text-transform: uppercase; letter-spacing: 0.1em; margin-right: 4px; flex-shrink: 0; align-self: center; }
+      #phase-mood #tp-pchips {
+        display: flex;
+        gap: 10px;
+        flex-wrap: nowrap;
+        align-items: stretch;
+      }
+      #phase-mood .pchip {
+        flex-shrink: 0;
+        width: 110px;
+        border: 1px solid #282828;
+        border-radius: 6px;
+        cursor: pointer;
+        overflow: hidden;
+        transition: border-color 0.15s, transform 0.1s;
+      }
+      #phase-mood .pchip:hover { border-color: #555; transform: translateY(-1px); }
+      #phase-mood .pchip.on { border-color: #4ade80; }
+      #phase-mood .pchip-body {
+        padding: 8px 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+      }
+      #phase-mood .pchip-headline {
+        font-size: 15px;
+        font-weight: 900;
+        font-family: system-ui, sans-serif;
+        line-height: 1;
+      }
+      #phase-mood .pchip-body-text { font-size: 8px; line-height: 1.3; }
+      #phase-mood .pchip-accent-bar { width: 28px; height: 3px; border-radius: 1px; margin-top: 3px; }
+      #phase-mood .pchip-swatches {
+        display: flex;
+        height: 6px;
+      }
+      #phase-mood .pchip-footer {
+        padding: 3px 10px;
+        display: flex;
+        align-items: center;
+      }
+      #phase-mood .pchip-footer .nm { font-size: 8px; }
+      #phase-mood .tp-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(480px, 1fr));
+        gap: 20px;
+        padding: 24px 32px;
+      }
+      #phase-mood .tp-card {
+        background: #161616;
+        border: 1px solid #222;
+        overflow: hidden;
+        cursor: pointer;
+        transition: border-color 0.15s;
+      }
+      #phase-mood .tp-card:hover { border-color: #444; }
+      #phase-mood .tp-card.sel { border-color: #4ade80; border-width: 2px; }
+      #phase-mood .cprev {
+        position: relative;
+        width: 100%;
+        aspect-ratio: 16/9;
+        background: #000;
+        overflow: hidden;
+      }
+      #phase-mood .cprev iframe {
+        width: 1920px;
+        height: 1080px;
+        border: none;
+        transform-origin: top left;
+        pointer-events: none;
+      }
+      #phase-mood .cinfo {
+        padding: 10px 14px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      #phase-mood .cinfo .nm { font-size: 13px; font-weight: 600; }
+      #phase-mood .cinfo .tl { font-size: 10px; color: #777; max-width: 55%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+      #phase-mood .cinfo .badges { display: flex; gap: 6px; }
+      #phase-mood .cinfo .bg {
+        font-size: 9px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        padding: 2px 6px;
+        border: 1px solid #333;
+        color: #777;
+      }
+      #phase-mood .tp-transition-overlay {
+        position: fixed;
+        inset: 0;
+        background: #0e0e0e;
+        opacity: 0;
+        pointer-events: none;
+        z-index: 200;
+        transition: opacity 0.5s ease;
+      }
+      #phase-mood .tp-transition-overlay.active { opacity: 1; pointer-events: all; }
+      #phase-mood .tp-card.selected-exit {
+        position: relative;
+        z-index: 201;
+        animation: tpCardLift 1.6s cubic-bezier(0.16,1,0.3,1) forwards;
+      }
+      @keyframes tpCardLift {
+        0% { transform: scale(1); opacity: 1; }
+        45% { transform: scale(1.06); opacity: 1; }
+        100% { transform: scale(1.08); opacity: 0; }
+      }
     </style>
   </head>
   <body>
@@ -1016,9 +1152,20 @@
       <div class="phase-tab disabled" id="tab-tune" onclick="showPhase('tune')">2. Fine-tune</div>
     </div>
 
-    <!-- Phase 1: Template picker (embedded) -->
-    <div class="phase active" id="phase-mood" style="flex-direction: column; position: relative;">
-      <iframe id="template-picker-frame" src="template-picker.html" style="width:100%;height:100%;border:none;position:absolute;inset:0;"></iframe>
+    <!-- Phase 1: Template picker (inline) -->
+    <div class="phase active" id="phase-mood" style="flex-direction: column; overflow-y: auto;">
+      <div class="tp-header">
+        <div>
+          <h1>Template Picker</h1>
+          <div class="sub">__PROMPT_DESC__ &middot; Pick palette</div>
+        </div>
+      </div>
+      <div class="tp-palette-bar">
+        <label>Palette</label>
+        <div id="tp-pchips"></div>
+      </div>
+      <div class="tp-grid" id="tp-grid"></div>
+      <div class="tp-transition-overlay" id="tp-trans-overlay"></div>
     </div>
 
     <!-- Phase 2: Fine-tune -->
@@ -1135,6 +1282,12 @@
             <div class="scene-grid" id="sc-scene-grid"></div>
           </div>
 
+          <!-- Slide specimens: remaining slides from the template, rendered small -->
+          <div class="showcase-section" id="sc-specimens">
+            <div class="showcase-eyebrow">/ Slides</div>
+            <div class="specimen-grid" id="sc-specimen-grid"></div>
+          </div>
+
           <!-- Palette swatches -->
           <div class="showcase-section" id="sc-palette">
             <div class="showcase-eyebrow">/ Palette</div>
@@ -1147,30 +1300,15 @@
             <div id="sc-type-specimens"></div>
           </div>
 
-          <!-- Corners -->
-          <div class="showcase-section" id="sc-radius">
-            <div class="showcase-eyebrow">/ Corners</div>
-            <div class="radius-grid" id="sc-radius-grid"></div>
-          </div>
-
-          <!-- Elevation -->
-          <div class="showcase-section" id="sc-elevation">
-            <div class="showcase-eyebrow">/ Depth</div>
-            <p class="showcase-lead" id="sc-elevation-lead"></p>
-            <div class="elevation-grid" id="sc-elevation-grid"></div>
-          </div>
-
-          <!-- Motion -->
-          <div class="showcase-section" id="sc-motion">
-            <div class="showcase-eyebrow">/ Motion</div>
-            <p class="showcase-lead" id="sc-motion-lead"></p>
-            <div id="sc-ease-preview"></div>
-          </div>
-
-          <!-- Hidden text targets for renderPreview -->
+          <!-- Hidden containers for renderPreview compatibility -->
           <div style="display:none;">
             <p id="sc-palette-lead"></p>
             <p id="sc-type-lead"></p>
+            <p id="sc-elevation-lead"></p>
+            <p id="sc-motion-lead"></p>
+            <div id="sc-ease-preview"></div>
+            <div id="sc-radius-grid"></div>
+            <div id="sc-elevation-grid"></div>
           </div>
 
         </div>
@@ -1208,6 +1346,8 @@
       var TYPEPAIRS = __TYPEPAIRS_JSON__;
       var MOODBOARDS = __MOODBOARDS_JSON__;
       var PROMPT = __PROMPT_JSON__;
+      var ALL_TEMPLATES = __TEMPLATES_JSON__;
+      var PROMPT_TEXT = __PROMPT_TEXT_JSON__;
       var picks = {
         theme: null,
         arch: null,
@@ -2497,7 +2637,160 @@
         });
       });
 
-      // ── Bridge from template-picker ──
+      // ── Template picker (Phase 1) ──
+      var tpActivePal = 0;
+
+      function tpBuildPalChips() {
+        var c = document.getElementById("tp-pchips");
+        c.innerHTML = "";
+        PALETTES.forEach(function(p, i) {
+          var ch = document.createElement("div");
+          ch.className = "pchip" + (i === tpActivePal ? " on" : "");
+          if (i === 0) {
+            ch.innerHTML =
+              '<div class="pchip-body" style="background:#1a1a1a;padding:12px 10px;">' +
+                '<div class="pchip-headline" style="color:#888;">—</div>' +
+                '<div class="pchip-body-text" style="color:#555;">Original colors</div>' +
+              '</div>' +
+              '<div class="pchip-footer" style="background:#111;"><span class="nm" style="color:#666;">Default</span></div>';
+          } else {
+            ch.innerHTML =
+              '<div class="pchip-body" style="background:'+p.secondary+';">' +
+                '<div class="pchip-headline" style="color:'+p.primary+';">Aa</div>' +
+                '<div class="pchip-body-text" style="color:'+p.tertiary+';">Body text</div>' +
+                '<div class="pchip-accent-bar" style="background:'+p.accent+';"></div>' +
+              '</div>' +
+              '<div class="pchip-swatches">' +
+                '<div style="background:'+p.primary+';flex:1;" title="Primary (text)"></div>' +
+                '<div style="background:'+p.secondary+';flex:1;" title="Secondary (bg)"></div>' +
+                '<div style="background:'+p.tertiary+';flex:1;" title="Tertiary"></div>' +
+                '<div style="background:'+p.accent+';flex:1;" title="Accent"></div>' +
+              '</div>' +
+              '<div class="pchip-footer" style="background:'+p.primary+';"><span class="nm" style="color:'+p.secondary+';">'+p.name+'</span></div>';
+          }
+          ch.onclick = function() { tpActivePal = i; tpBuildPalChips(); tpApplyAllPalettes(); };
+          c.appendChild(ch);
+        });
+      }
+
+      function tpApplyAllPalettes() {
+        ALL_TEMPLATES.forEach(function(t) {
+          var ifr = document.getElementById("tp-ifr-" + t.slug);
+          if (!ifr || !ifr.contentDocument) return;
+          var doc = ifr.contentDocument;
+          var style = doc.getElementById("tp-pal-override");
+          if (!style) { style = doc.createElement("style"); style.id = "tp-pal-override"; doc.head.appendChild(style); }
+          if (tpActivePal === 0) {
+            style.textContent = "";
+          } else {
+            var p = PALETTES[tpActivePal];
+            style.textContent = ":root {\n" +
+              "  --tp-primary: " + p.primary + " !important;\n" +
+              "  --tp-secondary: " + p.secondary + " !important;\n" +
+              "  --tp-tertiary: " + p.tertiary + " !important;\n" +
+              "  --tp-accent: " + p.accent + " !important;\n" +
+              "  --tp-bg: " + p.secondary + " !important;\n" +
+              "  --tp-fg: " + p.primary + " !important;\n" +
+              "  --tp-ac: " + p.accent + " !important;\n" +
+              "  --tp-mt: " + p.tertiary + " !important;\n" +
+              "  --tp-surface: " + p.secondary + " !important;\n" +
+              "  --tp-border: " + p.tertiary + " !important;\n" +
+              "}\n";
+          }
+        });
+      }
+
+      function tpOnIframeLoad(slug, ifr) {
+        if (!ifr.contentDocument) return;
+        var doc = ifr.contentDocument;
+        var win = ifr.contentWindow;
+        doc.querySelectorAll("script").forEach(function(s) { s.remove(); });
+
+        var ds = doc.querySelector("deck-stage");
+        if (ds) {
+          var dsStyle = doc.createElement("style");
+          dsStyle.textContent = "deck-stage{display:block;width:1920px;height:1080px;position:relative;overflow:hidden;}deck-stage>section{position:absolute;top:0;left:0;width:100%;height:100%;visibility:hidden;opacity:0;}deck-stage>section:first-child{visibility:visible;opacity:1;}";
+          doc.head.appendChild(dsStyle);
+        }
+
+        // Universal slide override: force absolute positioning so all templates behave the same
+        var overrideStyle = doc.createElement("style");
+        overrideStyle.id = "tp-slide-override";
+        overrideStyle.textContent =
+          ".slide, section.slide, div.slide, deck-stage > section { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; min-height: 0 !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; display: block !important; }" +
+          ".slide.tp-active, section.slide.tp-active, div.slide.tp-active, deck-stage > section.tp-active { opacity: 1 !important; visibility: visible !important; display: flex !important; }";
+        doc.head.appendChild(overrideStyle);
+        doc.body.style.overflow = "hidden";
+        doc.documentElement.style.overflow = "hidden";
+
+        var slides = doc.querySelectorAll("section.slide, div.slide, .slide, deck-stage > section");
+        if (slides.length > 0) {
+          slides[0].classList.add("tp-active");
+          slides[0].querySelectorAll("*").forEach(function(el) {
+            try {
+              var cs = win.getComputedStyle(el);
+              if (cs.opacity === "0" && cs.display !== "none") el.style.opacity = "1";
+            } catch(e) {}
+          });
+        }
+
+        tpScaleIframe(ifr);
+        if (tpActivePal > 0) tpApplyAllPalettes();
+      }
+
+      function tpScaleIframe(ifr) {
+        var cprev = ifr.closest(".cprev");
+        if (!cprev) return;
+        var w = cprev.offsetWidth;
+        if (w > 0) ifr.style.transform = "scale(" + (w / 1920) + ")";
+      }
+
+      function tpScaleAllIframes() {
+        document.querySelectorAll("#tp-grid iframe").forEach(tpScaleIframe);
+      }
+      window.addEventListener("resize", tpScaleAllIframes);
+
+      function tpBuildGrid() {
+        var grid = document.getElementById("tp-grid");
+        grid.innerHTML = "";
+        ALL_TEMPLATES.forEach(function(t) {
+          var card = document.createElement("div");
+          card.className = "tp-card";
+          card.id = "tp-card-" + t.slug;
+          card.innerHTML =
+            '<div class="cprev"><iframe id="tp-ifr-' + t.slug + '" src="templates/' + t.slug + '/template.html" sandbox="allow-same-origin" loading="lazy" style="width:1920px;height:1080px;border:none;transform-origin:top left;pointer-events:none;"></iframe></div>' +
+            '<div class="cinfo">' +
+              '<div><div class="nm">' + t.name + '</div><div class="tl">' + t.tagline + '</div></div>' +
+              '<div class="badges"><span class="bg">' + t.scheme + '</span><span class="bg">' + t.density + '</span></div>' +
+            '</div>';
+          card.addEventListener("click", (function(slug) { return function() { tpSelectTemplate(slug); }; })(t.slug));
+          grid.appendChild(card);
+          var ifr = card.querySelector("iframe");
+          ifr.addEventListener("load", (function(s, f) { return function() { tpOnIframeLoad(s, f); }; })(t.slug, ifr));
+        });
+      }
+
+      function tpSelectTemplate(slug) {
+        var t = null;
+        for (var i = 0; i < ALL_TEMPLATES.length; i++) {
+          if (ALL_TEMPLATES[i].slug === slug) { t = ALL_TEMPLATES[i]; break; }
+        }
+        if (!t) return;
+        var pal = tpActivePal > 0 ? PALETTES[tpActivePal] : null;
+        var pick = {
+          slug: slug,
+          name: t.name,
+          tagline: t.tagline,
+          scheme: t.scheme,
+          palette: pal ? {bg: pal.secondary, fg: pal.primary, accent: pal.accent, muted: pal.tertiary} : null
+        };
+        var card = document.getElementById("tp-card-" + slug);
+        var overlay = document.getElementById("tp-trans-overlay");
+        overlay.classList.add("active");
+        if (card) card.classList.add("selected-exit");
+        setTimeout(function() { handleTemplatePick(pick); }, 900);
+      }
+
       function handleTemplatePick(pick) {
         if (!pick || !pick.slug) return;
         window._currentTemplateSlug = pick.slug;
@@ -2514,52 +2807,106 @@
         if (pick.palette) {
           var bestIdx = 0, bestDist = Infinity;
           PALETTES.forEach(function(p, i) {
-            var d = Math.abs(parseInt(p.background.slice(1,3),16) - parseInt(pick.palette.bg.slice(1,3),16))
-                  + Math.abs(parseInt(p.foreground.slice(1,3),16) - parseInt(pick.palette.fg.slice(1,3),16))
+            if (i === 0) return;
+            var d = Math.abs(parseInt(p.secondary.slice(1,3),16) - parseInt(pick.palette.bg.slice(1,3),16))
+                  + Math.abs(parseInt(p.primary.slice(1,3),16) - parseInt(pick.palette.fg.slice(1,3),16))
                   + Math.abs(parseInt(p.accent.slice(1,3),16) - parseInt(pick.palette.accent.slice(1,3),16));
             if (d < bestDist) { bestDist = d; bestIdx = i; }
           });
           overridePalette = bestIdx;
         }
-        // Rewire Phase 1 tab to go back to template picker
         var tabMood = document.getElementById("tab-mood");
         if (tabMood) {
           tabMood.textContent = "← Template";
           tabMood.onclick = function() {
             showPhase("mood");
-            // Clear transition overlay in the embedded picker
-            var pf = document.getElementById("template-picker-frame");
-            if (pf && pf.contentDocument) {
-              var ov = pf.contentDocument.getElementById("trans-overlay");
-              if (ov) ov.classList.remove("active");
-              // Reset any selected-exit cards
-              pf.contentDocument.querySelectorAll(".selected-exit").forEach(function(c) { c.classList.remove("selected-exit"); });
-            }
+            var overlay = document.getElementById("tp-trans-overlay");
+            if (overlay) overlay.classList.remove("active");
+            document.querySelectorAll(".selected-exit").forEach(function(c) { c.classList.remove("selected-exit"); });
           };
         }
-
         selectedMood = 0;
         goToTune();
-        // Replace scene grid with inline template preview
-        (function() {
-          if (pick.slug && pick.preview_html) {
-            var grid = document.getElementById("sc-scene-grid");
-            if (grid) {
-              grid.innerHTML = '<div class="scene-cell" style="background:transparent;"><div class="scene-frame">' + pick.preview_html + '</div></div>';
-              window._templatePreviewInline = true;
-            }
+        if (pick.slug) {
+          var grid = document.getElementById("sc-scene-grid");
+          if (grid) {
+            grid.innerHTML = '';
+            var wrap = document.createElement("div");
+            wrap.style.cssText = "grid-column:1/-1;position:relative;width:100%;aspect-ratio:16/9;overflow:hidden;background:#000;border-radius:4px;";
+            var ifr = document.createElement("iframe");
+            ifr.src = "templates/" + pick.slug + "/template.html";
+            ifr.sandbox = "allow-same-origin";
+            ifr.style.cssText = "width:1920px;height:1080px;border:none;transform-origin:top left;pointer-events:none;";
+            wrap.appendChild(ifr);
+            grid.appendChild(wrap);
+            ifr.addEventListener("load", function() {
+              tpOnIframeLoad(pick.slug, ifr);
+              var scale = wrap.offsetWidth / 1920;
+              ifr.style.transform = "scale(" + scale + ")";
+              // Build specimen grid with remaining slides
+              var doc = ifr.contentDocument;
+              if (!doc) return;
+              var slides = doc.querySelectorAll("section.slide, div.slide, .slide, deck-stage > section");
+              var specGrid = document.getElementById("sc-specimen-grid");
+              if (specGrid && slides.length > 1) {
+                specGrid.innerHTML = "";
+                for (var si = 1; si < Math.min(slides.length, 7); si++) {
+                  (function(slideIdx) {
+                    var cell = document.createElement("div");
+                    cell.className = "specimen-cell";
+                    var specIfr = document.createElement("iframe");
+                    specIfr.src = "templates/" + pick.slug + "/template.html";
+                    specIfr.sandbox = "allow-same-origin";
+                    specIfr.loading = "lazy";
+                    specIfr.style.cssText = "width:1920px;height:1080px;border:none;transform-origin:top left;pointer-events:none;";
+                    cell.appendChild(specIfr);
+                    var label = document.createElement("div");
+                    label.className = "specimen-label";
+                    label.textContent = "Slide " + (slideIdx + 1);
+                    cell.appendChild(label);
+                    specGrid.appendChild(cell);
+                    specIfr.addEventListener("load", function() {
+                      var sDoc = specIfr.contentDocument;
+                      var sWin = specIfr.contentWindow;
+                      if (!sDoc) return;
+                      sDoc.querySelectorAll("script").forEach(function(s) { s.remove(); });
+                      var ds = sDoc.querySelector("deck-stage");
+                      if (ds) {
+                        var dsStyle = sDoc.createElement("style");
+                        dsStyle.textContent = "deck-stage{display:block;width:1920px;height:1080px;position:relative;overflow:hidden;}";
+                        sDoc.head.appendChild(dsStyle);
+                      }
+                      var ovr = sDoc.createElement("style");
+                      ovr.textContent =
+                        ".slide, section.slide, div.slide, deck-stage > section { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; min-height: 0 !important; opacity: 0 !important; visibility: hidden !important; display: block !important; }" +
+                        ".slide.tp-active, section.slide.tp-active, div.slide.tp-active, deck-stage > section.tp-active { opacity: 1 !important; visibility: visible !important; display: flex !important; }";
+                      sDoc.head.appendChild(ovr);
+                      sDoc.body.style.overflow = "hidden";
+                      sDoc.documentElement.style.overflow = "hidden";
+                      var sSlides = sDoc.querySelectorAll("section.slide, div.slide, .slide, deck-stage > section");
+                      if (sSlides[slideIdx]) {
+                        sSlides[slideIdx].classList.add("tp-active");
+                        sSlides[slideIdx].querySelectorAll("*").forEach(function(el) {
+                          try { if (sWin.getComputedStyle(el).opacity === "0") el.style.opacity = "1"; } catch(e) {}
+                        });
+                      }
+                      var sScale = cell.offsetWidth / 1920;
+                      specIfr.style.transform = "scale(" + sScale + ")";
+                    });
+                  })(si);
+                }
+              }
+            });
+            window._templatePreviewInline = true;
           }
-        })();
+        }
       }
-      window.addEventListener("message", function(e) {
-        if (e.data && e.data.type === "templatePick") handleTemplatePick(e.data);
-      });
-      (function() {
-        var raw = sessionStorage.getItem("templatePick");
-        if (!raw) return;
-        sessionStorage.removeItem("templatePick");
-        try { handleTemplatePick(JSON.parse(raw)); } catch(e) {}
-      })();
+
+      // Initialize template picker
+      if (typeof ALL_TEMPLATES !== "undefined" && ALL_TEMPLATES.length) {
+        tpBuildPalChips();
+        tpBuildGrid();
+      }
     </script>
 
     <!-- Three.js shader gradient backgrounds (ES module) -->

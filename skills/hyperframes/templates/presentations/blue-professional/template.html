@@ -10,23 +10,17 @@
 
   <style>
     :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #fdfae7;
-  --tp-fg: #111111;
-  --tp-ac: #1e2bfa;
-  --tp-mt: #888888;
-  --tp-surface: #fdfae7;
-  --tp-border: #888888;
-  --tp-hf: "Inter";
-  --tp-bf: "Space Grotesk";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #111111;
+    --tp-secondary: #fdfae7;
+    --tp-tertiary: #6b6b6b;
+    --tp-accent: #1e2bfa;
 
-      --bg: var(--tp-bg, #fdfae7);
-      --primary: var(--tp-ac, #1e2bfa);
-      --text: var(--tp-fg, #111111);
-      --text-muted: var(--tp-fg, #6b6b6b);
-      --text-light: var(--tp-fg, #9a9a9a);
+      --bg: var(--tp-secondary, #fdfae7);
+      --primary: var(--tp-accent, #1e2bfa);
+      --text: var(--tp-primary, #111111);
+      --text-muted: var(--tp-tertiary, #6b6b6b);
+      --text-light: #9a9a9a;
       --accent-light: rgba(30, 43, 250, 0.08);
       --accent-medium: rgba(30, 43, 250, 0.15);
       --border: rgba(30, 43, 250, 0.2);
@@ -43,7 +37,7 @@
       width: 100%;
       height: 100%;
       overflow: hidden;
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       background: var(--bg);
       color: var(--text);
     }
@@ -88,7 +82,7 @@
 
     /* Typography */
     h1, h2, h3, h4 {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-weight: 600;
       line-height: 1.1;
       letter-spacing: -0.02em;
@@ -138,7 +132,7 @@
     }
 
     .slide-header .tag {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 0.75rem;
       font-weight: 500;
       color: var(--primary);
@@ -193,7 +187,7 @@
     }
 
     .slide-counter {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 0.8rem;
       font-weight: 500;
       color: var(--text-muted);
@@ -255,7 +249,7 @@
     }
 
     .layout-cover .meta {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 0.8rem;
       color: var(--text-light);
       letter-spacing: 0.05em;
@@ -316,7 +310,7 @@
     }
 
     .agenda-num {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 1.8rem;
       font-weight: 700;
       color: var(--primary);
@@ -362,7 +356,7 @@
     }
 
     .metric-card .metric-value {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(2.2rem, 3.4vw, 3rem);
       font-weight: 700;
       color: var(--primary);
@@ -411,14 +405,14 @@
       display: inline-flex;
       align-items: center;
       gap: 0.3rem;
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 0.78rem;
       font-weight: 600;
       margin-top: 0.3rem;
     }
 
-    .metric-change.positive { color: var(--tp-ac); }
-    .metric-change.negative { color: var(--tp-ac); }
+    .metric-change.positive { color: #059669; }
+    .metric-change.negative { color: #dc2626; }
 
     /* ============================================================
        LAYOUT 4: Data Dashboard (6 stat grid)
@@ -455,7 +449,7 @@
     }
 
     .stat-cell .stat-num {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(1.6rem, 2.4vw, 2.1rem);
       font-weight: 700;
       color: var(--primary);
@@ -534,7 +528,7 @@
       position: absolute;
       left: 0;
       top: 0;
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 0.78rem;
       font-weight: 600;
       color: var(--primary);
@@ -543,7 +537,7 @@
     }
 
     .split-highlight {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(1.15rem, 1.55vw, 1.5rem);
       font-weight: 500;
       color: var(--text);
@@ -580,7 +574,7 @@
     }
 
     .mini-stat .mini-val {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 1.5rem;
       font-weight: 700;
       color: var(--primary);
@@ -637,7 +631,7 @@
     }
 
     .bar-pct {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 0.95rem;
       font-weight: 600;
       color: var(--primary);
@@ -661,7 +655,7 @@
     }
 
     .layout-quote .quote-mark {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 8rem;
       font-weight: 700;
       color: var(--primary);
@@ -671,7 +665,7 @@
     }
 
     .layout-quote blockquote {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(1.6rem, 2.8vw, 2.4rem);
       font-weight: 500;
       line-height: 1.35;
@@ -750,7 +744,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 1.3rem;
       font-weight: 700;
       margin-bottom: 1.2rem;
@@ -762,7 +756,7 @@
     .timeline-step:nth-child(4) .step-circle { opacity: 0.55; }
 
     .step-title {
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: clamp(0.95rem, 1.4vw, 1.15rem);
       font-weight: 600;
       color: var(--text);
@@ -858,7 +852,7 @@
 
     .layout-closing .cta-btn {
       display: inline-block;
-      font-family: var(--tp-bf), sans-serif;
+      font-family: 'Space Grotesk', sans-serif;
       font-size: 0.95rem;
       font-weight: 600;
       color: var(--bg);
@@ -1179,7 +1173,7 @@
             <div class="bar-pct">79%</div>
           </div>
           <div class="bar-item">
-            <div class="bar-label">var(--tp-hf)est rates &amp; central bank policy</div>
+            <div class="bar-label">Interest rates &amp; central bank policy</div>
             <div class="bar-track">
               <div class="bar-fill" style="width: 69%"></div>
             </div>

@@ -9,25 +9,19 @@
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;600;700&display=swap');
 
         :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #F5F0E8;
-  --tp-fg: #1A1A1A;
-  --tp-ac: #E85D5D;
-  --tp-mt: #6B6B6B;
-  --tp-surface: #F5F0E8;
-  --tp-border: #6B6B6B;
-  --tp-hf: "Inter";
-  --tp-bf: "Bebas Neue";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #1A1A1A;
+    --tp-secondary: #F5F0E8;
+    --tp-tertiary: #6B6B6B;
+    --tp-accent: #E85D5D;
 
-            --coral: var(--tp-ac, #E85D5D);
-            --coral-dark: var(--tp-ac, #D44A4A);
-            --cream: var(--tp-bg, #F5F0E8);
-            --cream-dark: var(--tp-bg, #E8E0D4);
-            --black: var(--tp-fg, #1A1A1A);
-            --gray: var(--tp-mt, #6B6B6B);
-            --light-gray: var(--tp-mt, #B0B0B0);
+            --coral: var(--tp-accent, #E85D5D);
+            --coral-dark: #D44A4A;
+            --cream: var(--tp-secondary, #F5F0E8);
+            --cream-dark: #E8E0D4;
+            --black: var(--tp-primary, #1A1A1A);
+            --gray: var(--tp-tertiary, #6B6B6B);
+            --light-gray: #B0B0B0;
         }
 
         * {
@@ -40,7 +34,7 @@
             width: 100%;
             height: 100%;
             overflow: hidden;
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             background: var(--black);
             color: var(--black);
         }
@@ -110,7 +104,7 @@
             bottom: 24px;
             right: 24px;
             z-index: 1000;
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: 18px;
             letter-spacing: 2px;
             color: rgba(255,255,255,0.6);
@@ -193,7 +187,7 @@
         }
 
         .slide-1 .brand-mark {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 4px;
@@ -214,7 +208,7 @@
         }
 
         .slide-1 .main-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             /* Cap by both viewport WIDTH and HEIGHT so the 3-line title
                can never grow taller than the bottom-section can hold.
                Without the vh cap the title overflows on short laptops. */
@@ -254,7 +248,7 @@
         }
 
         .slide-1 .meta-label {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 11px;
             font-weight: 600;
             letter-spacing: 3px;
@@ -263,7 +257,7 @@
         }
 
         .slide-1 .meta-value {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: min(44px, 3.5vw, 5.5vh);
             color: var(--black);
             letter-spacing: 2px;
@@ -271,7 +265,7 @@
         }
 
         .slide-1 .meta-date {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: min(38px, 3vw, 4.8vh);
             color: var(--black);
             letter-spacing: 2px;
@@ -287,7 +281,7 @@
         }
 
         .slide-2 .section-label {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 4px;
@@ -297,7 +291,7 @@
         }
 
         .slide-2 .big-statement {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(42px, 7vw, 100px);
             color: var(--black);
             line-height: 1.0;
@@ -307,7 +301,7 @@
         }
 
         .slide-2 .body-text {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: clamp(15px, 1.4vw, 20px);
             line-height: 1.7;
             color: var(--gray);
@@ -355,7 +349,7 @@
         }
 
         .slide-3 .left-col .number {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(100px, 15vw, 200px);
             color: rgba(0,0,0,0.12);
             line-height: 1;
@@ -363,7 +357,7 @@
         }
 
         .slide-3 .left-col .col-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(36px, 5vw, 72px);
             color: var(--black);
             line-height: 1;
@@ -388,7 +382,7 @@
         }
 
         .slide-3 .right-col .item-label {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 11px;
             font-weight: 700;
             letter-spacing: 3px;
@@ -398,7 +392,7 @@
         }
 
         .slide-3 .right-col .item-text {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: clamp(14px, 1.2vw, 18px);
             color: var(--cream);
             line-height: 1.6;
@@ -420,7 +414,7 @@
         }
 
         .slide-4 .header-left .section-label {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 4px;
@@ -430,7 +424,7 @@
         }
 
         .slide-4 .header-left .slide-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(40px, 6vw, 80px);
             color: var(--black);
             line-height: 1;
@@ -442,14 +436,14 @@
         }
 
         .slide-4 .stat-number {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(48px, 7vw, 96px);
             color: var(--coral);
             line-height: 1;
         }
 
         .slide-4 .stat-label {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             color: var(--gray);
             letter-spacing: 2px;
@@ -489,14 +483,14 @@
         }
 
         .slide-4 .sidebar-item .value {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(28px, 3vw, 48px);
             color: var(--black);
             line-height: 1;
         }
 
         .slide-4 .sidebar-item .label {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             color: var(--gray);
             margin-top: 4px;
@@ -536,7 +530,7 @@
         }
 
         .slide-5 .visual-area .center-text {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(80px, 15vw, 200px);
             color: var(--black);
             letter-spacing: 12px;
@@ -554,14 +548,14 @@
         }
 
         .slide-5 .info-bar .bar-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(28px, 4vw, 56px);
             color: var(--black);
             letter-spacing: 2px;
         }
 
         .slide-5 .info-bar .bar-meta {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             color: var(--gray);
             letter-spacing: 2px;
@@ -578,7 +572,7 @@
         }
 
         .slide-6 .slide-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(40px, 6vw, 80px);
             color: var(--black);
             line-height: 1;
@@ -587,7 +581,7 @@
         }
 
         .slide-6 .slide-subtitle {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
             color: var(--gray);
             letter-spacing: 2px;
@@ -617,13 +611,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: 24px;
             color: white;
         }
 
         .slide-6 .column-card .card-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(24px, 2.5vw, 36px);
             color: var(--black);
             letter-spacing: 1px;
@@ -632,7 +626,7 @@
         }
 
         .slide-6 .column-card .card-text {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: clamp(13px, 1.1vw, 16px);
             color: var(--gray);
             line-height: 1.6;
@@ -640,7 +634,7 @@
         }
 
         .slide-6 .column-card .card-stat {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(36px, 4vw, 56px);
             color: var(--coral);
             line-height: 1;
@@ -681,7 +675,7 @@
         }
 
         .slide-7 .quote-left .giant-mark {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(140px, 20vw, 280px);
             color: var(--black);
             opacity: 0.35;
@@ -698,7 +692,7 @@
         }
 
         .slide-7 .quote-text {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: clamp(20px, 2.5vw, 36px);
             font-weight: 300;
             color: var(--cream);
@@ -708,7 +702,7 @@
         }
 
         .slide-7 .quote-author {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
             font-weight: 600;
             color: var(--coral);
@@ -717,7 +711,7 @@
         }
 
         .slide-7 .quote-role {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             color: var(--gray);
             margin-top: 4px;
@@ -744,7 +738,7 @@
         }
 
         .slide-8 .section-label {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 4px;
@@ -754,7 +748,7 @@
         }
 
         .slide-8 .slide-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(40px, 6vw, 80px);
             color: var(--black);
             line-height: 1;
@@ -838,7 +832,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(20px, 2vw, 32px);
             color: white;
             border: 4px solid var(--black);
@@ -846,7 +840,7 @@
         }
 
         .slide-8 .t-info .t-phase {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 700;
             letter-spacing: 2px;
@@ -856,7 +850,7 @@
         }
 
         .slide-8 .t-info .t-desc {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: clamp(12px, 1vw, 14px);
             color: var(--gray);
             line-height: 1.4;
@@ -871,7 +865,7 @@
         }
 
         .slide-9 .slide-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(40px, 6vw, 80px);
             color: var(--cream);
             line-height: 1;
@@ -880,7 +874,7 @@
         }
 
         .slide-9 .slide-subtitle {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 14px;
             color: var(--gray);
             letter-spacing: 2px;
@@ -919,13 +913,13 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(28px, 3vw, 40px);
             color: white;
         }
 
         .slide-9 .member-name {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 16px;
             font-weight: 600;
             color: var(--cream);
@@ -933,7 +927,7 @@
         }
 
         .slide-9 .member-role {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             color: var(--gray);
             letter-spacing: 1px;
@@ -956,7 +950,7 @@
         }
 
         .slide-10 .left-panel .closing-title {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(48px, 8vw, 120px);
             color: var(--black);
             line-height: 0.95;
@@ -965,7 +959,7 @@
         }
 
         .slide-10 .left-panel .closing-subtitle {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: clamp(14px, 1.3vw, 20px);
             color: rgba(0,0,0,0.7);
             line-height: 1.6;
@@ -998,7 +992,7 @@
         }
 
         .slide-10 .contact-label {
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 11px;
             font-weight: 700;
             letter-spacing: 3px;
@@ -1008,7 +1002,7 @@
         }
 
         .slide-10 .contact-value {
-            font-family: var(--tp-bf), sans-serif;
+            font-family: 'Bebas Neue', sans-serif;
             font-size: clamp(24px, 3vw, 40px);
             color: var(--black);
             letter-spacing: 2px;
@@ -1028,7 +1022,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            font-family: var(--tp-hf), sans-serif;
+            font-family: 'Inter', sans-serif;
             font-size: 12px;
             font-weight: 700;
             color: var(--black);
@@ -1093,9 +1087,9 @@
                 <div class="zigzag-layer">
                     <svg viewBox="0 0 1200 400" preserveAspectRatio="xMidYMid slice">
                         <polyline points="-50,320 50,120 150,320 250,120 350,320 450,120 550,320 650,120 750,320 850,120 950,320 1050,120 1150,320 1250,120" 
-                                  fill="none" stroke="var(--tp-fg)" stroke-width="18" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.22"/>
+                                  fill="none" stroke="#1A1A1A" stroke-width="18" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.22"/>
                         <polyline points="-50,380 50,180 150,380 250,180 350,380 450,180 550,380 650,180 750,380 850,180 950,380 1050,180 1150,380 1250,180" 
-                                  fill="none" stroke="var(--tp-fg)" stroke-width="12" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.15"/>
+                                  fill="none" stroke="#1A1A1A" stroke-width="12" stroke-linejoin="miter" stroke-linecap="butt" opacity="0.15"/>
                     </svg>
                 </div>
                 <div class="brand-mark">VENTURE</div>
@@ -1347,8 +1341,8 @@
     <div class="nav-dots" id="navDots"></div>
     <div class="slide-counter" id="slideCounter">01 / 10</div>
     <div class="nav-arrows" id="navArrows">
-        <div class="nav-arrow" id="prevArrow">&var(--tp-surface);</div>
-        <div class="nav-arrow" id="nextArrow">&var(--tp-surface);</div>
+        <div class="nav-arrow" id="prevArrow">&#8592;</div>
+        <div class="nav-arrow" id="nextArrow">&#8594;</div>
     </div>
 
     <script>
@@ -1434,16 +1428,16 @@
                     datasets: [{
                         label: 'Revenue (K)',
                         data: [45, 62, 55, 78, 95, 112],
-                        backgroundColor: 'var(--tp-ac)',
-                        borderColor: 'var(--tp-fg)',
+                        backgroundColor: '#E85D5D',
+                        borderColor: '#1A1A1A',
                         borderWidth: 2,
                         borderRadius: 0,
                         borderSkipped: false,
                     }, {
                         label: 'Target (K)',
                         data: [50, 58, 65, 72, 85, 100],
-                        backgroundColor: 'var(--tp-fg)',
-                        borderColor: 'var(--tp-fg)',
+                        backgroundColor: '#1A1A1A',
+                        borderColor: '#1A1A1A',
                         borderWidth: 2,
                         borderRadius: 0,
                         borderSkipped: false,
@@ -1456,8 +1450,8 @@
                         legend: {
                             position: 'top',
                             labels: {
-                                font: { family: var(--tp-hf), size: 12 },
-                                color: 'var(--tp-mt)',
+                                font: { family: 'Inter', size: 12 },
+                                color: '#6B6B6B',
                                 usePointStyle: true,
                                 pointStyle: 'rect',
                                 padding: 20
@@ -1468,8 +1462,8 @@
                         x: {
                             grid: { display: false },
                             ticks: {
-                                font: { family: var(--tp-hf), size: 12 },
-                                color: 'var(--tp-mt)'
+                                font: { family: 'Inter', size: 12 },
+                                color: '#6B6B6B'
                             }
                         },
                         y: {
@@ -1479,8 +1473,8 @@
                                 drawBorder: false
                             },
                             ticks: {
-                                font: { family: var(--tp-hf), size: 11 },
-                                color: 'var(--tp-mt)',
+                                font: { family: 'Inter', size: 11 },
+                                color: '#B0B0B0',
                                 callback: function(value) { return '$' + value + 'K'; }
                             }
                         }

@@ -8,26 +8,20 @@
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800;900&display=swap');
 
     :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #FFDC8B;
-  --tp-fg: #000000;
-  --tp-ac: #FE90E8;
-  --tp-mt: #888888;
-  --tp-surface: #FFDC8B;
-  --tp-border: #888888;
-  --tp-hf: "Inter";
-  --tp-bf: "Space Grotesk";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #FFDC8B;
+    --tp-secondary: #000000;
+    --tp-tertiary: #FFFFFF;
+    --tp-accent: #FE90E8;
 
-      --pink: var(--tp-ac, #FE90E8);
-      --blue: var(--tp-ac, #C0F7FE);
-      --green: var(--tp-ac, #99E885);
-      --yellow: var(--tp-ac, #F7CB46);
-      --cream: var(--tp-bg, #FFDC8B);
-      --black: var(--tp-fg, #000000);
-      --white: var(--tp-bg, #FFFFFF);
-      --offwhite: var(--tp-bg, #FFFDF5);
+      --pink: var(--tp-accent, #FE90E8);
+      --blue: #C0F7FE;
+      --green: #99E885;
+      --yellow: #F7CB46;
+      --cream: var(--tp-primary, #FFDC8B);
+      --black: var(--tp-secondary, #000000);
+      --white: var(--tp-tertiary, #FFFFFF);
+      --offwhite: #FFFDF5;
       --border: 4px solid var(--black);
       --shadow: 8px 8px 0px var(--black);
       --shadow-sm: 4px 4px 0px var(--black);
@@ -44,7 +38,7 @@
     html, body {
       height: 100%;
       overflow: hidden;
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       background: var(--offwhite);
       color: var(--black);
     }
@@ -93,7 +87,7 @@
       border: 3px solid var(--black);
       background: var(--white);
       cursor: pointer;
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 18px;
       display: flex;
@@ -118,7 +112,7 @@
       bottom: 24px;
       left: 24px;
       z-index: 1000;
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-weight: 700;
       font-size: 14px;
       letter-spacing: 0.1em;
@@ -146,7 +140,7 @@
       display: inline-block;
       border: 3px solid var(--black);
       padding: 6px 16px;
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 13px;
       font-weight: 600;
       letter-spacing: 0.08em;
@@ -165,7 +159,7 @@
       display: inline-block;
       border: 3px solid var(--black);
       padding: 14px 32px;
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 16px;
       text-decoration: none;
@@ -182,7 +176,7 @@
     }
 
     .nb-heading-xl {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 900;
       font-size: clamp(48px, 6vw, 96px);
       line-height: 0.95;
@@ -191,7 +185,7 @@
     }
 
     .nb-heading-lg {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 800;
       font-size: clamp(32px, 4vw, 64px);
       line-height: 1.0;
@@ -200,7 +194,7 @@
     }
 
     .nb-heading-md {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: clamp(24px, 2.5vw, 40px);
       line-height: 1.1;
@@ -208,14 +202,14 @@
     }
 
     .nb-body {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: clamp(16px, 1.2vw, 20px);
       line-height: 1.6;
       font-weight: 500;
     }
 
     .nb-mono {
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-weight: 500;
       font-size: 15px;
       letter-spacing: 0.02em;
@@ -273,7 +267,7 @@
     }
 
     .slide-1 .hero-subtitle {
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 18px;
       font-weight: 500;
       max-width: 500px;
@@ -317,7 +311,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 13px;
       font-weight: 600;
       z-index: 5;
@@ -364,7 +358,7 @@
     }
 
     .slide-2 .intro-card h3 {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 20px;
       margin-bottom: 12px;
@@ -384,7 +378,7 @@
       border: 3px solid var(--black);
       padding: 10px 20px;
       background: var(--yellow);
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 14px;
       font-weight: 600;
     }
@@ -432,7 +426,7 @@
     .slide-3 .icon-green { background: var(--green); }
 
     .slide-3 .feature-card h3 {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 22px;
       margin-bottom: 14px;
@@ -498,7 +492,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 13px;
       font-weight: 600;
     }
@@ -557,7 +551,7 @@
     }
 
     .slide-4 .data-box .data-num {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 900;
       font-size: 36px;
       display: block;
@@ -565,7 +559,7 @@
     }
 
     .slide-4 .data-box .data-label {
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 13px;
       font-weight: 600;
       text-transform: uppercase;
@@ -591,7 +585,7 @@
     }
 
     .slide-5 .quote-text {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 900;
       font-size: clamp(28px, 3.5vw, 52px);
       line-height: 1.15;
@@ -601,7 +595,7 @@
     }
 
     .slide-5 .quote-author {
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 15px;
       font-weight: 600;
       letter-spacing: 0.05em;
@@ -689,7 +683,7 @@
       background: var(--green);
       color: var(--black);
       padding: 8px 16px;
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 13px;
       font-weight: 600;
       transform: rotate(-4deg);
@@ -731,7 +725,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-weight: 700;
       font-size: 14px;
     }
@@ -781,7 +775,7 @@
     }
 
     .slide-7 .step-num {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 900;
       font-size: 48px;
       line-height: 1;
@@ -790,7 +784,7 @@
     }
 
     .slide-7 .step-title {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 20px;
       text-transform: uppercase;
@@ -850,7 +844,7 @@
     }
 
     .slide-8 .stat-number {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 900;
       font-size: clamp(36px, 4vw, 64px);
       line-height: 1;
@@ -858,7 +852,7 @@
     }
 
     .slide-8 .stat-label {
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 13px;
       font-weight: 600;
       text-transform: uppercase;
@@ -915,7 +909,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 900;
       font-size: 28px;
       text-transform: uppercase;
@@ -928,14 +922,14 @@
     .slide-9 .team-card:nth-child(6) .team-avatar { background: var(--blue); }
 
     .slide-9 .team-name {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 20px;
       text-transform: uppercase;
     }
 
     .slide-9 .team-role {
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 14px;
       font-weight: 500;
       text-transform: uppercase;
@@ -967,7 +961,7 @@
     }
 
     .slide-10 .close-title {
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 900;
       font-size: clamp(40px, 5vw, 80px);
       line-height: 0.95;
@@ -978,7 +972,7 @@
     }
 
     .slide-10 .close-subtitle {
-      font-family: var(--tp-bf), monospace;
+      font-family: 'Space Grotesk', monospace;
       font-size: 18px;
       font-weight: 500;
       color: var(--cream);
@@ -989,7 +983,7 @@
       display: inline-block;
       border: 3px solid var(--white);
       padding: 16px 40px;
-      font-family: var(--tp-hf), sans-serif;
+      font-family: 'Inter', sans-serif;
       font-weight: 700;
       font-size: 16px;
       text-decoration: none;
@@ -1084,8 +1078,8 @@
   <div class="slide-counter" id="slideCounter">01 / 10</div>
 
   <div class="nav-controls">
-    <button class="nav-btn" onclick="prevSlide()">&var(--tp-surface);</button>
-    <button class="nav-btn" onclick="nextSlide()">&var(--tp-surface);</button>
+    <button class="nav-btn" onclick="prevSlide()">&#8592;</button>
+    <button class="nav-btn" onclick="nextSlide()">&#8594;</button>
   </div>
 
   <div class="slides-container">
@@ -1187,38 +1181,38 @@
           <line x1="60" y1="215" x2="780" y2="215" stroke="#000" stroke-width="1" stroke-dasharray="4,4" opacity="0.3"/>
 
           <!-- Y labels -->
-          <text x="48" y="285" text-anchor="end" font-family="var(--tp-bf), monospace" font-size="14" font-weight="600">0</text>
-          <text x="48" y="220" text-anchor="end" font-family="var(--tp-bf), monospace" font-size="14" font-weight="600">33</text>
-          <text x="48" y="155" text-anchor="end" font-family="var(--tp-bf), monospace" font-size="14" font-weight="600">66</text>
-          <text x="48" y="85"  text-anchor="end" font-family="var(--tp-bf), monospace" font-size="14" font-weight="600">100</text>
+          <text x="48" y="285" text-anchor="end" font-family="Space Grotesk, monospace" font-size="14" font-weight="600">0</text>
+          <text x="48" y="220" text-anchor="end" font-family="Space Grotesk, monospace" font-size="14" font-weight="600">33</text>
+          <text x="48" y="155" text-anchor="end" font-family="Space Grotesk, monospace" font-size="14" font-weight="600">66</text>
+          <text x="48" y="85"  text-anchor="end" font-family="Space Grotesk, monospace" font-size="14" font-weight="600">100</text>
 
           <!-- Bars: Revenue (pink) — three series per quarter, 5 quarters -->
-          <rect x="80"  y="200" width="32" height="80"  fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="224" y="160" width="32" height="120" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="368" y="120" width="32" height="160" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="512" y="80"  width="32" height="200" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="656" y="60"  width="32" height="220" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
+          <rect x="80"  y="200" width="32" height="80"  fill="#FE90E8" stroke="#000" stroke-width="2"/>
+          <rect x="224" y="160" width="32" height="120" fill="#FE90E8" stroke="#000" stroke-width="2"/>
+          <rect x="368" y="120" width="32" height="160" fill="#FE90E8" stroke="#000" stroke-width="2"/>
+          <rect x="512" y="80"  width="32" height="200" fill="#FE90E8" stroke="#000" stroke-width="2"/>
+          <rect x="656" y="60"  width="32" height="220" fill="#FE90E8" stroke="#000" stroke-width="2"/>
 
           <!-- Bars: Users (blue) -->
-          <rect x="118" y="220" width="32" height="60"  fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="262" y="190" width="32" height="90"  fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="406" y="150" width="32" height="130" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="550" y="110" width="32" height="170" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="694" y="90"  width="32" height="190" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
+          <rect x="118" y="220" width="32" height="60"  fill="#C0F7FE" stroke="#000" stroke-width="2"/>
+          <rect x="262" y="190" width="32" height="90"  fill="#C0F7FE" stroke="#000" stroke-width="2"/>
+          <rect x="406" y="150" width="32" height="130" fill="#C0F7FE" stroke="#000" stroke-width="2"/>
+          <rect x="550" y="110" width="32" height="170" fill="#C0F7FE" stroke="#000" stroke-width="2"/>
+          <rect x="694" y="90"  width="32" height="190" fill="#C0F7FE" stroke="#000" stroke-width="2"/>
 
           <!-- Bars: Retention (green) -->
-          <rect x="156" y="180" width="32" height="100" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="300" y="160" width="32" height="120" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="444" y="130" width="32" height="150" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="588" y="110" width="32" height="170" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
-          <rect x="732" y="92"  width="32" height="188" fill="var(--tp-ac)" stroke="#000" stroke-width="2"/>
+          <rect x="156" y="180" width="32" height="100" fill="#99E885" stroke="#000" stroke-width="2"/>
+          <rect x="300" y="160" width="32" height="120" fill="#99E885" stroke="#000" stroke-width="2"/>
+          <rect x="444" y="130" width="32" height="150" fill="#99E885" stroke="#000" stroke-width="2"/>
+          <rect x="588" y="110" width="32" height="170" fill="#99E885" stroke="#000" stroke-width="2"/>
+          <rect x="732" y="92"  width="32" height="188" fill="#99E885" stroke="#000" stroke-width="2"/>
 
           <!-- X labels — bigger, sit comfortably below the baseline -->
-          <text x="134" y="320" text-anchor="middle" font-family="var(--tp-bf), monospace" font-size="18" font-weight="700">Q1</text>
-          <text x="278" y="320" text-anchor="middle" font-family="var(--tp-bf), monospace" font-size="18" font-weight="700">Q2</text>
-          <text x="422" y="320" text-anchor="middle" font-family="var(--tp-bf), monospace" font-size="18" font-weight="700">Q3</text>
-          <text x="566" y="320" text-anchor="middle" font-family="var(--tp-bf), monospace" font-size="18" font-weight="700">Q4</text>
-          <text x="710" y="320" text-anchor="middle" font-family="var(--tp-bf), monospace" font-size="18" font-weight="700">Q5</text>
+          <text x="134" y="320" text-anchor="middle" font-family="Space Grotesk, monospace" font-size="18" font-weight="700">Q1</text>
+          <text x="278" y="320" text-anchor="middle" font-family="Space Grotesk, monospace" font-size="18" font-weight="700">Q2</text>
+          <text x="422" y="320" text-anchor="middle" font-family="Space Grotesk, monospace" font-size="18" font-weight="700">Q3</text>
+          <text x="566" y="320" text-anchor="middle" font-family="Space Grotesk, monospace" font-size="18" font-weight="700">Q4</text>
+          <text x="710" y="320" text-anchor="middle" font-family="Space Grotesk, monospace" font-size="18" font-weight="700">Q5</text>
         </svg>
         <div class="data-column">
           <div class="data-box">
@@ -1256,7 +1250,7 @@
     <section class="slide slide-6">
       <div class="split-visual">
         <div class="visual-box">
-          <span style="color: var(--black); font-family: var(--tp-hf), sans-serif; font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; padding: 0 24px;">Image Placeholder</span>
+          <span style="color: var(--black); font-family: Inter, sans-serif; font-weight: 700; font-size: 22px; text-transform: uppercase; letter-spacing: 0.06em; text-align: center; padding: 0 24px;">Image Placeholder</span>
         </div>
         <div class="visual-label">Visual System</div>
       </div>

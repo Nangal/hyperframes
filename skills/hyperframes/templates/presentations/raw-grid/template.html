@@ -12,31 +12,25 @@
 /* --- RESET & BASE --- */
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #ffffff;
-  --tp-fg: #0a0a0a;
-  --tp-ac: #f2d4cf;
-  --tp-mt: #f5f5f5;
-  --tp-surface: #ffffff;
-  --tp-border: #f5f5f5;
-  --tp-hf: "Segoe UI";
-  --tp-bf: "system-ui";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #0a0a0a;
+    --tp-secondary: #ffffff;
+    --tp-tertiary: #f5f5f5;
+    --tp-accent: #f2d4cf;
 
-  --black: var(--tp-fg, #0a0a0a);
-  --white: var(--tp-bg, #ffffff);
-  --pink: var(--tp-ac, #f2d4cf);
-  --green: var(--tp-ac, #e5edd6);
-  --gray: var(--tp-mt, #f5f5f5);
-  --darkgray: var(--tp-fg, #333333);
+  --black: var(--tp-primary, #0a0a0a);
+  --white: var(--tp-secondary, #ffffff);
+  --pink: var(--tp-accent, #f2d4cf);
+  --green: #e5edd6;
+  --gray: var(--tp-tertiary, #f5f5f5);
+  --darkgray: #333333;
   --border: 3px solid var(--black);
   --shadow: 6px 6px 0 var(--black);
   --shadow-sm: 4px 4px 0 var(--black);
 }
 html, body {
   width: 100%; height: 100%;
-  font-family: var(--tp-hf), system-ui, -apple-system, Helvetica, Arial, sans-serif;
+  font-family: 'Segoe UI', system-ui, -apple-system, Helvetica, Arial, sans-serif;
   background: var(--white);
   color: var(--black);
   overflow: hidden;
@@ -932,10 +926,10 @@ html, body {
     <div class="s7-left">
       <div class="s7-donut-container">
         <svg viewBox="0 0 200 200" width="100%" height="100%">
-          <circle cx="100" cy="100" r="80" fill="none" stroke="var(--tp-fg)" stroke-width="24" stroke-dasharray="314 502" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
-          <circle cx="100" cy="100" r="80" fill="none" stroke="var(--tp-ac)" stroke-width="24" stroke-dasharray="126 502" stroke-dashoffset="-314" transform="rotate(-90 100 100)"/>
-          <circle cx="100" cy="100" r="80" fill="none" stroke="var(--tp-ac)" stroke-width="24" stroke-dasharray="50 502" stroke-dashoffset="-440" transform="rotate(-90 100 100)"/>
-          <circle cx="100" cy="100" r="68" fill="none" stroke="var(--tp-fg)" stroke-width="1.5" opacity="0.1"/>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#0a0a0a" stroke-width="24" stroke-dasharray="314 502" stroke-dashoffset="0" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#f2d4cf" stroke-width="24" stroke-dasharray="126 502" stroke-dashoffset="-314" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="80" fill="none" stroke="#e5edd6" stroke-width="24" stroke-dasharray="50 502" stroke-dashoffset="-440" transform="rotate(-90 100 100)"/>
+          <circle cx="100" cy="100" r="68" fill="none" stroke="#0a0a0a" stroke-width="1.5" opacity="0.1"/>
         </svg>
         <div class="s7-donut-center">
           <div class="s7-donut-value">63%</div>

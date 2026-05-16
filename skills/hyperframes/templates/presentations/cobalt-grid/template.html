@@ -9,29 +9,23 @@
 <link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,wght@0,400;0,500;1,300;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet" />
 <style>
   :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #F0EBDE;
-  --tp-fg: #1F2BE0;
-  --tp-ac: #1F2BE0;
-  --tp-mt: #888888;
-  --tp-surface: #F0EBDE;
-  --tp-border: #1F2BE0;
-  --tp-hf: "Hanken Grotesk";
-  --tp-bf: "Newsreader";
-  --tp-mf: "monospace";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #1F2BE0;
+    --tp-secondary: #F0EBDE;
+    --tp-tertiary: #E6E0CE;
+    --tp-accent: #1F2BE0;
 
-    --paper: var(--tp-bg, #F0EBDE);   /* warm cream / ivory paper canvas */
-    --paper-2: var(--tp-bg, #E6E0CE);
-    --ink: var(--tp-fg, #1F2BE0);   /* electric cobalt / royal blue */
-    --ink-soft: var(--tp-fg, #5560E5);   /* lighter cobalt for secondary marks */
+    --paper: var(--tp-secondary, #F0EBDE);   /* warm cream / ivory paper canvas */
+    --paper-2: var(--tp-tertiary, #E6E0CE);
+    --ink: var(--tp-primary, #1F2BE0);   /* electric cobalt / royal blue */
+    --ink-soft: #5560E5;   /* lighter cobalt for secondary marks */
     --grid:     rgba(31, 43, 224, 0.10);  /* very faint blue grid */
-    --rule: var(--tp-border, #1F2BE0);
+    --rule: var(--tp-accent, #1F2BE0);
   }
   * { box-sizing: border-box; }
-  html, body { margin: 0; padding: 0; height: 100%; background: var(--tp-fg); }
+  html, body { margin: 0; padding: 0; height: 100%; background: #0a0a0a; }
   body {
-    font-family: var(--tp-hf), 'Helvetica Neue', sans-serif;
+    font-family: 'Hanken Grotesk', 'Helvetica Neue', sans-serif;
     color: var(--ink);
     overflow: hidden;
   }
@@ -67,7 +61,7 @@
 
   /* ─── TYPE SYSTEM ──────────────────────────────────────────── */
   .disp {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-weight: 400;
     line-height: 0.92;
@@ -75,13 +69,13 @@
     color: var(--ink);
   }
   .body-tx {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 400;
     line-height: 1.5;
     color: var(--ink);
   }
   .micro {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.16em;
@@ -185,7 +179,7 @@
     max-width: 60%;
   }
   .s-cover .title {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-weight: 400;
     font-size: clamp(100px, min(11vw, 18vh), 200px);
@@ -198,7 +192,7 @@
     display: flex; flex-direction: column; gap: 6px;
   }
   .s-cover .subkicker .l {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.18em;
@@ -206,7 +200,7 @@
     color: var(--ink);
   }
   .s-cover .subkicker .ed {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-size: clamp(28px, min(2.8vw, 4.6vh), 50px);
     line-height: 1.1;
@@ -264,13 +258,13 @@
     gap: clamp(28px, 3vw, 56px);
   }
   .s-cover .cfooter .colf {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-size: clamp(14px, 0.92vw, 15px);
     line-height: 1.45;
     color: var(--ink);
   }
   .s-cover .cfooter .colf .ftag {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em;
     font-size: clamp(11px, 0.78vw, 13px);
     margin-bottom: 4px;
@@ -291,7 +285,7 @@
     text-align: left;
   }
   .s-manifesto .stmt {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-weight: 400;
     font-size: clamp(56px, min(6.4vw, 11vh), 120px);
@@ -310,7 +304,7 @@
     padding-top: clamp(10px, 1.2vh, 18px);
   }
   .s-manifesto .attr .who {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.16em;
@@ -345,14 +339,14 @@
     gap: 30px;
   }
   .s-index .topbar .h {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-size: clamp(48px, min(5vw, 8.5vh), 100px);
     line-height: 0.95;
     color: var(--ink);
   }
   .s-index .topbar .lab-tag {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em;
     font-size: clamp(12px, 0.9vw, 14px);
     color: var(--ink); text-align: right;
@@ -380,7 +374,7 @@
   }
   .s-index .row h3 {
     margin: 0 0 6px 0;
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-weight: 400;
     font-size: clamp(26px, 2vw, 40px);
@@ -389,7 +383,7 @@
   }
   .s-index .row p {
     margin: 0;
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-size: clamp(14px, 0.95vw, 15px);
     line-height: 1.5;
     color: var(--ink);
@@ -425,7 +419,7 @@
     letter-spacing: 0.06em;
   }
   .s-chapter .ttl {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-weight: 400;
     font-size: clamp(56px, min(6vw, 10vh), 130px);
@@ -434,7 +428,7 @@
     letter-spacing: -0.005em;
   }
   .s-chapter .lede {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 400;
     font-size: clamp(15px, 1vw, 18px);
     line-height: 1.5;
@@ -461,14 +455,14 @@
     gap: 30px;
   }
   .s-data .topbar .h {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-size: clamp(46px, min(4.8vw, 8.2vh), 92px);
     line-height: 0.95;
     color: var(--ink);
   }
   .s-data .topbar .lab-tag {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em;
     font-size: clamp(12px, 0.9vw, 14px);
     color: var(--ink); text-align: right;
@@ -483,7 +477,7 @@
     gap: clamp(20px, 2.4vh, 36px);
   }
   .s-data .stat .vbig {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-weight: 400;
     font-size: clamp(110px, min(11vw, 18vh), 240px);
@@ -492,7 +486,7 @@
     letter-spacing: -0.015em;
   }
   .s-data .stat .lab2 {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.16em;
@@ -501,7 +495,7 @@
     margin-top: 6px;
   }
   .s-data .stat .desc {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-size: clamp(15px, 1vw, 17px);
     line-height: 1.5;
     color: var(--ink);
@@ -569,7 +563,7 @@
     z-index: 5;
   }
   .s-quote .qkicker {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.2em;
@@ -578,7 +572,7 @@
     margin-bottom: clamp(16px, 1.8vh, 28px);
   }
   .s-quote .qbody {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-weight: 400;
     font-size: clamp(50px, min(5.6vw, 9vh), 110px);
@@ -596,7 +590,7 @@
     padding-top: clamp(10px, 1.2vh, 18px);
   }
   .s-quote .qattr .who-tag {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.16em;
@@ -629,14 +623,14 @@
     gap: 30px;
   }
   .s-table .topbar .h {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-size: clamp(46px, min(4.8vw, 8.2vh), 92px);
     line-height: 0.95;
     color: var(--ink);
   }
   .s-table .topbar .lab-tag {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em;
     font-size: clamp(12px, 0.9vw, 14px);
     color: var(--ink); text-align: right;
@@ -667,7 +661,7 @@
     padding: 8px 0;
   }
   .s-table .row.headrow > div {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600; text-transform: uppercase; letter-spacing: 0.18em;
     font-size: clamp(11px, 0.75vw, 12px);
     color: var(--ink);
@@ -679,20 +673,20 @@
     letter-spacing: 0.04em;
   }
   .s-table .nm {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-size: clamp(20px, 1.6vw, 28px);
     line-height: 1.15;
     color: var(--ink);
   }
   .s-table .desc {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-size: clamp(14px, 0.95vw, 15px);
     line-height: 1.4;
     color: var(--ink);
   }
   .s-table .mood-tag {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     font-size: clamp(13px, 0.92vw, 15px);
     color: var(--ink);
@@ -734,7 +728,7 @@
     text-align: right;
   }
   .s-colophon .ktag {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.22em;
@@ -743,7 +737,7 @@
     margin-bottom: clamp(14px, 1.6vh, 24px);
   }
   .s-colophon .ttl {
-    font-family: var(--tp-bf), Georgia, serif;
+    font-family: 'Newsreader', Georgia, serif;
     
     font-weight: 400;
     font-size: clamp(72px, min(8.4vw, 14vh), 180px);
@@ -766,7 +760,7 @@
     padding-top: clamp(10px, 1.2vh, 16px);
   }
   .s-colophon .col-footer .ftag {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.18em;
@@ -775,7 +769,7 @@
     color: var(--ink);
   }
   .s-colophon .col-footer .ftxt {
-    font-family: var(--tp-hf), sans-serif;
+    font-family: 'Hanken Grotesk', sans-serif;
     font-size: clamp(14px, 0.95vw, 15px);
     line-height: 1.5;
     color: var(--ink);
@@ -789,7 +783,7 @@
 <svg style="display:none" aria-hidden="true">
   <defs>
     <pattern id="vstripes" width="3" height="100" patternUnits="userSpaceOnUse">
-      <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="var(--tp-fg)" stroke-width="1.2" />
+      <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="#1F2BE0" stroke-width="1.2" />
     </pattern>
   </defs>
 </svg>
@@ -812,7 +806,7 @@
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
             <pattern id="vs1" width="2.4" height="100" patternUnits="userSpaceOnUse">
-              <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="var(--tp-fg)" stroke-width="1.0" />
+              <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="#1F2BE0" stroke-width="1.0" />
             </pattern>
           </defs>
           <rect x="36" y="0"  width="38" height="14" fill="url(#vs1)"/>
@@ -921,7 +915,7 @@
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
             <pattern id="vs4" width="2.4" height="100" patternUnits="userSpaceOnUse">
-              <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="var(--tp-fg)" stroke-width="1.0" />
+              <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="#1F2BE0" stroke-width="1.0" />
             </pattern>
           </defs>
           <rect x="40" y="0"  width="40" height="14" fill="url(#vs4)"/>
@@ -1024,7 +1018,7 @@
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
             <pattern id="vs6" width="2.4" height="100" patternUnits="userSpaceOnUse">
-              <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="var(--tp-fg)" stroke-width="1.0" />
+              <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="#1F2BE0" stroke-width="1.0" />
             </pattern>
           </defs>
           <rect x="20" y="0"  width="50" height="14" fill="url(#vs6)"/>
@@ -1129,7 +1123,7 @@
         <svg viewBox="0 0 100 100" preserveAspectRatio="none">
           <defs>
             <pattern id="vs8" width="2.4" height="100" patternUnits="userSpaceOnUse">
-              <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="var(--tp-fg)" stroke-width="1.0" />
+              <line x1="0.5" y1="0" x2="0.5" y2="100" stroke="#1F2BE0" stroke-width="1.0" />
             </pattern>
           </defs>
           <rect x="0"  y="0"  width="48" height="13" fill="url(#vs8)"/>
@@ -1166,7 +1160,7 @@
         </div>
         <div>
           <div class="ftag caption">Designed</div>
-          <div class="ftxt">In var(--tp-bf), var(--tp-hf)<br/>&amp; DM Mono · cobalt on cream</div>
+          <div class="ftxt">In Newsreader, Hanken Grotesk<br/>&amp; DM Mono · cobalt on cream</div>
         </div>
         <div>
           <div class="ftag caption">Subscribed</div>

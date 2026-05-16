@@ -30,40 +30,34 @@
    ║  Never write raw hex values or px sizes outside this block.          ║
    ╚══════════════════════════════════════════════════════════════════════╝ */
       :root {
-  /* Template Picker configurable tokens */
-  --tp-bg-layer: none; /* set to shader canvas or gradient */
-  --tp-bg: #fafadf;
-  --tp-fg: #1a1a16;
-  --tp-ac: #1a1a16;
-  --tp-mt: #1a1a16;
-  --tp-surface: #fafadf;
-  --tp-border: #1a1a16;
-  --tp-hf: "8.5vw";
-  --tp-bf: "1.1vw";
-  --tp-mf: "JetBrains Mono";
+    /* Palette tokens — override to re-theme */
+    --tp-primary: #1a1a16;
+    --tp-secondary: #fafadf;
+    --tp-tertiary: #1a1a16;
+    --tp-accent: #fafadf;
 
         /* ── Palette ──────────────────────────────────────────────────────── */
-        --c-bg: var(--tp-bg, #fafadf); /* cream background for every slide       */
-        --c-bg-alt: var(--tp-bg, #f2f2d2); /* cream inset surface                   */
-        --c-bg-light: var(--tp-bg, #fafadf); /* title-slide cream                     */
-        --c-bg-light-alt: var(--tp-bg, #f0f0d4); /* slightly deeper cream for insets      */
-        --c-bg-cream: var(--tp-bg, #f5f0e4); /* warm cream variant                    */
+        --c-bg: var(--tp-secondary, #fafadf); /* cream background for every slide       */
+        --c-bg-alt: #f2f2d2; /* cream inset surface                   */
+        --c-bg-light: var(--tp-accent, #fafadf); /* title-slide cream                     */
+        --c-bg-light-alt: #f0f0d4; /* slightly deeper cream for insets      */
+        --c-bg-cream: #f5f0e4; /* warm cream variant                    */
 
-        --c-fg: var(--tp-fg, #1a1a16); /* black ink text                         */
-        --c-fg-2: var(--tp-fg, #5e5e54); /* secondary graphite text                */
-        --c-fg-3: var(--tp-fg, #8a8a80); /* tertiary graphite text                 */
-        --c-fg-light: var(--tp-fg, #1a1a16); /* black ink on cream                    */
-        --c-fg-light-2: var(--tp-fg, #5e5e54); /* secondary graphite on cream           */
-        --c-fg-light-3: var(--tp-fg, #8a8a80); /* tertiary graphite on cream            */
+        --c-fg: var(--tp-primary, #1a1a16); /* black ink text                         */
+        --c-fg-2: #5e5e54; /* secondary graphite text                */
+        --c-fg-3: #8a8a80; /* tertiary graphite text                 */
+        --c-fg-light: #1a1a16; /* black ink on cream                    */
+        --c-fg-light-2: #5e5e54; /* secondary graphite on cream           */
+        --c-fg-light-3: #8a8a80; /* tertiary graphite on cream            */
 
-        --c-accent: var(--tp-ac, #1a1a16); /* accent collapsed to black ink         */
-        --c-border: var(--tp-border, #1a1a16); /* black dividers                        */
-        --c-border-light: var(--tp-mt, #1a1a16); /* black dividers on cream               */
+        --c-accent: #1a1a16; /* accent collapsed to black ink         */
+        --c-border: var(--tp-tertiary, #1a1a16); /* black dividers                        */
+        --c-border-light: #1a1a16; /* black dividers on cream               */
 
         /* ── Insight cards: no accent colors, just cream paper surfaces ─── */
-        --c-card-a: var(--tp-bg, #fafadf);
-        --c-card-b: var(--tp-bg, #f5f0e4);
-        --c-card-c: var(--tp-bg, #fafadf);
+        --c-card-a: #fafadf;
+        --c-card-b: #f5f0e4;
+        --c-card-c: #fafadf;
 
         /* ── Typography ──────────────────────────────────────────────────── */
         --f-display: "Jost", "Noto Sans SC", system-ui, sans-serif;
@@ -120,7 +114,7 @@
       }
 
       /* Deck container — all slides sit side by side in a single row */
-      var(--tp-bg)k {
+      #deck {
         display: flex;
         height: 100vh;
         /* Width = N * 100vw, calculated and set by JS on init */
@@ -2455,7 +2449,7 @@
       </section>
 
     </div>
-    <!-- /var(--tp-bg)k -->
+    <!-- /#deck -->
 
     <!-- Navigation dots: built dynamically by JS -->
     <nav id="nav-dots" aria-label="Slide navigation"></nav>
