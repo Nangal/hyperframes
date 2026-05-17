@@ -1185,6 +1185,10 @@
     <!-- Phase 2: Fine-tune -->
     <div class="phase" id="phase-tune" style="flex-direction: row">
       <div class="panel-left">
+        <div style="padding:10px 16px;border-bottom:1px solid #1a1a1a;display:flex;align-items:center;gap:8px;">
+          <button onclick="showPhase('mood')" style="background:none;border:1px solid #333;color:#888;padding:4px 10px;font:500 11px/1 system-ui;cursor:pointer;border-radius:4px;letter-spacing:.04em;">&#8592; Templates</button>
+          <span style="font:600 12px/1 system-ui;color:#eee;flex:1;text-align:right;" id="current-tmpl-name"></span>
+        </div>
         <!-- Background / Shader Editor -->
         <div class="section-card" id="bg-section">
           <div class="section-header">
@@ -3757,6 +3761,8 @@
       function handleTemplatePick(pick) {
         if (!pick || !pick.slug) return;
         window._currentTemplateSlug = pick.slug;
+        var tn = document.getElementById("current-tmpl-name");
+        if (tn) tn.textContent = pick.name;
         _origVarCache = {};
         PROMPT.title = pick.name;
         PROMPT.headline = pick.name.toUpperCase();
