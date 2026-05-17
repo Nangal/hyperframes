@@ -2653,11 +2653,20 @@
         h = h.replace(/__FONT_LINK_EXTRA__/g, "");
         h = h.replace(/__DATE__/g, new Date().toLocaleDateString("en-US", { month: "long", year: "numeric" }));
 
-        // Write to iframe
-        // Use blob URL for smooth transition — old content stays until new is ready
+        // Save scroll position before rewrite
+        var scrollY = 0;
+        try { scrollY = iframe.contentWindow.scrollY || iframe.contentDocument.documentElement.scrollTop || 0; } catch(e) {}
+
+        // Use blob URL for smooth transition
         if (iframe._blobUrl) URL.revokeObjectURL(iframe._blobUrl);
         var blob = new Blob([h], { type: 'text/html' });
         iframe._blobUrl = URL.createObjectURL(blob);
+        iframe._restoreScroll = scrollY;
+        iframe.onload = function() {
+          if (iframe._restoreScroll) {
+            iframe.contentWindow.scrollTo(0, iframe._restoreScroll);
+          }
+        };
         iframe.src = iframe._blobUrl;
         iframe.style.display = "";
       }
