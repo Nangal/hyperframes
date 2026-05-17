@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>__NAME__ — Design System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600;1,700&family=Inter:wght@400;500&family=JetBrains+Mono:wght@400;500__FONT_LINK_EXTRA__&display=swap" rel="stylesheet" />
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"}}
+</script>
 
 <style id="ds-tokens">
 /* VELLUM TOKENS — scholarly navy + warm yellow italic. */
@@ -30,6 +34,9 @@ body{color:var(--primary);font:400 14px/1.7 var(--f-body);-webkit-font-smoothing
 ::selection{background:var(--accent);color:var(--secondary)}
 
 /* Decorative paper-grain on body */
+#design-bg{position:fixed;inset:0;width:100%;height:100%;z-index:-2;opacity:.55;pointer-events:none}
+#bg-veil{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 30% 20%,transparent 0%,var(--secondary) 75%)}
+
 body::before{
   content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
   background-image:radial-gradient(circle,rgba(244,226,164,0.025) 0.5px,transparent 0.5px);
@@ -136,6 +143,18 @@ section{position:relative;padding:var(--pad-y) var(--pad-x)}
 .panel p{margin:0;font-family:var(--f-body);font-size:15px;line-height:1.75;color:var(--ink-dim);max-width:42ch}
 .panel pre{margin:0;padding:14px 18px;border:1px solid var(--hairline);background:color-mix(in srgb,var(--secondary) 60%,transparent);font:12px/1.6 var(--f-mono);color:var(--accent);overflow-x:auto}
 
+/* Background preview */
+.bg-preview{border:1px solid var(--hairline);aspect-ratio:4/3;position:relative;overflow:hidden;background:var(--secondary)}
+.bg-preview canvas{width:100%;height:100%;display:block}
+.bg-preview .badge{position:absolute;bottom:12px;left:12px;font:500 10px/1 var(--f-mono);letter-spacing:.18em;text-transform:uppercase;background:color-mix(in srgb,var(--secondary) 75%,transparent);padding:6px 10px;backdrop-filter:blur(8px);color:var(--accent)}
+
+details.code-block{border:1px solid var(--hairline);background:color-mix(in srgb,var(--secondary) 60%,transparent);margin-top:12px}
+details.code-block summary{cursor:pointer;padding:14px 18px;list-style:none;font:500 11px/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--accent);display:flex;justify-content:space-between}
+details.code-block summary::-webkit-details-marker{display:none}
+details.code-block summary::after{content:"+";font:italic 600 18px/1 var(--f-disp);color:var(--accent)}
+details.code-block[open] summary::after{content:"\2212"}
+details.code-block pre{margin:0;padding:16px 18px;border-top:1px solid var(--hairline);font:12px/1.6 var(--f-mono);color:var(--ink-dim);background:transparent;overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow-y:auto}
+
 /* Guidelines */
 .rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px}
 @media(max-width:880px){.rules-grid{grid-template-columns:1fr}}
@@ -174,127 +193,26 @@ footer.endcap .meta b{color:var(--accent);font-family:var(--f-disp);font-style:i
      VELLUM TEMPLATE STYLES — 1920×1080 scholarly slides.
      ════════════════════════════════════════════════════════════ -->
 <style id="template-css">
-.ds-slide-frame{
-  --v-bg:#0F1A2E; --v-ink:#FCFAF1; --v-gold:#F4E2A4; --v-teal:#6D9CA1;
-  --v-ink-2:color-mix(in srgb,#FCFAF1 55%,#0F1A2E);
-  --v-ink-3:color-mix(in srgb,#FCFAF1 28%,#0F1A2E);
-  --v-line:color-mix(in srgb,#FCFAF1 14%,transparent);
-  --v-f-disp:"Cormorant Garamond",serif;
-  --v-f-body:"Cormorant Garamond",serif;
-  --v-f-sans:"Inter",sans-serif;
-  --v-f-mono:"JetBrains Mono",monospace;
-  width:1920px;height:1080px;position:relative;overflow:hidden
-}
-.ds-slide-frame *{box-sizing:border-box}
-.ds-slide-frame .slide{width:1920px;height:1080px;position:relative;padding:96px 144px;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;background:var(--v-bg);color:var(--v-ink);font-family:var(--v-f-body)}
-.ds-slide-frame .slide-chrome,.ds-slide-frame .slide-foot{display:flex;justify-content:space-between;align-items:center;font:500 16px/1 var(--v-f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--v-ink-3)}
-.ds-slide-frame .slide-chrome{padding-bottom:18px;border-bottom:1px solid var(--v-line);margin-bottom:36px}
-.ds-slide-frame .slide-foot{padding-top:18px;border-top:1px solid var(--v-line);margin-top:36px}
-.ds-slide-frame .slide-chrome .accent,.ds-slide-frame .slide-foot .accent{color:var(--v-gold)}
-.ds-slide-frame .display{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:260px;line-height:.88;letter-spacing:-.025em;color:var(--v-ink)}
-.ds-slide-frame .display em{font-style:normal;color:var(--v-gold)}
-.ds-slide-frame .h1{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:156px;line-height:.92;letter-spacing:-.02em;color:var(--v-ink)}
-.ds-slide-frame .h1 em{font-style:normal;color:var(--v-gold)}
-.ds-slide-frame .h2{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:96px;line-height:1.05;letter-spacing:-.015em;color:var(--v-ink)}
-.ds-slide-frame .h2 em{font-style:normal;color:var(--v-gold)}
-.ds-slide-frame .h3{font-family:var(--v-f-disp);font-style:italic;font-weight:600;font-size:56px;line-height:1.15;letter-spacing:-.01em;color:var(--v-gold)}
-.ds-slide-frame .lead{font-family:var(--v-f-disp);font-style:italic;font-weight:400;font-size:36px;line-height:1.45;color:var(--v-ink-2)}
-.ds-slide-frame .body{font-family:var(--v-f-body);font-weight:400;font-size:26px;line-height:1.7;color:var(--v-ink)}
-.ds-slide-frame .label{font:500 16px/1 var(--v-f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--v-teal)}
-.ds-slide-frame .accent{color:var(--v-gold)}
-.ds-slide-frame .muted{color:var(--v-ink-2)}
-
-/* slide--cover */
-.ds-slide-frame .slide--cover .slide-chrome,.ds-slide-frame .slide--cover .slide-foot{display:none}
-.ds-slide-frame .slide--cover{display:flex;flex-direction:column;justify-content:flex-end}
-.ds-slide-frame .cover-top{display:flex;justify-content:space-between;align-items:flex-start;font:500 16px/1 var(--v-f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--v-ink-3);margin-bottom:auto}
-.ds-slide-frame .cover-top .accent{color:var(--v-gold)}
-.ds-slide-frame .cover-body{display:flex;flex-direction:column;gap:32px}
-.ds-slide-frame .cover-rule{width:120px;height:1px;background:var(--v-gold);margin-bottom:8px}
-
-/* slide--chapter */
-.ds-slide-frame .slide--chapter .slide-chrome,.ds-slide-frame .slide--chapter .slide-foot{display:none}
-.ds-slide-frame .slide--chapter{display:flex;flex-direction:column;justify-content:center;gap:24px;padding:96px 200px}
-.ds-slide-frame .chapter-num{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:52px;color:var(--v-gold);letter-spacing:.04em}
-.ds-slide-frame .chapter-num span{font-style:normal;color:var(--v-ink-3);font-size:36px;margin-right:14px}
-
-/* slide--epigraph (quote) */
-.ds-slide-frame .slide--epigraph .slide-chrome,.ds-slide-frame .slide--epigraph .slide-foot{display:none}
-.ds-slide-frame .slide--epigraph{display:flex;flex-direction:column;justify-content:center;padding:96px 256px;gap:48px}
-.ds-slide-frame .epigraph-mark{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:240px;line-height:.5;color:var(--v-gold);height:120px}
-.ds-slide-frame .epigraph-text{font-family:var(--v-f-disp);font-style:italic;font-weight:400;font-size:84px;line-height:1.18;letter-spacing:-.015em;color:var(--v-ink);max-width:88%}
-.ds-slide-frame .epigraph-attr{display:flex;flex-direction:column;gap:8px;padding-top:24px;border-top:1px solid var(--v-line);max-width:480px}
-.ds-slide-frame .epigraph-attr .name{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:32px;color:var(--v-gold)}
-.ds-slide-frame .epigraph-attr .src{font-family:var(--v-f-mono);font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--v-ink-3)}
-
-/* slide--treatise (lead + body) */
-.ds-slide-frame .slide--treatise .slide-body{display:grid;grid-template-columns:1fr 2fr;gap:96px;align-items:start;padding-top:48px}
-.ds-slide-frame .treatise-side{display:flex;flex-direction:column;gap:18px}
-.ds-slide-frame .treatise-side .label{color:var(--v-gold)}
-.ds-slide-frame .treatise-body{display:flex;flex-direction:column;gap:24px}
-.ds-slide-frame .treatise-body .body{column-count:1}
-.ds-slide-frame .drop-cap{float:left;font-family:var(--v-f-disp);font-style:italic;font-weight:600;font-size:120px;line-height:.82;padding:8px 18px 0 0;color:var(--v-gold)}
-
-/* slide--marginalia (two cols + side notes) */
-.ds-slide-frame .slide--marginalia .slide-body{display:grid;grid-template-columns:2.5em 1fr 1fr;gap:48px;align-items:start;padding-top:48px}
-.ds-slide-frame .margin-numerals{display:flex;flex-direction:column;gap:36px;padding-top:6px}
-.ds-slide-frame .margin-numerals span{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:36px;color:var(--v-gold);line-height:1.4}
-.ds-slide-frame .margin-text{display:flex;flex-direction:column;gap:36px}
-.ds-slide-frame .margin-text p{margin:0;font-family:var(--v-f-body);font-size:22px;line-height:1.65;color:var(--v-ink)}
-.ds-slide-frame .margin-text p strong{font-family:var(--v-f-disp);font-style:italic;font-weight:600;font-size:24px;color:var(--v-gold);display:block;margin-bottom:4px}
-
-/* slide--datum (stats) */
-.ds-slide-frame .slide--datum .slide-body{display:flex;flex-direction:column;justify-content:center;gap:48px;padding-top:48px}
-.ds-slide-frame .datum-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:64px}
-.ds-slide-frame .datum-card{display:flex;flex-direction:column;gap:14px;padding-top:24px;border-top:1px solid var(--v-line)}
-.ds-slide-frame .datum-card .stat{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:144px;line-height:1;color:var(--v-gold);letter-spacing:-.03em}
-.ds-slide-frame .datum-card .stat sup{font-size:48px;vertical-align:super;color:var(--v-teal);line-height:0}
-.ds-slide-frame .datum-card .lbl{font-family:var(--v-f-body);font-size:26px;line-height:1.45;color:var(--v-ink)}
-.ds-slide-frame .datum-card .note{font:500 14px/1 var(--v-f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--v-ink-3)}
-
-/* slide--catalogue (list) */
-.ds-slide-frame .slide--catalogue .slide-body{display:grid;grid-template-columns:1fr 1.6fr;gap:96px;align-items:start;padding-top:48px}
-.ds-slide-frame .catalogue-head{display:flex;flex-direction:column;gap:20px}
-.ds-slide-frame .catalogue-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column}
-.ds-slide-frame .catalogue-list li{display:grid;grid-template-columns:3em 1fr;gap:24px;padding:24px 0;border-top:1px solid var(--v-line);align-items:baseline}
-.ds-slide-frame .catalogue-list li::before{content:counter(idx, lower-roman);counter-increment:idx;font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:30px;color:var(--v-gold)}
-.ds-slide-frame .catalogue-list{counter-reset:idx}
-.ds-slide-frame .catalogue-list .li-title{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:36px;color:var(--v-ink);line-height:1.2;margin-bottom:4px;display:block}
-.ds-slide-frame .catalogue-list .li-desc{font-family:var(--v-f-body);font-size:22px;line-height:1.55;color:var(--v-ink-2);display:block}
-
-/* slide--diptych (split image/text) */
-.ds-slide-frame .slide--diptych .slide-body{display:grid;grid-template-columns:1fr 1fr;gap:88px;align-items:center;padding-top:48px}
-.ds-slide-frame .diptych-plate{aspect-ratio:4/5;width:100%;border:1px solid var(--v-line);display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--v-bg) 80%,var(--v-gold));font-family:var(--v-f-mono);font-size:18px;letter-spacing:.14em;text-transform:uppercase;color:var(--v-ink-3);position:relative}
-.ds-slide-frame .diptych-plate::before,.ds-slide-frame .diptych-plate::after{content:"";position:absolute;width:32px;height:32px;border:1px solid var(--v-gold)}
-.ds-slide-frame .diptych-plate::before{top:16px;left:16px;border-right:0;border-bottom:0}
-.ds-slide-frame .diptych-plate::after{bottom:16px;right:16px;border-left:0;border-top:0}
-.ds-slide-frame .diptych-text{display:flex;flex-direction:column;gap:32px}
-.ds-slide-frame .plate-caption{font:500 14px/1.5 var(--v-f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--v-ink-3);margin-top:12px}
-
-/* slide--colophon (end) */
-.ds-slide-frame .slide--colophon .slide-chrome,.ds-slide-frame .slide--colophon .slide-foot{display:none}
-.ds-slide-frame .slide--colophon{display:flex;flex-direction:column;justify-content:space-between;padding:120px 144px}
-.ds-slide-frame .colophon-mark{font-family:var(--v-f-disp);font-style:italic;font-weight:500;font-size:280px;line-height:.9;letter-spacing:-.025em;color:var(--v-gold);align-self:flex-end;margin-bottom:auto}
-.ds-slide-frame .colophon-text{display:flex;flex-direction:column;gap:18px;max-width:600px;padding-top:24px;border-top:1px solid var(--v-gold)}
-.ds-slide-frame .colophon-text .body{font-style:italic;font-family:var(--v-f-disp);font-size:32px;line-height:1.45}
-.ds-slide-frame .colophon-meta{display:flex;gap:48px;font:500 14px/1.5 var(--v-f-mono);letter-spacing:.12em;text-transform:uppercase;color:var(--v-ink-3);padding-top:24px;border-top:1px solid var(--v-line)}
-.ds-slide-frame .colophon-meta b{color:var(--v-gold);font-weight:500}
-__TEMPLATE_CSS_PLACEHOLDER__
+__TEMPLATE_CSS__
 </style>
 </head>
 
 <body>
 
+<canvas id="design-bg"></canvas>
+<div id="bg-veil"></div>
+
 <!-- Top rail -->
 <div class="rail">
-  <div class="brand"><span class="sigil"></span><b>Vellum</b>&nbsp;<span class="meta">— a design system</span></div>
+  <div class="brand"><span class="sigil"></span><b>__NAME__</b>&nbsp;<span class="meta">— a design system</span></div>
   <nav>
     <a href="#palette">i. Palette</a>
     <a href="#type">ii. Type</a>
     <a href="#surface">iii. Surface</a>
     <a href="#motion">iv. Motion</a>
-    <a href="#guidelines">v. Guidelines</a>
-    <a href="#templates">vi. Templates</a>
+    <a href="#background">v. Background</a>
+    <a href="#guidelines">vi. Guidelines</a>
+    <a href="#templates">vii. Templates</a>
   </nav>
   <div class="meta">vol. i · mmxxvi</div>
 </div>
@@ -305,12 +223,12 @@ __TEMPLATE_CSS_PLACEHOLDER__
     <div><span class="sigil"></span>Design System · № 003</div>
     <div>Quartō · mmxxvi</div>
   </div>
-  <h1 class="cover-headline">vell<span class="accent-word">u</span>m<span class="dot">.</span></h1>
+  <h1 class="cover-headline">__NAME__<span class="dot">.</span></h1>
   <div class="cover-foot">
     <div class="cell"><span class="k">Discipline</span><span class="v">Editorial · Research · Brief</span></div>
     <div class="cell"><span class="k">Primary type</span><span class="v">Cormorant <em>italic</em></span></div>
-    <div class="cell"><span class="k">Accent</span><span class="v">Gold #F4E2A4</span></div>
-    <div class="cell"><span class="k">Volume</span><span class="v plain">vi sections · ix slide types</span></div>
+    <div class="cell"><span class="k">Accent</span><span class="v">__ACCENT_LABEL__</span></div>
+    <div class="cell"><span class="k">Volume</span><span class="v plain">vii sections · __SLIDE_COUNT__ slide types</span></div>
   </div>
 </header>
 
@@ -327,13 +245,13 @@ __TEMPLATE_CSS_PLACEHOLDER__
   <div class="section-head">
     <div class="num">i — Palette</div>
     <h2>Four colours,<br/><em>quietly composed.</em></h2>
-    <p class="lede">Deep navy as the canvas. Warm yellow as the only voice. A dusty teal whispered in for chrome. Off-white reserved for body and breath.</p>
+    <p class="lede">__PALETTE_LEDE__</p>
   </div>
   <div class="palette">
-    <div class="swatch swatch--paper"><div class="role">i · paper</div><div><div class="name">vellum.</div><div class="hex">__PRIMARY__</div><div class="usage">Body text on dark. Rare and reserved.</div></div></div>
-    <div class="swatch swatch--ink"><div class="role">ii · ink</div><div><div class="name">deep.</div><div class="hex">__SECONDARY__</div><div class="usage">The canvas. Cool, never cold.</div></div></div>
-    <div class="swatch swatch--teal"><div class="role">iii · margin</div><div><div class="name">teal.</div><div class="hex">__TERTIARY__</div><div class="usage">Chrome, marginalia, the spine.</div></div></div>
-    <div class="swatch swatch--gold"><div class="role">iv · gold</div><div><div class="name">warm.</div><div class="hex">__ACCENT__</div><div class="usage">The accent. Used <em>sparingly</em>.</div></div></div>
+    <div class="swatch swatch--paper"><div class="role">i · paper</div><div><div class="name">__PRIMARY_NAME__</div><div class="hex">__PRIMARY__</div><div class="usage">Body text on dark. Rare and reserved.</div></div></div>
+    <div class="swatch swatch--ink"><div class="role">ii · ink</div><div><div class="name">__SECONDARY_NAME__</div><div class="hex">__SECONDARY__</div><div class="usage">The canvas. Cool, never cold.</div></div></div>
+    <div class="swatch swatch--teal"><div class="role">iii · margin</div><div><div class="name">__TERTIARY_NAME__</div><div class="hex">__TERTIARY__</div><div class="usage">Chrome, marginalia, the spine.</div></div></div>
+    <div class="swatch swatch--gold"><div class="role">iv · gold</div><div><div class="name">__ACCENT_NAME__</div><div class="hex">__ACCENT__</div><div class="usage">The accent. Used <em>sparingly</em>.</div></div></div>
   </div>
 </section>
 
@@ -389,11 +307,11 @@ __TEMPLATE_CSS_PLACEHOLDER__
       <p style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--tertiary);font-family:var(--f-mono);margin:0">// quarter on quarter · exempla</p>
     </div>
     <ul class="tokens">
-      <li><span class="name">Page margin</span><span class="val">144 px</span><span class="bar" style="width:64px"></span></li>
-      <li><span class="name">Column gap</span><span class="val">96 px</span><span class="bar" style="width:44px"></span></li>
-      <li><span class="name">Border</span><span class="val">1 px hairline</span><span class="bar" style="width:8px"></span></li>
-      <li><span class="name">Shadow</span><span class="val"><em>none</em></span><span class="bar" style="width:0;opacity:.2"></span></li>
-      <li><span class="name">Density</span><span class="val">Low · airy</span><span class="bar" style="width:32px"></span></li>
+      <li><span class="name">Corners</span><span class="val">__CORNER_RADIUS__</span><span class="bar" style="width:8px"></span></li>
+      <li><span class="name">Padding</span><span class="val">__PADDING__</span><span class="bar" style="width:64px"></span></li>
+      <li><span class="name">Gap</span><span class="val">__GAP__</span><span class="bar" style="width:44px"></span></li>
+      <li><span class="name">Elevation</span><span class="val">__ELEVATION__</span><span class="bar" style="width:0;opacity:.2"></span></li>
+      <li><span class="name">Density</span><span class="val">__DENSITY__</span><span class="bar" style="width:32px"></span></li>
     </ul>
   </div>
 </section>
@@ -402,211 +320,94 @@ __TEMPLATE_CSS_PLACEHOLDER__
 <section id="motion" data-screen-label="04 Motion">
   <div class="section-head">
     <div class="num">iv — Motion</div>
-    <h2>Slow.<br/><em>Considered.</em></h2>
-    <p class="lede">Motion is patient. Long durations, gentle eases. The page should feel turned, not flicked.</p>
+    <h2>__EASING_HEADLINE__</h2>
+    <p class="lede">__EASING_LEDE__</p>
   </div>
   <div class="two-col">
     <div class="panel">
-      <span class="label-row">// primary easing</span>
-      <h4><em>quintic.out</em></h4>
-      <p>Long tail, soft landing. The page resolves rather than arrives. Use for major entrances — chapter headings, datum reveals, treatise margins.</p>
-      <pre>cubic-bezier(0.22, 1, 0.36, 1)</pre>
+      <span class="label-row">// easing</span>
+      <h4><em>__EASING_NAME__</em></h4>
+      <p>__EASING_DESC__</p>
+      <pre>__EASING_VALUE__</pre>
     </div>
     <div class="panel">
       <span class="label-row">// duration</span>
-      <h4><em>1.2s</em></h4>
-      <p>Slides settle in 1.2s. Entrances 0.8s. Hovers 0.4s. The reader is unhurried; so is the deck.</p>
-      <pre>--dur-slide: 1.2s
---dur-enter: 0.8s
---dur-hover: 0.4s</pre>
+      <h4><em>__DURATION_DEFAULT__</em></h4>
+      <p>__DURATION_DESC__</p>
+      <pre>__DURATION_VALUES__</pre>
     </div>
   </div>
 </section>
 
-<!-- V. GUIDELINES -->
-<section id="guidelines" data-screen-label="05 Guidelines">
+<!-- V. BACKGROUND -->
+<section id="background" data-screen-label="05 Background">
   <div class="section-head">
-    <div class="num">v — Guidelines</div>
+    <div class="num">v — Background</div>
+    <h2>__BG_HEADLINE__</h2>
+    <p class="lede">__BG_LEDE__</p>
+  </div>
+  <div class="two-col">
+    <div class="bg-preview"><canvas id="bg-preview-canvas"></canvas><span class="badge">// __BG_BADGE__</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <ul class="tokens" style="border-top:none">
+        <li><span class="name">Geometry</span><span class="val">__BG_TYPE__</span><span class="bar" style="width:36px"></span></li>
+        <li><span class="name">Density</span><span class="val">__BG_DENSITY__</span><span class="bar" style="width:42px"></span></li>
+        <li><span class="name">Speed</span><span class="val">__BG_SPEED__</span><span class="bar" style="width:18px;opacity:.7"></span></li>
+        <li><span class="name">Strength</span><span class="val">__BG_STRENGTH__</span><span class="bar" style="width:52px"></span></li>
+        <li><span class="name">Grain</span><span class="val">__BG_GRAIN__</span><span class="bar" style="width:24px"></span></li>
+      </ul>
+      <details class="code-block"><summary>// shader config (json)</summary>
+<pre>__SHADER_CONFIG__</pre>
+      </details>
+      <details class="code-block"><summary>// vertex shader (glsl)</summary>
+<pre id="vtx-src">__SHADER_VERTEX__</pre>
+      </details>
+      <details class="code-block"><summary>// fragment shader (glsl)</summary>
+<pre id="frg-src">__SHADER_FRAGMENT__</pre>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- VI. GUIDELINES -->
+<section id="guidelines" data-screen-label="06 Guidelines">
+  <div class="section-head">
+    <div class="num">vi — Guidelines</div>
     <h2><em>Sic et</em><br/>non.</h2>
     <p class="lede">The rules are short. The system collapses the moment any are violated.</p>
   </div>
   <div class="rules-grid">
     <div class="rules-col do">
       <h3><em>sic.</em></h3>
-      <ul>
-        <li>Use gold for one element per page — the thing to be remembered.</li>
-        <li>Set headlines in italic Cormorant. Roman is reserved for inline emphasis.</li>
-        <li>Keep margins generous — 144px page padding, never less.</li>
-        <li>Use small caps mono for chrome — folio numbers, marginalia, labels.</li>
-        <li>Tint everything toward the gold; nothing toward neutral grey.</li>
-      </ul>
+      <ul>__DOS__</ul>
     </div>
     <div class="rules-col dont">
       <h3><em>non.</em></h3>
-      <ul>
-        <li>Introduce a second accent. Gold is the only voice.</li>
-        <li>Use sans-serif for body — it strips the page of its voice.</li>
-        <li>Apply shadows. The page is flat; weight comes from ink alone.</li>
-        <li>Use uppercase for body. Italic carries the emphasis.</li>
-        <li>Crowd the margin. Density is the enemy of attention.</li>
-      </ul>
+      <ul>__DONTS__</ul>
     </div>
   </div>
 </section>
 
-<!-- VI. TEMPLATES -->
-<section id="templates" class="templates-wrap" data-screen-label="06 Templates">
+<!-- VII. TEMPLATES -->
+<section id="templates" class="templates-wrap" data-screen-label="07 Templates">
   <div class="section-head">
-    <div class="num">vi — Templates</div>
-    <h2>Nine<br/><em>folios.</em></h2>
+    <div class="num">vii — Templates</div>
+    <h2>__SLIDE_COUNT_WORD__<br/><em>folios.</em></h2>
     <p class="lede">The full template library at 1920×1080. Each thumbnail is the real slide, scaled.</p>
   </div>
   <div class="templates-grid" id="templates-grid"></div>
 </section>
 
 <template id="tmpl-source">
-
-<div class="tmpl" data-idx="01"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--cover">
-  <div class="cover-top"><span>{{label}}</span><span class="accent">{{label}}</span></div>
-  <div class="cover-body">
-    <div class="cover-rule"></div>
-    <h1 class="display">{{headline}}</h1>
-    <p class="lead">{{body}}</p>
-  </div>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">cover</span><span class="idx">i / ix</span></div></div>
-
-<div class="tmpl" data-idx="02"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--chapter">
-  <div class="chapter-num"><span>{{label}}</span>{{number}}</div>
-  <h2 class="h1">{{headline}}</h2>
-  <p class="lead">{{body}}</p>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">chapter</span><span class="idx">ii / ix</span></div></div>
-
-<div class="tmpl" data-idx="03"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--epigraph">
-  <div class="epigraph-mark">"</div>
-  <div class="epigraph-text">{{body}}</div>
-  <div class="epigraph-attr">
-    <span class="name">{{text}}</span>
-    <span class="src">{{label}}</span>
-  </div>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">epigraph</span><span class="idx">iii / ix</span></div></div>
-
-<div class="tmpl" data-idx="04"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--treatise">
-  <header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header>
-  <div class="slide-body">
-    <div class="treatise-side">
-      <span class="label">{{label}}</span>
-      <h3 class="h3">{{headline}}</h3>
-      <p class="lead muted">{{body}}</p>
-    </div>
-    <div class="treatise-body">
-      <p class="body"><span class="drop-cap">{{text}}</span>{{body}}</p>
-      <p class="body">{{body}}</p>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">treatise</span><span class="idx">iv / ix</span></div></div>
-
-<div class="tmpl" data-idx="05"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--marginalia">
-  <header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header>
-  <div class="slide-body">
-    <div class="margin-numerals"><span>i.</span><span>ii.</span><span>iii.</span><span>iv.</span></div>
-    <div class="margin-text">
-      <p><strong>{{headline}}</strong>{{body}}</p>
-      <p><strong>{{headline}}</strong>{{body}}</p>
-    </div>
-    <div class="margin-text">
-      <p><strong>{{headline}}</strong>{{body}}</p>
-      <p><strong>{{headline}}</strong>{{body}}</p>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">marginalia</span><span class="idx">v / ix</span></div></div>
-
-<div class="tmpl" data-idx="06"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--datum">
-  <header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header>
-  <div class="slide-body">
-    <h2 class="h2"><em>{{headline}}</em></h2>
-    <div class="datum-grid">
-      <div class="datum-card"><div class="stat">{{number}}<sup>{{text}}</sup></div><div class="lbl">{{body}}</div><div class="note">{{label}}</div></div>
-      <div class="datum-card"><div class="stat">{{number}}<sup>{{text}}</sup></div><div class="lbl">{{body}}</div><div class="note">{{label}}</div></div>
-      <div class="datum-card"><div class="stat">{{number}}<sup>{{text}}</sup></div><div class="lbl">{{body}}</div><div class="note">{{label}}</div></div>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">datum</span><span class="idx">vi / ix</span></div></div>
-
-<div class="tmpl" data-idx="07"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--catalogue">
-  <header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header>
-  <div class="slide-body">
-    <div class="catalogue-head">
-      <span class="label">{{label}}</span>
-      <h3 class="h3">{{headline}}</h3>
-      <p class="lead muted">{{body}}</p>
-    </div>
-    <ul class="catalogue-list">
-      <li><div><span class="li-title">{{headline}}</span><span class="li-desc">{{body}}</span></div></li>
-      <li><div><span class="li-title">{{headline}}</span><span class="li-desc">{{body}}</span></div></li>
-      <li><div><span class="li-title">{{headline}}</span><span class="li-desc">{{body}}</span></div></li>
-      <li><div><span class="li-title">{{headline}}</span><span class="li-desc">{{body}}</span></div></li>
-    </ul>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">catalogue</span><span class="idx">vii / ix</span></div></div>
-
-<div class="tmpl" data-idx="08"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--diptych">
-  <header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header>
-  <div class="slide-body">
-    <div>
-      <div class="diptych-plate">{{text}}</div>
-      <p class="plate-caption">{{label}}</p>
-    </div>
-    <div class="diptych-text">
-      <span class="label">{{label}}</span>
-      <h3 class="h2"><em>{{headline}}</em></h3>
-      <p class="body">{{body}}</p>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">diptych</span><span class="idx">viii / ix</span></div></div>
-
-<div class="tmpl" data-idx="09"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--colophon">
-  <div class="colophon-mark">{{text}}</div>
-  <div class="colophon-text">
-    <p class="body">{{body}}</p>
-  </div>
-  <div class="colophon-meta">
-    <span><b>{{label}}</b></span>
-    <span>{{label}}</span>
-    <span>{{label}}</span>
-  </div>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">colophon</span><span class="idx">ix / ix</span></div></div>
-
+__SLIDE_CARDS__
 </template>
 
-<footer class="endcap" data-screen-label="07 End">
+<footer class="endcap" data-screen-label="08 End">
   <h2 class="endmark"><em>fin.</em></h2>
   <div class="meta">
-    <div><b>Vellum</b> · vol. i</div>
+    <div><b>__NAME__</b> · vol. i</div>
     <div>Cormorant Garamond / Inter / JetBrains Mono</div>
-    <div>Set in May, mmxxvi</div>
+    <div>__DATE__</div>
   </div>
 </footer>
 
@@ -618,6 +419,8 @@ __TEMPLATE_CSS_PLACEHOLDER__
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(rescale);
 })();
 </script>
+
+__SHADER_SCRIPT__
 
 </body>
 </html>

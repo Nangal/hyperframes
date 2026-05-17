@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>__NAME__ — Design System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen:wght@400;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&family=Silkscreen:wght@400;700__FONT_LINK_EXTRA__&display=swap" rel="stylesheet" />
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"}}
+</script>
 
 <style id="ds-tokens">
 /* 8-BIT ORBIT TOKENS — CRT arcade palette. */
@@ -62,6 +66,8 @@ body::after{
   background-size:32px 32px;
   background-position:0 0;
 }
+
+#design-bg{position:fixed;inset:0;width:100%;height:100%;z-index:-2;opacity:.35;pointer-events:none}
 
 /* Top HUD rail */
 .hud{
@@ -212,6 +218,18 @@ section{position:relative;padding:var(--pad-y) var(--pad-x)}
 .panel p{margin:0;font:400 20px/1.55 var(--f-body);color:var(--ink-dim);max-width:40ch}
 .panel pre{margin:0;padding:14px 18px;background:var(--void);border:1px solid var(--grid);font:400 18px/1.5 var(--f-body);color:var(--cyan);overflow-x:auto}
 
+/* Background */
+.bg-preview{border:3px solid var(--cyan);box-shadow:6px 6px 0 var(--magenta);aspect-ratio:4/3;position:relative;overflow:hidden;background:var(--void)}
+.bg-preview canvas{width:100%;height:100%;display:block}
+.bg-preview .badge{position:absolute;bottom:12px;left:12px;font:400 10px/1 var(--f-disp);letter-spacing:.04em;background:var(--hud);padding:6px 10px;border:2px solid var(--cyan);color:var(--cyan);text-shadow:var(--glow-cyan)}
+
+details.code-block{border:2px solid var(--grid);background:var(--hud);margin-top:12px}
+details.code-block summary{cursor:pointer;padding:14px 18px;list-style:none;font:400 10px/1 var(--f-disp);letter-spacing:.04em;color:var(--cyan);text-shadow:var(--glow-cyan);display:flex;justify-content:space-between}
+details.code-block summary::-webkit-details-marker{display:none}
+details.code-block summary::after{content:"+";font:400 18px/1 var(--f-disp);color:var(--magenta);text-shadow:var(--glow-pink)}
+details.code-block[open] summary::after{content:"\2212"}
+details.code-block pre{margin:0;padding:16px 18px;border-top:1px solid var(--grid);font:400 16px/1.5 var(--f-body);color:var(--cyan);background:var(--void);overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow-y:auto}
+
 /* Guidelines */
 .rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:32px}
 @media(max-width:880px){.rules-grid{grid-template-columns:1fr}}
@@ -254,178 +272,25 @@ footer.endcap .meta b{color:var(--cyan);font-weight:400}
      8-BIT ORBIT TEMPLATE STYLES — 1920×1080 arcade slides.
      ════════════════════════════════════════════════════════════ -->
 <style id="template-css">
-.ds-slide-frame{
-  --p-bg:#0A1429; --p-hud:#0E1638; --p-grid:#1A2453; --p-line:#1F2C5E;
-  --p-ink:#F3F2EA; --p-dim:#8C9BC9; --p-fade:#46568A;
-  --p-cyan:#4ADDE5; --p-magenta:#FF52A2; --p-lemon:#FFE74A; --p-lime:#7CFF6B;
-  --p-f-disp:"Press Start 2P",monospace;
-  --p-f-body:"VT323",monospace;
-  --p-f-label:"Silkscreen",monospace;
-  --p-glow-c:0 0 6px rgba(74,221,229,.8),0 0 18px rgba(74,221,229,.4);
-  --p-glow-m:0 0 6px rgba(255,82,162,.8),0 0 18px rgba(255,82,162,.4);
-  --p-glow-l:0 0 6px rgba(255,231,74,.8),0 0 18px rgba(255,231,74,.4);
-  width:1920px;height:1080px;position:relative;overflow:hidden
-}
-.ds-slide-frame *{box-sizing:border-box;image-rendering:pixelated}
-.ds-slide-frame .slide{
-  width:1920px;height:1080px;position:relative;
-  padding:80px 96px;
-  display:grid;grid-template-rows:auto 1fr auto;
-  overflow:hidden;
-  background:var(--p-bg);color:var(--p-ink);
-  font-family:var(--p-f-body);
-  background-image:
-    linear-gradient(rgba(74,221,229,0.04) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(74,221,229,0.04) 1px,transparent 1px);
-  background-size:32px 32px
-}
-.ds-slide-frame .slide::after{
-  content:"";position:absolute;inset:0;pointer-events:none;
-  background:repeating-linear-gradient(180deg,transparent 0 3px,rgba(0,0,0,0.18) 4px 5px);
-}
-.ds-slide-frame .slide-chrome,.ds-slide-frame .slide-foot{display:flex;justify-content:space-between;align-items:center;font:400 18px/1 var(--p-f-disp);letter-spacing:.04em;color:var(--p-cyan);text-shadow:var(--p-glow-c)}
-.ds-slide-frame .slide-chrome{padding:12px 20px;border:2px solid var(--p-cyan);background:var(--p-hud);box-shadow:4px 4px 0 var(--p-magenta);margin-bottom:48px}
-.ds-slide-frame .slide-foot{padding:12px 20px;border:2px solid var(--p-magenta);background:var(--p-hud);box-shadow:4px 4px 0 var(--p-cyan);margin-top:48px;color:var(--p-magenta);text-shadow:var(--p-glow-m)}
-.ds-slide-frame .slide-foot .accent{color:var(--p-lemon);text-shadow:var(--p-glow-l)}
-.ds-slide-frame .display{font:400 220px/.9 var(--p-f-disp);letter-spacing:.01em;color:var(--p-ink);text-shadow:8px 8px 0 var(--p-magenta),16px 16px 0 var(--p-cyan)}
-.ds-slide-frame .display .cyan{color:var(--p-cyan);text-shadow:8px 8px 0 var(--p-magenta)}
-.ds-slide-frame .display .magenta{color:var(--p-magenta);text-shadow:8px 8px 0 var(--p-cyan)}
-.ds-slide-frame .h1{font:400 120px/1 var(--p-f-disp);letter-spacing:.01em;color:var(--p-cyan);text-shadow:var(--p-glow-c)}
-.ds-slide-frame .h2{font:400 72px/1.05 var(--p-f-disp);letter-spacing:.01em;color:var(--p-ink);text-shadow:4px 4px 0 var(--p-magenta)}
-.ds-slide-frame .h3{font:400 42px/1.15 var(--p-f-disp);letter-spacing:.01em;color:var(--p-cyan);text-shadow:var(--p-glow-c)}
-.ds-slide-frame .lead{font:400 36px/1.45 var(--p-f-body);color:var(--p-ink)}
-.ds-slide-frame .body{font:400 28px/1.55 var(--p-f-body);color:var(--p-ink)}
-.ds-slide-frame .label{font:400 16px/1 var(--p-f-disp);letter-spacing:.04em;color:var(--p-magenta);text-shadow:var(--p-glow-m)}
-.ds-slide-frame .accent{color:var(--p-magenta);text-shadow:var(--p-glow-m)}
-.ds-slide-frame .muted{color:var(--p-dim)}
-
-/* slide--cover (title screen) */
-.ds-slide-frame .slide--cover .slide-chrome,.ds-slide-frame .slide--cover .slide-foot{display:none}
-.ds-slide-frame .slide--cover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:48px;padding:80px}
-.ds-slide-frame .cover-tagline{font:400 32px/1.3 var(--p-f-body);color:var(--p-dim);max-width:30ch}
-.ds-slide-frame .press-start{font:400 24px/1 var(--p-f-disp);color:var(--p-lemon);text-shadow:var(--p-glow-l);letter-spacing:.04em}
-.ds-slide-frame .high-score{display:flex;gap:64px;font:400 16px/1 var(--p-f-disp);color:var(--p-cyan);letter-spacing:.04em;padding-top:32px;border-top:2px solid var(--p-grid)}
-.ds-slide-frame .high-score b{color:var(--p-magenta);font-weight:400}
-
-/* slide--loading */
-.ds-slide-frame .slide--loading .slide-body{display:flex;flex-direction:column;justify-content:center;align-items:center;gap:48px;text-align:center}
-.ds-slide-frame .loading-text{font:400 64px/1 var(--p-f-disp);letter-spacing:.01em;color:var(--p-ink);text-shadow:4px 4px 0 var(--p-magenta)}
-.ds-slide-frame .loading-percent{font:400 144px/1 var(--p-f-disp);color:var(--p-lemon);text-shadow:var(--p-glow-l),6px 6px 0 var(--p-magenta);letter-spacing:.02em}
-.ds-slide-frame .loading-bar{width:80%;max-width:1200px;height:48px;border:4px solid var(--p-cyan);padding:4px;background:var(--p-hud);position:relative;box-shadow:6px 6px 0 var(--p-magenta)}
-.ds-slide-frame .loading-bar .fill{width:74%;height:100%;background:repeating-linear-gradient(90deg,var(--p-magenta) 0 24px,var(--p-cyan) 24px 48px);box-shadow:0 0 18px rgba(255,82,162,.4)}
-.ds-slide-frame .loading-label{font:400 24px/1 var(--p-f-disp);color:var(--p-cyan);text-shadow:var(--p-glow-c);letter-spacing:.04em}
-
-/* slide--hud (stats grid) */
-.ds-slide-frame .slide--hud .slide-body{display:flex;flex-direction:column;justify-content:center;gap:48px}
-.ds-slide-frame .hud-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:3px solid var(--p-cyan);background:var(--p-hud)}
-.ds-slide-frame .hud-cell{padding:32px;border-right:2px solid var(--p-grid);display:flex;flex-direction:column;gap:18px;position:relative}
-.ds-slide-frame .hud-cell:last-child{border-right:0}
-.ds-slide-frame .hud-cell::before{content:"";position:absolute;top:8px;right:8px;width:12px;height:12px;background:var(--p-lime);box-shadow:0 0 8px rgba(124,255,107,.6);animation:blink 1.6s steps(2) infinite}
-.ds-slide-frame .hud-cell .lbl{font:400 16px/1 var(--p-f-disp);color:var(--p-magenta);text-shadow:var(--p-glow-m);letter-spacing:.04em}
-.ds-slide-frame .hud-cell .val{font:400 96px/1 var(--p-f-disp);color:var(--p-lemon);text-shadow:var(--p-glow-l);letter-spacing:.02em}
-.ds-slide-frame .hud-cell .desc{font:400 22px/1.4 var(--p-f-body);color:var(--p-dim)}
-.ds-slide-frame .hud-cell .bar{display:flex;gap:4px;margin-top:auto}
-.ds-slide-frame .hud-cell .bar span{flex:1;height:14px;background:var(--p-cyan);box-shadow:0 0 6px rgba(74,221,229,.5)}
-.ds-slide-frame .hud-cell .bar span.off{background:var(--p-grid);box-shadow:none}
-
-/* slide--dialog (quote) */
-.ds-slide-frame .slide--dialog .slide-body{display:flex;flex-direction:column;justify-content:center;padding:48px}
-.ds-slide-frame .dialog-box{border:4px solid var(--p-magenta);background:var(--p-hud);padding:64px 72px;box-shadow:8px 8px 0 var(--p-cyan);position:relative;max-width:1500px}
-.ds-slide-frame .dialog-box::before{content:"";position:absolute;top:-22px;left:64px;width:32px;height:32px;background:var(--p-magenta);border-top:4px solid var(--p-cyan)}
-.ds-slide-frame .dialog-tag{position:absolute;top:-24px;right:48px;font:400 16px/1 var(--p-f-disp);color:var(--p-magenta);text-shadow:var(--p-glow-m);background:var(--p-bg);padding:4px 14px;letter-spacing:.04em}
-.ds-slide-frame .dialog-text{font:400 56px/1.3 var(--p-f-disp);letter-spacing:.01em;color:var(--p-ink);margin-bottom:32px}
-.ds-slide-frame .dialog-text .cyan{color:var(--p-cyan);text-shadow:var(--p-glow-c)}
-.ds-slide-frame .dialog-name{font:400 24px/1 var(--p-f-disp);color:var(--p-lemon);text-shadow:var(--p-glow-l);letter-spacing:.04em}
-
-/* slide--chart (waveform) */
-.ds-slide-frame .slide--chart .slide-body{display:flex;flex-direction:column;gap:32px}
-.ds-slide-frame .chart-header{display:flex;justify-content:space-between;align-items:baseline}
-.ds-slide-frame .chart-body{flex:1;border:2px solid var(--p-cyan);background:var(--p-hud);padding:32px;position:relative;min-height:480px;display:flex;flex-direction:column;justify-content:flex-end}
-.ds-slide-frame .chart-bars{display:flex;align-items:flex-end;gap:24px;height:400px;padding-left:48px;border-left:2px solid var(--p-grid);border-bottom:2px solid var(--p-grid)}
-.ds-slide-frame .chart-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:14px;height:100%;justify-content:flex-end}
-.ds-slide-frame .chart-val{font:400 24px/1 var(--p-f-disp);color:var(--p-cyan);text-shadow:var(--p-glow-c)}
-.ds-slide-frame .chart-bar{width:100%;background:repeating-linear-gradient(0deg,var(--p-cyan) 0 16px,var(--p-bg) 16px 18px);box-shadow:0 0 18px rgba(74,221,229,.3)}
-.ds-slide-frame .chart-bar.hi{background:repeating-linear-gradient(0deg,var(--p-magenta) 0 16px,var(--p-bg) 16px 18px);box-shadow:0 0 18px rgba(255,82,162,.4)}
-.ds-slide-frame .chart-bar.hi+.chart-x{color:var(--p-magenta);text-shadow:var(--p-glow-m)}
-.ds-slide-frame .chart-x{font:400 16px/1 var(--p-f-disp);color:var(--p-dim);letter-spacing:.04em;margin-top:6px}
-
-/* slide--inventory (catalogue) */
-.ds-slide-frame .slide--inventory .slide-body{display:grid;grid-template-columns:1fr 2fr;gap:64px;align-items:start}
-.ds-slide-frame .inv-head{display:flex;flex-direction:column;gap:24px;padding-top:12px}
-.ds-slide-frame .inv-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:18px}
-.ds-slide-frame .inv-item{border:2px solid var(--p-cyan);padding:18px 22px;background:var(--p-hud);display:flex;flex-direction:column;gap:8px;box-shadow:4px 4px 0 var(--p-grid);position:relative}
-.ds-slide-frame .inv-item .ico{position:absolute;top:14px;right:14px;width:24px;height:24px;background:var(--p-magenta);box-shadow:0 -8px 0 var(--p-magenta),8px 0 0 var(--p-magenta),-8px 0 0 var(--p-magenta),0 8px 0 var(--p-magenta),0 0 12px rgba(255,82,162,.5)}
-.ds-slide-frame .inv-item .num{font:400 14px/1 var(--p-f-disp);color:var(--p-magenta);text-shadow:var(--p-glow-m);letter-spacing:.04em}
-.ds-slide-frame .inv-item .name{font:400 24px/1.1 var(--p-f-disp);color:var(--p-cyan);text-shadow:var(--p-glow-c)}
-.ds-slide-frame .inv-item .desc{font:400 20px/1.4 var(--p-f-body);color:var(--p-dim)}
-
-/* slide--menu (action choices) */
-.ds-slide-frame .slide--menu .slide-body{display:flex;flex-direction:column;justify-content:center;gap:32px;align-items:flex-start}
-.ds-slide-frame .menu-prompt{font:400 32px/1.3 var(--p-f-disp);color:var(--p-cyan);text-shadow:var(--p-glow-c);letter-spacing:.01em;max-width:30ch}
-.ds-slide-frame .menu-list{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:18px;width:100%;max-width:1200px}
-.ds-slide-frame .menu-list li{display:grid;grid-template-columns:auto 1fr auto;gap:24px;align-items:center;padding:20px 28px;border:2px solid var(--p-cyan);background:var(--p-hud);box-shadow:4px 4px 0 var(--p-magenta);font:400 28px/1.2 var(--p-f-disp);letter-spacing:.01em;color:var(--p-ink)}
-.ds-slide-frame .menu-list li::before{content:"▸";color:var(--p-magenta);font-size:28px;text-shadow:var(--p-glow-m)}
-.ds-slide-frame .menu-list li .meta{font:400 18px/1 var(--p-f-body);color:var(--p-dim)}
-
-/* slide--map (split visual) */
-.ds-slide-frame .slide--map .slide-body{display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:stretch}
-.ds-slide-frame .map-frame{aspect-ratio:4/5;border:3px solid var(--p-magenta);background:var(--p-hud);position:relative;overflow:hidden;box-shadow:6px 6px 0 var(--p-cyan);
-  background-image:
-    linear-gradient(rgba(255,82,162,0.12) 1px,transparent 1px),
-    linear-gradient(90deg,rgba(255,82,162,0.12) 1px,transparent 1px),
-    radial-gradient(circle at 60% 40%,rgba(255,82,162,0.4),transparent 35%);
-  background-size:48px 48px,48px 48px,100% 100%
-}
-.ds-slide-frame .map-frame .pin{position:absolute;width:20px;height:20px;background:var(--p-lemon);box-shadow:0 -6px 0 var(--p-lemon),6px 0 0 var(--p-lemon),-6px 0 0 var(--p-lemon),0 6px 0 var(--p-lemon),0 0 16px rgba(255,231,74,.8);animation:blink 1.4s steps(2) infinite}
-.ds-slide-frame .map-frame .pin.p1{top:38%;left:58%}
-.ds-slide-frame .map-frame .pin.p2{top:22%;left:30%;background:var(--p-cyan);box-shadow:0 -6px 0 var(--p-cyan),6px 0 0 var(--p-cyan),-6px 0 0 var(--p-cyan),0 6px 0 var(--p-cyan),0 0 16px rgba(74,221,229,.8);animation-delay:.3s}
-.ds-slide-frame .map-frame .pin.p3{top:62%;left:42%;background:var(--p-magenta);box-shadow:0 -6px 0 var(--p-magenta),6px 0 0 var(--p-magenta),-6px 0 0 var(--p-magenta),0 6px 0 var(--p-magenta),0 0 16px rgba(255,82,162,.8);animation-delay:.6s}
-.ds-slide-frame .map-frame .corners::before,.ds-slide-frame .map-frame .corners::after{content:"";position:absolute;width:48px;height:48px;border:3px solid var(--p-cyan)}
-.ds-slide-frame .map-frame .corners::before{top:12px;left:12px;border-right:0;border-bottom:0}
-.ds-slide-frame .map-frame .corners::after{bottom:12px;right:12px;border-left:0;border-top:0}
-.ds-slide-frame .map-caption{font:400 18px/1 var(--p-f-disp);color:var(--p-magenta);text-shadow:var(--p-glow-m);letter-spacing:.04em;margin-top:18px}
-.ds-slide-frame .map-text{display:flex;flex-direction:column;gap:24px;justify-content:center}
-
-/* slide--versus (combat) */
-.ds-slide-frame .slide--versus .slide-body{display:grid;grid-template-columns:1fr auto 1fr;gap:48px;align-items:center}
-.ds-slide-frame .vs-panel{border:3px solid;padding:32px;background:var(--p-hud);display:flex;flex-direction:column;gap:18px}
-.ds-slide-frame .vs-panel.left{border-color:var(--p-cyan);box-shadow:-6px 6px 0 var(--p-cyan)}
-.ds-slide-frame .vs-panel.right{border-color:var(--p-magenta);box-shadow:6px 6px 0 var(--p-magenta)}
-.ds-slide-frame .vs-panel .player{font:400 16px/1 var(--p-f-disp);letter-spacing:.04em}
-.ds-slide-frame .vs-panel.left .player{color:var(--p-cyan);text-shadow:var(--p-glow-c)}
-.ds-slide-frame .vs-panel.right .player{color:var(--p-magenta);text-shadow:var(--p-glow-m)}
-.ds-slide-frame .vs-panel h3{margin:0;font:400 42px/1.05 var(--p-f-disp);color:var(--p-ink);letter-spacing:.01em}
-.ds-slide-frame .vs-panel ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:10px}
-.ds-slide-frame .vs-panel li{font:400 22px/1.4 var(--p-f-body);color:var(--p-ink);padding-left:1.2em;position:relative}
-.ds-slide-frame .vs-panel li::before{content:"►";position:absolute;left:0;color:currentColor;opacity:.7}
-.ds-slide-frame .vs-panel.left li::before{color:var(--p-cyan)}
-.ds-slide-frame .vs-panel.right li::before{color:var(--p-magenta)}
-.ds-slide-frame .vs-mark{font:400 96px/1 var(--p-f-disp);color:var(--p-lemon);text-shadow:var(--p-glow-l),6px 6px 0 var(--p-magenta);letter-spacing:.04em;animation:blink 1s steps(2) infinite}
-
-/* slide--gameover (end) */
-.ds-slide-frame .slide--gameover .slide-chrome,.ds-slide-frame .slide--gameover .slide-foot{display:none}
-.ds-slide-frame .slide--gameover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:48px;padding:80px}
-.ds-slide-frame .gameover-mark{font:400 200px/.9 var(--p-f-disp);letter-spacing:.02em;color:var(--p-magenta);text-shadow:8px 8px 0 var(--p-cyan),0 0 32px rgba(255,82,162,.4)}
-.ds-slide-frame .gameover-mark .blink{animation:blink 1s steps(2) infinite;color:var(--p-lemon);text-shadow:8px 8px 0 var(--p-magenta)}
-.ds-slide-frame .gameover-sub{font:400 32px/1.3 var(--p-f-body);color:var(--p-ink);max-width:40ch}
-.ds-slide-frame .gameover-prompt{font:400 24px/1 var(--p-f-disp);color:var(--p-lemon);text-shadow:var(--p-glow-l);letter-spacing:.04em;animation:blink 1.4s steps(2) infinite;padding-top:32px;border-top:2px solid var(--p-grid);width:60%}
-__TEMPLATE_CSS_PLACEHOLDER__
+__TEMPLATE_CSS__
 </style>
 </head>
 
 <body>
 <div class="bg-grid"></div>
+<canvas id="design-bg"></canvas>
 
 <!-- HUD rail -->
 <div class="hud">
-  <div class="brand"><span class="pix"></span><span>8-Bit Orbit</span></div>
+  <div class="brand"><span class="pix"></span><span>__NAME__</span></div>
   <nav>
     <a href="#palette">01.Palette</a>
     <a href="#type">02.Type</a>
     <a href="#surface">03.Surface</a>
     <a href="#motion">04.Motion</a>
-    <a href="#guidelines">05.Rules</a>
-    <a href="#templates">06.Frames</a>
+    <a href="#background">05.Background</a>
+    <a href="#guidelines">06.Rules</a>
+    <a href="#templates">07.Frames</a>
   </nav>
   <div class="right"><span class="live">Online</span><span>v1.0</span></div>
 </div>
@@ -436,13 +301,13 @@ __TEMPLATE_CSS_PLACEHOLDER__
     <div>SYS_LOAD &nbsp;&middot;&nbsp; № 004</div>
     <div><span class="blink">●</span> READY</div>
   </div>
-  <h1 class="cover-headline">8-BIT<br><span class="cyan">ORBIT.</span></h1>
+  <h1 class="cover-headline">__NAME__</h1>
   <div class="press-start">▸ PRESS START</div>
   <div class="cover-foot">
     <div class="cell"><span class="k">DISCIPLINE</span><span class="v">Gaming · Web3 · Indie</span></div>
     <div class="cell"><span class="k">DISPLAY TYPE</span><span class="v big">PRESS START 2P</span></div>
-    <div class="cell"><span class="k">ACCENT</span><span class="v">CYAN + MAGENTA</span></div>
-    <div class="cell"><span class="k">BUILD</span><span class="v big">06 · 10 FRAMES</span></div>
+    <div class="cell"><span class="k">ACCENT</span><span class="v">__ACCENT_LABEL__</span></div>
+    <div class="cell"><span class="k">BUILD</span><span class="v big">07 · __SLIDE_COUNT__ FRAMES</span></div>
   </div>
 </header>
 
@@ -459,13 +324,13 @@ __TEMPLATE_CSS_PLACEHOLDER__
   <div class="section-head">
     <div class="num">01 // PALETTE</div>
     <h2>FOUR<br/><span class="cyan">PIXELS.</span></h2>
-    <p class="lede">Deep navy as the void. Cream paper for legible HUD text. Cyan for friendlies, magenta for hostiles. No anti-aliasing, no in-between.</p>
+    <p class="lede">__PALETTE_LEDE__</p>
   </div>
   <div class="palette">
-    <div class="swatch swatch--paper"><div class="role-bar"><span>01 // PAPER</span><span class="x"></span></div><div class="fill"><div class="name">CREAM</div><div class="hex">__PRIMARY__</div><div class="usage">Legible body type on dark.</div></div></div>
-    <div class="swatch swatch--void"><div class="role-bar"><span>02 // VOID</span><span class="x"></span></div><div class="fill"><div class="name">DEEP</div><div class="hex">__SECONDARY__</div><div class="usage">The canvas. The CRT off-state.</div></div></div>
-    <div class="swatch swatch--cyan"><div class="role-bar"><span>03 // PLAYER</span><span class="x"></span></div><div class="fill"><div class="name">CYAN</div><div class="hex">__TERTIARY__</div><div class="usage">Friendly signal. UI primary.</div></div></div>
-    <div class="swatch swatch--magenta"><div class="role-bar"><span>04 // ENEMY</span><span class="x"></span></div><div class="fill"><div class="name">MAGENTA</div><div class="hex">__ACCENT__</div><div class="usage">Hostile signal. Alert states.</div></div></div>
+    <div class="swatch swatch--paper"><div class="role-bar"><span>01 // PAPER</span><span class="x"></span></div><div class="fill"><div class="name">__PRIMARY_NAME__</div><div class="hex">__PRIMARY__</div><div class="usage">Legible body type on dark.</div></div></div>
+    <div class="swatch swatch--void"><div class="role-bar"><span>02 // VOID</span><span class="x"></span></div><div class="fill"><div class="name">__SECONDARY_NAME__</div><div class="hex">__SECONDARY__</div><div class="usage">The canvas. The CRT off-state.</div></div></div>
+    <div class="swatch swatch--cyan"><div class="role-bar"><span>03 // PLAYER</span><span class="x"></span></div><div class="fill"><div class="name">__TERTIARY_NAME__</div><div class="hex">__TERTIARY__</div><div class="usage">Friendly signal. UI primary.</div></div></div>
+    <div class="swatch swatch--magenta"><div class="role-bar"><span>04 // ENEMY</span><span class="x"></span></div><div class="fill"><div class="name">__ACCENT_NAME__</div><div class="hex">__ACCENT__</div><div class="usage">Hostile signal. Alert states.</div></div></div>
   </div>
 </section>
 
@@ -501,12 +366,11 @@ __TEMPLATE_CSS_PLACEHOLDER__
       <div class="stat-row"><div class="num">042</div><div class="pct">% READ-RATE</div></div>
     </div>
     <ul class="tokens">
-      <li><span class="name">// BORDER</span><span class="val">3 PX</span><span class="bar" style="width:36px"></span></li>
-      <li><span class="name">// RADIUS</span><span class="val">0 PX</span><span class="bar" style="width:6px"></span></li>
-      <li><span class="name">// SHADOW</span><span class="val">6 6 0</span><span class="bar" style="width:44px"></span></li>
-      <li><span class="name">// PADDING</span><span class="val">28 PX</span><span class="bar" style="width:36px"></span></li>
-      <li><span class="name">// GLOW</span><span class="val">accent only</span><span class="bar" style="width:24px"></span></li>
-      <li><span class="name">// DENSITY</span><span class="val">HIGH</span><span class="bar" style="width:52px"></span></li>
+      <li><span class="name">// CORNERS</span><span class="val">__CORNER_RADIUS__</span><span class="bar" style="width:6px"></span></li>
+      <li><span class="name">// PADDING</span><span class="val">__PADDING__</span><span class="bar" style="width:36px"></span></li>
+      <li><span class="name">// GAP</span><span class="val">__GAP__</span><span class="bar" style="width:32px"></span></li>
+      <li><span class="name">// ELEVATION</span><span class="val">__ELEVATION__</span><span class="bar" style="width:44px"></span></li>
+      <li><span class="name">// DENSITY</span><span class="val">__DENSITY__</span><span class="bar" style="width:52px"></span></li>
     </ul>
   </div>
 </section>
@@ -515,225 +379,89 @@ __TEMPLATE_CSS_PLACEHOLDER__
 <section id="motion" data-screen-label="04 Motion">
   <div class="section-head">
     <div class="num">04 // MOTION</div>
-    <h2>STEPPED.<br/><span class="cyan">NEVER SMOOTH.</span></h2>
-    <p class="lede">Motion is quantized — every frame snaps. Use steps() easings to keep the 30Hz CRT feeling. Glow may pulse on a 1-second blink.</p>
+    <h2>__EASING_HEADLINE__</h2>
+    <p class="lede">__EASING_LEDE__</p>
   </div>
   <div class="two-col">
     <div class="panel">
       <span class="label-row">// EASING</span>
-      <h4>steps(8)</h4>
-      <p>Default. Eight discrete frames from A to B — no in-between. The page snaps like a sprite move. Use for entrances, transitions, hover states.</p>
-      <pre>transition: transform .25s steps(8);
-animation: blink 1.4s steps(2) infinite;</pre>
+      <h4>__EASING_NAME__</h4>
+      <p>__EASING_DESC__</p>
+      <pre>__EASING_VALUE__</pre>
     </div>
     <div class="panel">
       <span class="label-row">// TIMING</span>
-      <h4>1.4s BLINK</h4>
-      <p>The cursor blink — 1.4 seconds, two steps. Apply it to alerts, prompts, and anything waiting for input.</p>
-      <pre>--dur-blink: 1.4s;
---dur-step:  .25s;
---dur-load:  3.0s;</pre>
+      <h4>__DURATION_DEFAULT__</h4>
+      <p>__DURATION_DESC__</p>
+      <pre>__DURATION_VALUES__</pre>
     </div>
   </div>
 </section>
 
-<!-- 05 GUIDELINES -->
-<section id="guidelines" data-screen-label="05 Guidelines">
+<!-- 05 BACKGROUND -->
+<section id="background" data-screen-label="05 Background">
   <div class="section-head">
-    <div class="num">05 // RULES</div>
+    <div class="num">05 // BACKGROUND</div>
+    <h2>__BG_HEADLINE__</h2>
+    <p class="lede">__BG_LEDE__</p>
+  </div>
+  <div class="two-col">
+    <div class="bg-preview"><canvas id="bg-preview-canvas"></canvas><span class="badge">// __BG_BADGE__</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <ul class="tokens" style="border-top:none">
+        <li><span class="name">// GEOMETRY</span><span class="val">__BG_TYPE__</span><span class="bar" style="width:36px"></span></li>
+        <li><span class="name">// DENSITY</span><span class="val">__BG_DENSITY__</span><span class="bar" style="width:42px"></span></li>
+        <li><span class="name">// SPEED</span><span class="val">__BG_SPEED__</span><span class="bar" style="width:18px"></span></li>
+        <li><span class="name">// STRENGTH</span><span class="val">__BG_STRENGTH__</span><span class="bar" style="width:52px"></span></li>
+        <li><span class="name">// GRAIN</span><span class="val">__BG_GRAIN__</span><span class="bar" style="width:24px"></span></li>
+      </ul>
+      <details class="code-block"><summary>// SHADER CONFIG (JSON)</summary>
+<pre>__SHADER_CONFIG__</pre>
+      </details>
+      <details class="code-block"><summary>// VERTEX SHADER (GLSL)</summary>
+<pre id="vtx-src">__SHADER_VERTEX__</pre>
+      </details>
+      <details class="code-block"><summary>// FRAGMENT SHADER (GLSL)</summary>
+<pre id="frg-src">__SHADER_FRAGMENT__</pre>
+      </details>
+    </div>
+  </div>
+</section>
+
+<!-- 06 GUIDELINES -->
+<section id="guidelines" data-screen-label="06 Guidelines">
+  <div class="section-head">
+    <div class="num">06 // RULES</div>
     <h2>OK.<br/><span class="cyan">NO.</span></h2>
     <p class="lede">The CRT enforces these. Break any and the illusion collapses.</p>
   </div>
   <div class="rules-grid">
-    <div class="rules-col do"><h3>OK.</h3><ul>
-      <li>Render every border 3px solid, every shadow stepped, never blurred.</li>
-      <li>Use cyan for friendly signal, magenta for hostile or accent.</li>
-      <li>Set every face in Press Start 2P, VT323, or Silkscreen.</li>
-      <li>Quantize all motion with steps() easings.</li>
-      <li>Reserve glow text-shadow for the one element that matters.</li>
-    </ul></div>
-    <div class="rules-col dont"><h3>NO.</h3><ul>
-      <li>Anti-alias borders or shadows. Hard pixels only.</li>
-      <li>Use rounded corners, gradients, or anti-aliased SVG.</li>
-      <li>Apply glow to body text — only to accent display.</li>
-      <li>Use smooth cubic-bezier easings — the CRT runs in steps.</li>
-      <li>Use pure black for the canvas — always the navy variant.</li>
-    </ul></div>
+    <div class="rules-col do"><h3>OK.</h3><ul>__DOS__</ul></div>
+    <div class="rules-col dont"><h3>NO.</h3><ul>__DONTS__</ul></div>
   </div>
 </section>
 
-<!-- 06 TEMPLATES -->
-<section id="templates" class="templates-wrap" data-screen-label="06 Templates">
+<!-- 07 TEMPLATES -->
+<section id="templates" class="templates-wrap" data-screen-label="07 Templates">
   <div class="section-head">
-    <div class="num">06 // FRAMES</div>
-    <h2>TEN<br/><span class="cyan">SCREENS.</span></h2>
+    <div class="num">07 // FRAMES</div>
+    <h2>__SLIDE_COUNT_WORD__<br/><span class="cyan">SCREENS.</span></h2>
     <p class="lede">The full template library at 1920×1080. Each thumbnail is the live slide, scaled.</p>
   </div>
   <div class="templates-grid" id="templates-grid"></div>
 </section>
 
 <template id="tmpl-source">
-
-<div class="tmpl" data-idx="01"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--cover">
-  <h1 class="display"><span class="cyan">{{text}}</span><br>{{headline}}</h1>
-  <p class="cover-tagline">{{body}}</p>
-  <div class="press-start">▸ {{text}}</div>
-  <div class="high-score"><span>HI-SCORE <b>{{number}}</b></span><span>BUILD <b>{{number}}</b></span><span>CR <b>{{number}}</b></span></div>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">cover</span><span class="idx">01/10</span></div></div>
-
-<div class="tmpl" data-idx="02"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--loading">
-  <header class="slide-chrome"><span>{{label}}</span><span>{{label}}</span></header>
-  <div class="slide-body">
-    <div class="loading-text">{{headline}}</div>
-    <div class="loading-percent">{{number}}<span style="font-size:.5em;color:var(--p-cyan);text-shadow:var(--p-glow-c)">%</span></div>
-    <div class="loading-bar"><div class="fill"></div></div>
-    <div class="loading-label">{{body}}</div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span class="accent">{{label}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">loading</span><span class="idx">02/10</span></div></div>
-
-<div class="tmpl" data-idx="03"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--hud">
-  <header class="slide-chrome"><span>{{label}}</span><span>{{label}}</span></header>
-  <div class="slide-body">
-    <h2 class="h2">{{headline}}</h2>
-    <div class="hud-grid">
-      <div class="hud-cell"><span class="lbl">{{label}}</span><span class="val">{{number}}</span><span class="desc">{{body}}</span><div class="bar"><span></span><span></span><span></span><span></span><span></span><span></span><span class="off"></span><span class="off"></span></div></div>
-      <div class="hud-cell"><span class="lbl">{{label}}</span><span class="val">{{number}}</span><span class="desc">{{body}}</span><div class="bar"><span></span><span></span><span></span><span></span><span></span><span class="off"></span><span class="off"></span><span class="off"></span></div></div>
-      <div class="hud-cell"><span class="lbl">{{label}}</span><span class="val">{{number}}</span><span class="desc">{{body}}</span><div class="bar"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span class="accent">{{label}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">hud</span><span class="idx">03/10</span></div></div>
-
-<div class="tmpl" data-idx="04"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--dialog">
-  <header class="slide-chrome"><span>{{label}}</span><span>{{label}}</span></header>
-  <div class="slide-body">
-    <div class="dialog-box">
-      <span class="dialog-tag">{{label}}</span>
-      <div class="dialog-text">{{body}}</div>
-      <div class="dialog-name">— {{text}}</div>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span class="accent">{{label}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">dialog</span><span class="idx">04/10</span></div></div>
-
-<div class="tmpl" data-idx="05"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--chart">
-  <header class="slide-chrome"><span>{{label}}</span><span>{{label}}</span></header>
-  <div class="slide-body">
-    <div class="chart-header"><h2 class="h2">{{headline}}</h2><span class="label">{{label}}</span></div>
-    <div class="chart-body">
-      <div class="chart-bars">
-        <div class="chart-col"><span class="chart-val">{{number}}</span><div class="chart-bar" style="height:32%"></div><span class="chart-x">{{label}}</span></div>
-        <div class="chart-col"><span class="chart-val">{{number}}</span><div class="chart-bar" style="height:50%"></div><span class="chart-x">{{label}}</span></div>
-        <div class="chart-col"><span class="chart-val">{{number}}</span><div class="chart-bar" style="height:68%"></div><span class="chart-x">{{label}}</span></div>
-        <div class="chart-col"><span class="chart-val">{{number}}</span><div class="chart-bar hi" style="height:88%"></div><span class="chart-x">{{label}}</span></div>
-      </div>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span class="accent">{{label}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">chart</span><span class="idx">05/10</span></div></div>
-
-<div class="tmpl" data-idx="06"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--inventory">
-  <header class="slide-chrome"><span>{{label}}</span><span>{{label}}</span></header>
-  <div class="slide-body">
-    <div class="inv-head">
-      <span class="label">{{label}}</span>
-      <h3 class="h3">{{headline}}</h3>
-      <p class="lead muted">{{body}}</p>
-    </div>
-    <div class="inv-grid">
-      <div class="inv-item"><div class="ico"></div><span class="num">{{number}}</span><span class="name">{{headline}}</span><span class="desc">{{body}}</span></div>
-      <div class="inv-item"><div class="ico"></div><span class="num">{{number}}</span><span class="name">{{headline}}</span><span class="desc">{{body}}</span></div>
-      <div class="inv-item"><div class="ico"></div><span class="num">{{number}}</span><span class="name">{{headline}}</span><span class="desc">{{body}}</span></div>
-      <div class="inv-item"><div class="ico"></div><span class="num">{{number}}</span><span class="name">{{headline}}</span><span class="desc">{{body}}</span></div>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span class="accent">{{label}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">inventory</span><span class="idx">06/10</span></div></div>
-
-<div class="tmpl" data-idx="07"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--menu">
-  <header class="slide-chrome"><span>{{label}}</span><span>{{label}}</span></header>
-  <div class="slide-body">
-    <p class="menu-prompt">{{headline}}</p>
-    <ul class="menu-list">
-      <li>{{text}}<span class="meta">{{label}}</span></li>
-      <li>{{text}}<span class="meta">{{label}}</span></li>
-      <li>{{text}}<span class="meta">{{label}}</span></li>
-      <li>{{text}}<span class="meta">{{label}}</span></li>
-    </ul>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span class="accent">{{label}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">menu</span><span class="idx">07/10</span></div></div>
-
-<div class="tmpl" data-idx="08"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--map">
-  <header class="slide-chrome"><span>{{label}}</span><span>{{label}}</span></header>
-  <div class="slide-body">
-    <div>
-      <div class="map-frame"><div class="corners"></div><div class="pin p1"></div><div class="pin p2"></div><div class="pin p3"></div></div>
-      <div class="map-caption">▸ {{label}}</div>
-    </div>
-    <div class="map-text">
-      <span class="label">{{label}}</span>
-      <h3 class="h2">{{headline}}</h3>
-      <p class="body">{{body}}</p>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span class="accent">{{label}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">map</span><span class="idx">08/10</span></div></div>
-
-<div class="tmpl" data-idx="09"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--versus">
-  <header class="slide-chrome"><span>{{label}}</span><span>{{label}}</span></header>
-  <div class="slide-body">
-    <div class="vs-panel left">
-      <span class="player">P1 // {{label}}</span>
-      <h3>{{headline}}</h3>
-      <ul><li>{{body}}</li><li>{{body}}</li><li>{{body}}</li></ul>
-    </div>
-    <div class="vs-mark">VS</div>
-    <div class="vs-panel right">
-      <span class="player">P2 // {{label}}</span>
-      <h3>{{headline}}</h3>
-      <ul><li>{{body}}</li><li>{{body}}</li><li>{{body}}</li></ul>
-    </div>
-  </div>
-  <footer class="slide-foot"><span>{{label}}</span><span class="accent">{{label}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">versus</span><span class="idx">09/10</span></div></div>
-
-<div class="tmpl" data-idx="10"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--gameover">
-  <div class="gameover-mark">GAME<br/><span class="blink">{{text}}</span></div>
-  <div class="gameover-sub">{{body}}</div>
-  <div class="gameover-prompt">▸ {{text}}</div>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">gameover</span><span class="idx">10/10</span></div></div>
-
+__SLIDE_CARDS__
 </template>
 
-<footer class="endcap" data-screen-label="07 End">
+<footer class="endcap" data-screen-label="08 End">
   <div class="grid">
     <h2 class="endmark">GAME<br><span class="blink">OVER.</span></h2>
     <div class="meta">
-      <div><b>8-BIT ORBIT</b> // V1.0</div>
+      <div><b>__NAME__</b> // V1.0</div>
       <div>PRESS START 2P / VT323</div>
-      <div>BUILD: MMXXVI.05</div>
+      <div>__DATE__</div>
     </div>
   </div>
 </footer>
@@ -746,6 +474,8 @@ animation: blink 1.4s steps(2) infinite;</pre>
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(rescale);
 })();
 </script>
+
+__SHADER_SCRIPT__
 
 </body>
 </html>

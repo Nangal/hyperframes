@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>__NAME__ — Design System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Manrope:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500__FONT_LINK_EXTRA__&display=swap" rel="stylesheet" />
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"}}
+</script>
 
 <style id="ds-tokens">
 :root{
@@ -27,6 +31,9 @@
 html,body{margin:0;padding:0;background:var(--ink)}
 body{color:var(--cream);font:400 14px/1.65 var(--f-body);-webkit-font-smoothing:antialiased;overflow-x:hidden}
 ::selection{background:var(--coral);color:var(--cream)}
+
+#design-bg{position:fixed;inset:0;width:100%;height:100%;z-index:-2;opacity:.55;pointer-events:none}
+#bg-veil{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 30% 20%,transparent 0%,var(--ink) 75%)}
 
 .rail{position:fixed;top:0;left:0;right:0;height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 var(--pad-x);background:color-mix(in srgb,var(--ink) 86%,transparent);backdrop-filter:blur(14px);border-bottom:1px solid var(--hairline);z-index:100;font:500 11px/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--ink-dim)}
 .rail .brand{display:inline-flex;align-items:center;gap:12px;color:var(--coral)}
@@ -115,6 +122,16 @@ section{position:relative;padding:var(--pad-y) var(--pad-x)}
 .panel .label-row{font:500 11px/1 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--ink-fade)}
 .panel p{margin:0;font:400 14px/1.7 var(--f-body);color:var(--ink-dim);max-width:38ch}
 .panel pre{margin:0;padding:14px 18px;border:1px solid var(--hairline);background:color-mix(in srgb,var(--ink) 70%,transparent);font:500 12px/1.6 var(--f-mono);color:var(--coral);overflow-x:auto}
+.bg-preview{border:1px solid var(--hairline);aspect-ratio:4/3;position:relative;overflow:hidden;background:var(--ink)}
+.bg-preview canvas{width:100%;height:100%;display:block}
+.bg-preview .badge{position:absolute;bottom:12px;left:12px;font:500 10px/1 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;background:color-mix(in srgb,var(--ink) 75%,transparent);padding:6px 10px;backdrop-filter:blur(8px);color:var(--coral)}
+
+details.code-block{border:1px solid var(--hairline);background:color-mix(in srgb,var(--ink) 60%,transparent);margin-top:12px}
+details.code-block summary{cursor:pointer;padding:14px 18px;list-style:none;font:500 11px/1 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--coral);display:flex;justify-content:space-between}
+details.code-block summary::-webkit-details-marker{display:none}
+details.code-block summary::after{content:"+";font:400 18px/1 var(--f-disp);color:var(--coral)}
+details.code-block[open] summary::after{content:"\2212"}
+details.code-block pre{margin:0;padding:16px 18px;border-top:1px solid var(--hairline);font:500 11px/1.6 var(--f-mono);color:var(--ink-dim);background:transparent;overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow-y:auto}
 
 /* Guidelines */
 .rules-grid{display:grid;grid-template-columns:1fr 1fr;gap:56px}
@@ -151,96 +168,17 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
 </style>
 
 <style id="template-css">
-.ds-slide-frame{
-  --c-bg:#14110E; --c-cream:#F3E9D2; --c-coral:#F2674E; --c-warm:#5C4C39;
-  --c-ink-2:color-mix(in srgb,#F3E9D2 55%,#14110E);
-  --c-ink-3:color-mix(in srgb,#F3E9D2 28%,#14110E);
-  --c-line:color-mix(in srgb,#F3E9D2 14%,transparent);
-  --c-f-disp:"Bebas Neue",sans-serif;
-  --c-f-body:"Manrope",sans-serif;
-  --c-f-mono:"JetBrains Mono",monospace;
-  width:1920px;height:1080px;position:relative;overflow:hidden
-}
-.ds-slide-frame *{box-sizing:border-box}
-.ds-slide-frame .slide{width:1920px;height:1080px;position:relative;padding:96px 144px;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;background:var(--c-bg);color:var(--c-cream);font-family:var(--c-f-body)}
-.ds-slide-frame .slide-chrome,.ds-slide-frame .slide-foot{display:flex;justify-content:space-between;align-items:center;font:500 16px/1 var(--c-f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--c-ink-3)}
-.ds-slide-frame .slide-chrome{padding-bottom:20px;border-bottom:1px solid var(--c-line);margin-bottom:40px}
-.ds-slide-frame .slide-foot{padding-top:20px;border-top:1px solid var(--c-line);margin-top:40px}
-.ds-slide-frame .slide-chrome .accent,.ds-slide-frame .slide-foot .accent{color:var(--c-coral)}
-.ds-slide-frame .display{font:400 320px/.88 var(--c-f-disp);letter-spacing:.005em;text-transform:uppercase;color:var(--c-cream)}
-.ds-slide-frame .display em{font-style:normal;color:var(--c-coral)}
-.ds-slide-frame .h1{font:400 180px/.92 var(--c-f-disp);letter-spacing:.005em;text-transform:uppercase;color:var(--c-coral)}
-.ds-slide-frame .h2{font:400 116px/1 var(--c-f-disp);letter-spacing:.005em;text-transform:uppercase;color:var(--c-cream)}
-.ds-slide-frame .h2 em{font-style:normal;color:var(--c-coral)}
-.ds-slide-frame .h3{font:400 64px/1.05 var(--c-f-disp);letter-spacing:.005em;text-transform:uppercase;color:var(--c-coral)}
-.ds-slide-frame .lead{font:500 32px/1.5 var(--c-f-body);color:var(--c-cream)}
-.ds-slide-frame .body{font:400 24px/1.65 var(--c-f-body);color:var(--c-cream)}
-.ds-slide-frame .label{font:500 16px/1 var(--c-f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--c-coral)}
-.ds-slide-frame .accent{color:var(--c-coral)}
-.ds-slide-frame .muted{color:var(--c-ink-2)}
-
-.ds-slide-frame .slide--cover .slide-chrome,.ds-slide-frame .slide--cover .slide-foot{display:none}
-.ds-slide-frame .slide--cover{display:flex;flex-direction:column;justify-content:flex-end}
-.ds-slide-frame .cover-top{display:flex;justify-content:space-between;font:500 16px/1 var(--c-f-mono);letter-spacing:.2em;text-transform:uppercase;color:var(--c-ink-3);margin-bottom:auto}
-.ds-slide-frame .cover-top .accent{color:var(--c-coral)}
-.ds-slide-frame .cover-body{display:flex;flex-direction:column;gap:36px}
-
-.ds-slide-frame .slide--chapter .slide-chrome,.ds-slide-frame .slide--chapter .slide-foot{display:none}
-.ds-slide-frame .slide--chapter{display:flex;flex-direction:column;justify-content:center;gap:32px;padding:96px 200px;background:var(--c-coral);color:var(--c-ink)}
-.ds-slide-frame .slide--chapter .chap-num{font:500 20px/1 var(--c-f-mono);letter-spacing:.22em;text-transform:uppercase;color:var(--c-ink)}
-.ds-slide-frame .slide--chapter .h1{color:var(--c-ink)}
-.ds-slide-frame .slide--chapter .lead{color:color-mix(in srgb,var(--c-ink) 80%,transparent)}
-
-.ds-slide-frame .slide--cream .slide-chrome,.ds-slide-frame .slide--cream .slide-foot{color:var(--c-ink-2)}
-.ds-slide-frame .slide--cream{background:var(--c-cream);color:var(--c-ink)}
-.ds-slide-frame .slide--cream .h1{color:var(--c-coral)}
-.ds-slide-frame .slide--cream .h2{color:var(--c-ink)}
-.ds-slide-frame .slide--cream .lead{color:var(--c-ink)}
-.ds-slide-frame .slide--cream .body{color:var(--c-ink)}
-.ds-slide-frame .slide--cream .label{color:var(--c-coral)}
-.ds-slide-frame .slide--cream .slide-chrome,.ds-slide-frame .slide--cream .slide-foot{color:color-mix(in srgb,var(--c-ink) 70%,transparent);border-color:color-mix(in srgb,var(--c-ink) 18%,transparent)}
-
-.ds-slide-frame .slide--quote .slide-chrome,.ds-slide-frame .slide--quote .slide-foot{display:none}
-.ds-slide-frame .slide--quote{display:flex;flex-direction:column;justify-content:center;padding:120px 240px;gap:48px}
-.ds-slide-frame .quote-mark{font:400 280px/.5 var(--c-f-disp);color:var(--c-coral);height:140px;letter-spacing:.005em}
-.ds-slide-frame .quote-text{font:400 108px/1 var(--c-f-disp);letter-spacing:.005em;text-transform:uppercase;color:var(--c-cream);max-width:88%}
-.ds-slide-frame .quote-text em{font-style:normal;color:var(--c-coral)}
-.ds-slide-frame .quote-attr{display:flex;flex-direction:column;gap:8px;padding-top:24px;border-top:1px solid var(--c-line);max-width:480px}
-.ds-slide-frame .quote-attr .nm{font:400 40px/1 var(--c-f-disp);color:var(--c-coral);letter-spacing:.005em;text-transform:uppercase}
-.ds-slide-frame .quote-attr .src{font:500 16px/1 var(--c-f-mono);letter-spacing:.18em;text-transform:uppercase;color:var(--c-ink-3)}
-
-.ds-slide-frame .slide--split .slide-body{display:grid;grid-template-columns:1fr 1fr;gap:96px;align-items:center;padding-top:32px}
-.ds-slide-frame .split-text{display:flex;flex-direction:column;gap:24px}
-.ds-slide-frame .split-plate{aspect-ratio:4/5;width:100%;border:1px solid var(--c-line);display:flex;align-items:center;justify-content:center;background:color-mix(in srgb,var(--c-bg) 80%,var(--c-coral));font:500 18px/1 var(--c-f-mono);letter-spacing:.16em;text-transform:uppercase;color:var(--c-ink-3)}
-
-.ds-slide-frame .slide--stats .slide-body{display:flex;flex-direction:column;justify-content:center;gap:48px;padding-top:32px}
-.ds-slide-frame .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:64px}
-.ds-slide-frame .stat-card{display:flex;flex-direction:column;gap:14px;padding-top:24px;border-top:1px solid var(--c-line)}
-.ds-slide-frame .stat-card .v{font:400 200px/.92 var(--c-f-disp);color:var(--c-coral);letter-spacing:.005em;text-transform:uppercase}
-.ds-slide-frame .stat-card .l{font:500 26px/1.4 var(--c-f-body);color:var(--c-cream)}
-.ds-slide-frame .stat-card .n{font:500 14px/1 var(--c-f-mono);letter-spacing:.18em;text-transform:uppercase;color:var(--c-ink-3)}
-
-.ds-slide-frame .slide--list .slide-body{display:grid;grid-template-columns:1fr 1.6fr;gap:96px;align-items:start;padding-top:32px}
-.ds-slide-frame .list-head{display:flex;flex-direction:column;gap:22px}
-.ds-slide-frame .list-items{list-style:none;padding:0;margin:0;counter-reset:idx}
-.ds-slide-frame .list-items li{display:grid;grid-template-columns:3em 1fr;gap:24px;padding:28px 0;border-top:1px solid var(--c-line);counter-increment:idx;align-items:baseline}
-.ds-slide-frame .list-items li::before{content:counter(idx,decimal-leading-zero);font:400 48px/1 var(--c-f-disp);color:var(--c-coral);letter-spacing:.005em}
-.ds-slide-frame .list-items .h{font:400 40px/1.05 var(--c-f-disp);color:var(--c-cream);letter-spacing:.005em;text-transform:uppercase;display:block;margin-bottom:6px}
-.ds-slide-frame .list-items .d{font:400 22px/1.55 var(--c-f-body);color:var(--c-ink-2);display:block}
-
-.ds-slide-frame .slide--end .slide-chrome,.ds-slide-frame .slide--end .slide-foot{display:none}
-.ds-slide-frame .slide--end{display:flex;flex-direction:column;justify-content:center;padding:120px 144px;gap:48px;background:var(--c-coral);color:var(--c-ink)}
-.ds-slide-frame .end-mark{font:400 320px/.9 var(--c-f-disp);letter-spacing:.005em;text-transform:uppercase;color:var(--c-ink)}
-.ds-slide-frame .end-mark em{font-style:normal;color:var(--c-cream);background:var(--c-ink);padding:0 .04em;display:inline-block;line-height:.9}
-.ds-slide-frame .end-meta{display:flex;gap:48px;font:500 16px/1 var(--c-f-mono);letter-spacing:.2em;text-transform:uppercase;color:color-mix(in srgb,var(--c-ink) 70%,transparent);padding-top:24px;border-top:1px solid var(--c-ink)}
-.ds-slide-frame .end-meta b{color:var(--c-ink);font-weight:500}
+__TEMPLATE_CSS__
 </style>
 </head>
 <body>
 
+<canvas id="design-bg"></canvas>
+<div id="bg-veil"></div>
+
 <div class="rail">
-  <div class="brand"><span class="dot"></span><b>Coral</b></div>
-  <nav><a href="#palette">01</a><a href="#type">02</a><a href="#surface">03</a><a href="#motion">04</a><a href="#guidelines">05</a><a href="#templates">06</a></nav>
+  <div class="brand"><span class="dot"></span><b>__NAME__</b></div>
+  <nav><a href="#palette">01</a><a href="#type">02</a><a href="#surface">03</a><a href="#motion">04</a><a href="#background">05</a><a href="#guidelines">06</a><a href="#templates">07</a></nav>
   <div class="meta">Issue 014 · 2026</div>
 </div>
 
@@ -249,12 +187,12 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
     <div>Design System · № 014</div>
     <div class="accent">A warm magazine · 2026</div>
   </div>
-  <h1 class="cover-headline">COR<em>AL</em>.</h1>
+  <h1 class="cover-headline">__NAME__.</h1>
   <div class="cover-foot">
     <div class="cell"><span class="k">Discipline</span><span class="v plain">Fashion · Beauty · Lifestyle</span></div>
     <div class="cell"><span class="k">Display</span><span class="v">Bebas Neue</span></div>
-    <div class="cell"><span class="k">Signal</span><span class="v">Coral #F2674E</span></div>
-    <div class="cell"><span class="k">Volume</span><span class="v plain">06 sections · 07 frames</span></div>
+    <div class="cell"><span class="k">Signal</span><span class="v">__ACCENT_LABEL__</span></div>
+    <div class="cell"><span class="k">Volume</span><span class="v plain">07 sections · __SLIDE_COUNT__ frames</span></div>
   </div>
 </header>
 
@@ -269,13 +207,13 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
   <div class="section-head">
     <span class="num">01 — Palette</span>
     <h2>Cream, ink,<br/><em>warm, coral.</em></h2>
-    <p class="lede">Warm cream paper. Near-black ink — never pure. A burnt warm tone for chrome. Coral as the single accent — used loud, used once.</p>
+    <p class="lede">__PALETTE_LEDE__</p>
   </div>
   <div class="palette">
-    <div class="swatch swatch--cream"><div class="role">01 · paper</div><div><div class="name">cream.</div><div class="hex">__PRIMARY__</div><div class="usage">Warm paper canvas.</div></div></div>
-    <div class="swatch swatch--ink"><div class="role">02 · ink</div><div><div class="name">noir.</div><div class="hex">__SECONDARY__</div><div class="usage">Near-black, never pure.</div></div></div>
-    <div class="swatch swatch--warm"><div class="role">03 · warm</div><div><div class="name">earth.</div><div class="hex">__TERTIARY__</div><div class="usage">Chrome and muted labels.</div></div></div>
-    <div class="swatch swatch--coral"><div class="role">04 · coral</div><div><div class="name">coral.</div><div class="hex">__ACCENT__</div><div class="usage">The single accent. One per slide.</div></div></div>
+    <div class="swatch swatch--cream"><div class="role">01 · paper</div><div><div class="name">__PRIMARY_NAME__</div><div class="hex">__PRIMARY__</div><div class="usage">Warm paper canvas.</div></div></div>
+    <div class="swatch swatch--ink"><div class="role">02 · ink</div><div><div class="name">__SECONDARY_NAME__</div><div class="hex">__SECONDARY__</div><div class="usage">Near-black, never pure.</div></div></div>
+    <div class="swatch swatch--warm"><div class="role">03 · warm</div><div><div class="name">__TERTIARY_NAME__</div><div class="hex">__TERTIARY__</div><div class="usage">Chrome and muted labels.</div></div></div>
+    <div class="swatch swatch--coral"><div class="role">04 · coral</div><div><div class="name">__ACCENT_NAME__</div><div class="hex">__ACCENT__</div><div class="usage">The single accent. One per slide.</div></div></div>
   </div>
 </section>
 
@@ -309,11 +247,11 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
       <div class="num-stat">+42%</div>
     </div>
     <ul class="tokens">
-      <li><span class="name">Page margin</span><span class="val">144 PX</span><span class="bar" style="width:64px"></span></li>
-      <li><span class="name">Column gap</span><span class="val">96 PX</span><span class="bar" style="width:44px"></span></li>
-      <li><span class="name">Border</span><span class="val">1 PX</span><span class="bar" style="width:8px"></span></li>
-      <li><span class="name">Shadow</span><span class="val">NONE</span><span class="bar" style="width:0;opacity:.2"></span></li>
-      <li><span class="name">Density</span><span class="val">LOW</span><span class="bar" style="width:24px"></span></li>
+      <li><span class="name">Corners</span><span class="val">__CORNER_RADIUS__</span><span class="bar" style="width:8px"></span></li>
+      <li><span class="name">Padding</span><span class="val">__PADDING__</span><span class="bar" style="width:64px"></span></li>
+      <li><span class="name">Gap</span><span class="val">__GAP__</span><span class="bar" style="width:44px"></span></li>
+      <li><span class="name">Elevation</span><span class="val">__ELEVATION__</span><span class="bar" style="width:0;opacity:.2"></span></li>
+      <li><span class="name">Density</span><span class="val">__DENSITY__</span><span class="bar" style="width:24px"></span></li>
     </ul>
   </div>
 </section>
@@ -321,98 +259,85 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
 <section id="motion" data-screen-label="04 Motion">
   <div class="section-head">
     <span class="num">04 — Motion</span>
-    <h2>Slow.<br/><em>Deliberate.</em></h2>
-    <p class="lede">Motion is unhurried. Long durations, gentle eases. The page should feel like a magazine page being turned — slow, intentional.</p>
+    <h2>__EASING_HEADLINE__</h2>
+    <p class="lede">__EASING_LEDE__</p>
   </div>
   <div class="two-col">
     <div class="panel">
       <span class="label-row">// easing</span>
-      <h4>SLOW <em>OUT.</em></h4>
-      <p>Long tail, soft landing. Use for headline entrances and any element that should feel placed.</p>
-      <pre>cubic-bezier(0.22, 1, 0.36, 1)</pre>
+      <h4>__EASING_NAME__</h4>
+      <p>__EASING_DESC__</p>
+      <pre>__EASING_VALUE__</pre>
     </div>
     <div class="panel">
       <span class="label-row">// duration</span>
-      <h4>1.2 <em>SEC.</em></h4>
-      <p>Slides resolve in 1.2 seconds. Headlines enter in 0.8. Hovers in 0.3.</p>
-      <pre>--dur-slide: 1.2s
---dur-enter: 0.8s
---dur-hover: 0.3s</pre>
+      <h4>__DURATION_DEFAULT__</h4>
+      <p>__DURATION_DESC__</p>
+      <pre>__DURATION_VALUES__</pre>
     </div>
   </div>
 </section>
 
-<section id="guidelines" data-screen-label="05 Guidelines">
+<section id="background" data-screen-label="05 Background">
   <div class="section-head">
-    <span class="num">05 — Rules</span>
+    <span class="num">05 — Background</span>
+    <h2>__BG_HEADLINE__</h2>
+    <p class="lede">__BG_LEDE__</p>
+  </div>
+  <div class="two-col">
+    <div class="bg-preview"><canvas id="bg-preview-canvas"></canvas><span class="badge">// __BG_BADGE__</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <ul class="tokens" style="border-top:none">
+        <li><span class="name">Geometry</span><span class="val">__BG_TYPE__</span><span class="bar" style="width:36px"></span></li>
+        <li><span class="name">Density</span><span class="val">__BG_DENSITY__</span><span class="bar" style="width:42px"></span></li>
+        <li><span class="name">Speed</span><span class="val">__BG_SPEED__</span><span class="bar" style="width:18px"></span></li>
+        <li><span class="name">Strength</span><span class="val">__BG_STRENGTH__</span><span class="bar" style="width:52px"></span></li>
+        <li><span class="name">Grain</span><span class="val">__BG_GRAIN__</span><span class="bar" style="width:24px"></span></li>
+      </ul>
+      <details class="code-block"><summary>// shader config</summary>
+<pre>__SHADER_CONFIG__</pre>
+      </details>
+      <details class="code-block"><summary>// vertex shader</summary>
+<pre id="vtx-src">__SHADER_VERTEX__</pre>
+      </details>
+      <details class="code-block"><summary>// fragment shader</summary>
+<pre id="frg-src">__SHADER_FRAGMENT__</pre>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section id="guidelines" data-screen-label="06 Guidelines">
+  <div class="section-head">
+    <span class="num">06 — Rules</span>
     <h2>YES.<br/><em>NO.</em></h2>
     <p class="lede">A short list. The magazine softens the moment any are broken.</p>
   </div>
   <div class="rules-grid">
-    <div class="rules-col do"><h3>YES.</h3><ul>
-      <li>Set every headline in Bebas Neue, maximum size, uppercase.</li>
-      <li>Use coral for exactly one element per slide.</li>
-      <li>Keep all body type in Manrope 400. Never bold.</li>
-      <li>Place cream surfaces inside the noir canvas — never floating.</li>
-      <li>Use 1px hairlines only; no shadows or gradients.</li>
-    </ul></div>
-    <div class="rules-col dont"><h3>NO.</h3><ul>
-      <li>Introduce a second accent. Coral is the only voice.</li>
-      <li>Set headlines in serif or italic. Bebas is the page.</li>
-      <li>Use pure black (#000) — always the warm noir.</li>
-      <li>Crowd the margin. The page wants breath.</li>
-      <li>Apply shadows. The page is flat by design.</li>
-    </ul></div>
+    <div class="rules-col do"><h3>YES.</h3><ul>__DOS__</ul></div>
+    <div class="rules-col dont"><h3>NO.</h3><ul>__DONTS__</ul></div>
   </div>
 </section>
 
-<section id="templates" class="templates-wrap" data-screen-label="06 Templates">
+<section id="templates" class="templates-wrap" data-screen-label="07 Templates">
   <div class="section-head">
-    <span class="num">06 — Templates</span>
-    <h2>Seven<br/><em>covers.</em></h2>
+    <span class="num">07 — Templates</span>
+    <h2>__SLIDE_COUNT_WORD__<br/><em>covers.</em></h2>
     <p class="lede">The full library at 1920×1080. Each thumbnail is the live slide, scaled.</p>
   </div>
   <div class="templates-grid" id="templates-grid"></div>
 </section>
 
 <template id="tmpl-source">
-
-<div class="tmpl" data-idx="01"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--cover"><div class="cover-top"><span>{{label}}</span><span class="accent">{{label}}</span></div><div class="cover-body"><h1 class="display">{{headline}}</h1><p class="lead">{{body}}</p></div></section>
-</div></div></div><div class="tmpl-foot"><span class="name">cover</span><span class="idx">01/07</span></div></div>
-
-<div class="tmpl" data-idx="02"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--chapter"><span class="chap-num">{{label}}</span><h2 class="h1">{{headline}}</h2><p class="lead">{{body}}</p></section>
-</div></div></div><div class="tmpl-foot"><span class="name">chapter</span><span class="idx">02/07</span></div></div>
-
-<div class="tmpl" data-idx="03"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--cream"><header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header><div class="slide-body"><span class="label">{{label}}</span><h2 class="h2"><em>{{headline}}</em></h2><p class="lead">{{body}}</p></div><footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer></section>
-</div></div></div><div class="tmpl-foot"><span class="name">editorial</span><span class="idx">03/07</span></div></div>
-
-<div class="tmpl" data-idx="04"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--quote"><div class="quote-mark">"</div><div class="quote-text">{{body}}</div><div class="quote-attr"><span class="nm">— {{text}}</span><span class="src">{{label}}</span></div></section>
-</div></div></div><div class="tmpl-foot"><span class="name">quote</span><span class="idx">04/07</span></div></div>
-
-<div class="tmpl" data-idx="05"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--split"><header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header><div class="slide-body"><div class="split-text"><span class="label">{{label}}</span><h2 class="h2"><em>{{headline}}</em></h2><p class="body">{{body}}</p></div><div class="split-plate">{{text}}</div></div><footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer></section>
-</div></div></div><div class="tmpl-foot"><span class="name">split</span><span class="idx">05/07</span></div></div>
-
-<div class="tmpl" data-idx="06"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--stats"><header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header><div class="slide-body"><h2 class="h2">{{headline}}</h2><div class="stats-grid"><div class="stat-card"><div class="v">{{number}}</div><div class="l">{{body}}</div><div class="n">{{label}}</div></div><div class="stat-card"><div class="v">{{number}}</div><div class="l">{{body}}</div><div class="n">{{label}}</div></div><div class="stat-card"><div class="v">{{number}}</div><div class="l">{{body}}</div><div class="n">{{label}}</div></div></div></div><footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer></section>
-</div></div></div><div class="tmpl-foot"><span class="name">stats</span><span class="idx">06/07</span></div></div>
-
-<div class="tmpl" data-idx="07"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--end"><h2 class="end-mark">{{headline}} <em>{{text}}</em></h2><div class="end-meta"><span><b>{{label}}</b></span><span>{{label}}</span><span>{{label}}</span></div></section>
-</div></div></div><div class="tmpl-foot"><span class="name">end</span><span class="idx">07/07</span></div></div>
-
+__SLIDE_CARDS__
 </template>
 
-<footer class="endcap" data-screen-label="07 End">
+<footer class="endcap" data-screen-label="08 End">
   <h2 class="endmark">FIN <em>.</em></h2>
   <div class="meta">
-    <div><b>Coral</b> · Issue 014</div>
+    <div><b>__NAME__</b> · Issue 014</div>
     <div>BEBAS NEUE / MANROPE</div>
-    <div>Pressed May 2026</div>
+    <div>Pressed __DATE__</div>
   </div>
 </footer>
 
@@ -424,6 +349,8 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(rescale);
 })();
 </script>
+
+__SHADER_SCRIPT__
 
 </body>
 </html>

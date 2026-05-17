@@ -5,7 +5,11 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>__NAME__ — Design System</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Caveat:wght@400;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Caveat:wght@400;600;700&family=Quicksand:wght@400;500;600;700__FONT_LINK_EXTRA__&display=swap" rel="stylesheet" />
+
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.167.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.167.0/examples/jsm/"}}
+</script>
 
 <style id="ds-tokens">
 :root{
@@ -181,101 +185,32 @@ footer.endcap .endmark{font:italic 400 clamp(56px,13vw,220px)/.85 var(--f-disp);
 footer.endcap .endmark em{font-style:normal;color:var(--blush)}
 footer.endcap .meta{font-family:var(--f-hand);font-size:24px;font-weight:600;text-align:right;color:var(--ink-dim);line-height:1.6}
 footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400;font-size:20px}
+
+/* Background canvas + veil */
+#design-bg{position:fixed;inset:0;width:100%;height:100%;z-index:-2;opacity:.35;pointer-events:none}
+#bg-veil{position:fixed;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 30% 20%,transparent 0%,var(--cream) 75%)}
+.bg-preview{border:2px solid var(--ink);border-radius:24px;aspect-ratio:4/3;position:relative;overflow:hidden;background:var(--cream)}
+.bg-preview canvas{width:100%;height:100%;display:block}
+.bg-preview .badge{position:absolute;bottom:12px;left:12px;font:600 12px/1 var(--f-body);letter-spacing:.06em;background:color-mix(in srgb,var(--cream) 75%,transparent);padding:6px 12px;border-radius:999px;backdrop-filter:blur(8px);font-family:var(--f-hand);font-size:18px;font-weight:700;color:var(--ink)}
+
+details.code-block{border:2px solid var(--ink);background:#fff;border-radius:14px;margin-top:12px;overflow:hidden}
+details.code-block summary{cursor:pointer;padding:14px 18px;list-style:none;font:600 12px/1 var(--f-body);letter-spacing:.06em;text-transform:uppercase;color:var(--blush);display:flex;justify-content:space-between;font-family:var(--f-hand);font-size:20px;font-weight:700;letter-spacing:0;text-transform:none}
+details.code-block summary::-webkit-details-marker{display:none}
+details.code-block summary::after{content:"+";font:400 24px/1 var(--f-disp);color:var(--blush)}
+details.code-block[open] summary::after{content:"\2212"}
+details.code-block pre{margin:0;padding:16px 18px;border-top:1px dashed var(--hairline);font:500 12px/1.6 ui-monospace,monospace;color:var(--ink-dim);background:transparent;overflow-x:auto;white-space:pre-wrap;word-break:break-word;max-height:320px;overflow-y:auto}
 </style>
 
 <style id="template-css">
-.ds-slide-frame{
-  --d-cream:#FCF1D8; --d-ink:#2A2624; --d-sage:#BBD0A4; --d-blush:#F4B5C9;
-  --d-sun:#F7D060; --d-sky:#B4D9F4;
-  --d-ink-2:color-mix(in srgb,#2A2624 65%,#FCF1D8);
-  --d-ink-3:color-mix(in srgb,#2A2624 32%,#FCF1D8);
-  --d-line:color-mix(in srgb,#2A2624 14%,transparent);
-  --d-f-disp:"DM Serif Display",serif;
-  --d-f-hand:"Caveat",cursive;
-  --d-f-body:"Quicksand",sans-serif;
-  width:1920px;height:1080px;position:relative;overflow:hidden
-}
-.ds-slide-frame *{box-sizing:border-box}
-.ds-slide-frame .slide{width:1920px;height:1080px;position:relative;padding:96px 120px;display:grid;grid-template-rows:auto 1fr auto;overflow:hidden;background:var(--d-cream);color:var(--d-ink);font-family:var(--d-f-body)}
-.ds-slide-frame .slide-chrome,.ds-slide-frame .slide-foot{display:flex;justify-content:space-between;align-items:center;font:600 16px/1 var(--d-f-body);letter-spacing:.14em;text-transform:uppercase;color:var(--d-ink-3)}
-.ds-slide-frame .slide-chrome{padding-bottom:18px;border-bottom:1px dashed var(--d-line);margin-bottom:40px}
-.ds-slide-frame .slide-foot{padding-top:18px;border-top:1px dashed var(--d-line);margin-top:40px}
-.ds-slide-frame .slide-chrome .accent,.ds-slide-frame .slide-foot .accent{color:var(--d-blush)}
-.ds-slide-frame .display{font:italic 400 240px/.92 var(--d-f-disp);letter-spacing:-.018em;color:var(--d-ink)}
-.ds-slide-frame .display em{font-style:normal;color:var(--d-blush)}
-.ds-slide-frame .h1{font:400 144px/.95 var(--d-f-disp);letter-spacing:-.012em;color:var(--d-ink)}
-.ds-slide-frame .h1 em{font-style:italic;color:var(--d-blush)}
-.ds-slide-frame .h2{font:400 88px/1.05 var(--d-f-disp);letter-spacing:-.005em;color:var(--d-ink)}
-.ds-slide-frame .h2 em{font-style:italic;color:var(--d-blush)}
-.ds-slide-frame .h3{font:italic 400 56px/1.15 var(--d-f-disp);color:var(--d-sage)}
-.ds-slide-frame .hand{font:700 64px/1 var(--d-f-hand);color:var(--d-blush);letter-spacing:0}
-.ds-slide-frame .lead{font:500 32px/1.5 var(--d-f-body);color:var(--d-ink)}
-.ds-slide-frame .body{font:500 24px/1.7 var(--d-f-body);color:var(--d-ink)}
-.ds-slide-frame .label{font:700 24px/1 var(--d-f-hand);color:var(--d-blush);background:#fff;padding:4px 14px;border-radius:999px;border:2px solid var(--d-ink);display:inline-block}
-.ds-slide-frame .accent{color:var(--d-blush)}
-.ds-slide-frame .muted{color:var(--d-ink-2)}
-
-.ds-slide-frame .slide--cover .slide-chrome,.ds-slide-frame .slide--cover .slide-foot{display:none}
-.ds-slide-frame .slide--cover{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;gap:36px;position:relative}
-.ds-slide-frame .cover-deco-1{position:absolute;top:80px;left:120px;width:80px;height:80px;color:var(--d-blush);transform:rotate(15deg)}
-.ds-slide-frame .cover-deco-2{position:absolute;top:140px;right:160px;width:64px;height:64px;color:var(--d-sage)}
-.ds-slide-frame .cover-deco-3{position:absolute;bottom:120px;left:160px;width:96px;height:48px;color:var(--d-sky)}
-.ds-slide-frame .cover-deco-4{position:absolute;bottom:160px;right:200px;width:56px;height:56px;color:var(--d-sun);transform:rotate(-12deg)}
-
-.ds-slide-frame .slide--chapter .slide-chrome,.ds-slide-frame .slide--chapter .slide-foot{display:none}
-.ds-slide-frame .slide--chapter{display:flex;flex-direction:column;justify-content:center;gap:32px;padding:96px 160px;background:color-mix(in srgb,var(--d-blush) 35%,var(--d-cream))}
-.ds-slide-frame .chap-num{font:700 36px/1 var(--d-f-hand);color:var(--d-ink);transform:rotate(-2deg);align-self:flex-start}
-
-.ds-slide-frame .slide--note .slide-chrome,.ds-slide-frame .slide--note .slide-foot{display:none}
-.ds-slide-frame .slide--note{display:flex;flex-direction:column;justify-content:center;padding:120px 200px;gap:48px;background:color-mix(in srgb,var(--d-sage) 35%,var(--d-cream))}
-.ds-slide-frame .note-text{font:700 96px/1.05 var(--d-f-hand);color:var(--d-ink);max-width:80%}
-.ds-slide-frame .note-attr{font:italic 400 36px/1 var(--d-f-disp);color:var(--d-ink-2);padding-top:24px;border-top:2px dashed var(--d-line);max-width:480px}
-
-.ds-slide-frame .slide--cards .slide-body{display:grid;grid-template-columns:repeat(3,1fr);gap:32px;padding-top:32px;align-items:start}
-.ds-slide-frame .pcard{background:#fff;border:3px solid var(--d-ink);border-radius:24px;padding:32px;display:flex;flex-direction:column;gap:14px;position:relative}
-.ds-slide-frame .pcard:nth-child(1){transform:rotate(-1.5deg);background:color-mix(in srgb,var(--d-blush) 40%,#fff)}
-.ds-slide-frame .pcard:nth-child(2){transform:rotate(1deg);background:color-mix(in srgb,var(--d-sage) 40%,#fff)}
-.ds-slide-frame .pcard:nth-child(3){transform:rotate(-1deg);background:color-mix(in srgb,var(--d-sun) 40%,#fff)}
-.ds-slide-frame .pcard::before{content:"";position:absolute;top:-20px;right:32px;width:48px;height:48px;border-radius:50%;border:3px solid var(--d-ink)}
-.ds-slide-frame .pcard:nth-child(1)::before{background:var(--d-blush)}
-.ds-slide-frame .pcard:nth-child(2)::before{background:var(--d-sage)}
-.ds-slide-frame .pcard:nth-child(3)::before{background:var(--d-sun)}
-.ds-slide-frame .pcard .tag{font:700 22px/1 var(--d-f-hand);color:var(--d-ink);align-self:flex-start}
-.ds-slide-frame .pcard h3{margin:0;font:400 40px/1.05 var(--d-f-disp);letter-spacing:-.005em;color:var(--d-ink)}
-.ds-slide-frame .pcard p{margin:0;font:500 20px/1.55 var(--d-f-body);color:var(--d-ink)}
-
-.ds-slide-frame .slide--stats .slide-body{display:flex;flex-direction:column;justify-content:center;gap:48px;padding-top:32px}
-.ds-slide-frame .stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:32px}
-.ds-slide-frame .stat-card{background:#fff;border:3px solid var(--d-ink);border-radius:24px;padding:32px;display:flex;flex-direction:column;gap:14px;text-align:center;align-items:center}
-.ds-slide-frame .stat-card:nth-child(1){transform:rotate(-1.5deg)}
-.ds-slide-frame .stat-card:nth-child(2){transform:rotate(1deg)}
-.ds-slide-frame .stat-card:nth-child(3){transform:rotate(-1deg)}
-.ds-slide-frame .stat-card .v{font:italic 400 144px/1 var(--d-f-disp);letter-spacing:-.02em;color:var(--d-blush)}
-.ds-slide-frame .stat-card .l{font:500 24px/1.4 var(--d-f-body);color:var(--d-ink);max-width:18ch}
-.ds-slide-frame .stat-card .n{font:700 22px/1 var(--d-f-hand);color:var(--d-sage)}
-
-.ds-slide-frame .slide--list .slide-body{display:grid;grid-template-columns:1fr 1.6fr;gap:80px;align-items:start;padding-top:32px}
-.ds-slide-frame .list-head{display:flex;flex-direction:column;gap:22px}
-.ds-slide-frame .list-items{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:18px}
-.ds-slide-frame .list-items li{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:start;padding:22px 28px;background:#fff;border:3px solid var(--d-ink);border-radius:18px}
-.ds-slide-frame .list-items li:nth-child(1){background:color-mix(in srgb,var(--d-blush) 35%,#fff);transform:rotate(-.5deg)}
-.ds-slide-frame .list-items li:nth-child(2){background:color-mix(in srgb,var(--d-sage) 35%,#fff);transform:rotate(.5deg)}
-.ds-slide-frame .list-items li:nth-child(3){background:color-mix(in srgb,var(--d-sun) 35%,#fff);transform:rotate(-.5deg)}
-.ds-slide-frame .list-items li:nth-child(4){background:color-mix(in srgb,var(--d-sky) 45%,#fff);transform:rotate(.5deg)}
-.ds-slide-frame .list-items .num{font:700 56px/1 var(--d-f-hand);color:var(--d-ink)}
-.ds-slide-frame .list-items .h{font:400 32px/1.1 var(--d-f-disp);color:var(--d-ink);display:block;margin-bottom:4px}
-.ds-slide-frame .list-items .d{font:500 20px/1.55 var(--d-f-body);color:var(--d-ink-2);display:block}
-
-.ds-slide-frame .slide--end .slide-chrome,.ds-slide-frame .slide--end .slide-foot{display:none}
-.ds-slide-frame .slide--end{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;padding:120px;gap:48px;background:color-mix(in srgb,var(--d-sky) 35%,var(--d-cream))}
-.ds-slide-frame .end-mark{font:italic 400 240px/.9 var(--d-f-disp);letter-spacing:-.018em;color:var(--d-ink)}
-.ds-slide-frame .end-mark em{font-style:normal;color:var(--d-blush)}
-.ds-slide-frame .end-sub{font:700 56px/1 var(--d-f-hand);color:var(--d-ink-2)}
+__TEMPLATE_CSS__
 </style>
 
 <!-- Reusable SVG daisy (per-slide-frame instances reference these via use, but inline copies are simpler) -->
 </head>
 <body>
+
+<canvas id="design-bg"></canvas>
+<div id="bg-veil"></div>
 
 <!-- ───────────── NAV ───────────── -->
 <div class="rail">
@@ -291,13 +226,14 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
       <ellipse cx="17.8" cy="6.2" rx="3.6" ry="2.8" fill="#fff" stroke="#2A2624" stroke-width="1.4" transform="rotate(-45 17.8 6.2)"/>
       <ellipse cx="6.2" cy="17.8" rx="3.6" ry="2.8" fill="#fff" stroke="#2A2624" stroke-width="1.4" transform="rotate(-45 6.2 17.8)"/>
     </svg>
-    <b>Daisy Days</b>
+    <b>__NAME__</b>
   </div>
   <nav>
     <a href="#palette">palette</a>
     <a href="#type">type</a>
     <a href="#surface">surface</a>
     <a href="#motion">motion</a>
+    <a href="#background">background</a>
     <a href="#guidelines">rules</a>
     <a href="#templates">templates</a>
   </nav>
@@ -331,13 +267,13 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
     <div>design system № 008</div>
     <div class="accent">a friendly little system ☘</div>
   </div>
-  <h1 class="cover-headline">daisy <em>days</em>.</h1>
+  <h1 class="cover-headline">__NAME__</h1>
   <p class="cover-sub">— a cheerful, handmade-feeling deck system —</p>
   <div class="cover-foot">
     <div class="cell"><span class="k">Discipline</span><span class="v">Kids · Wellness · Craft</span></div>
     <div class="cell"><span class="k">Display</span><span class="v hand">DM Serif italic</span></div>
-    <div class="cell"><span class="k">Mood</span><span class="v">Pastel, sunny, soft</span></div>
-    <div class="cell"><span class="k">Volume</span><span class="v plain">06 sections · 07 frames</span></div>
+    <div class="cell"><span class="k">Mood</span><span class="v">__ACCENT_LABEL__</span></div>
+    <div class="cell"><span class="k">Volume</span><span class="v plain">07 sections · __SLIDE_COUNT__ frames</span></div>
   </div>
 </header>
 
@@ -354,13 +290,13 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
   <div class="section-head">
     <div class="num">i — palette</div>
     <h2>Four <em>seasons</em>,<br/>all friendly.</h2>
-    <p class="lede">Warm cream paper. Soft dark ink. Two pastel accents that share a slide easily — sage for calm, blush for warmth. Sun and sky stand by for a third note.</p>
+    <p class="lede">__PALETTE_LEDE__</p>
   </div>
   <div class="palette">
-    <div class="swatch swatch--cream"><div class="role">i · cream</div><div><div class="name">cream.</div><div class="hex">__PRIMARY__</div><div class="usage">Warm paper canvas.</div></div></div>
-    <div class="swatch swatch--ink"><div class="role">ii · ink</div><div><div class="name">ink.</div><div class="hex">__SECONDARY__</div><div class="usage">Warm dark for type and outlines.</div></div></div>
-    <div class="swatch swatch--sage"><div class="role">iii · sage</div><div><div class="name">sage.</div><div class="hex">__TERTIARY__</div><div class="usage">Calm, leafy, optimistic.</div></div></div>
-    <div class="swatch swatch--blush"><div class="role">iv · blush</div><div><div class="name">blush.</div><div class="hex">__ACCENT__</div><div class="usage">The warm voice. Hearts and headlines.</div></div></div>
+    <div class="swatch swatch--cream"><div class="role">Primary · 01</div><div><div class="name">__PRIMARY_NAME__</div><div class="hex">__PRIMARY__</div><div class="usage">Warm paper canvas.</div></div></div>
+    <div class="swatch swatch--ink"><div class="role">Secondary · 02</div><div><div class="name">__SECONDARY_NAME__</div><div class="hex">__SECONDARY__</div><div class="usage">Warm dark for type and outlines.</div></div></div>
+    <div class="swatch swatch--sage"><div class="role">Tertiary · 03</div><div><div class="name">__TERTIARY_NAME__</div><div class="hex">__TERTIARY__</div><div class="usage">Calm, leafy, optimistic.</div></div></div>
+    <div class="swatch swatch--blush"><div class="role">Accent · 04</div><div><div class="name">__ACCENT_NAME__</div><div class="hex">__ACCENT__</div><div class="usage">The warm voice. Hearts and headlines.</div></div></div>
   </div>
 </section>
 
@@ -396,11 +332,11 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
       <div class="num-stat">+42%</div>
     </div>
     <ul class="tokens">
-      <li><span class="name">Corners</span><span class="val">24 px</span><span class="bar" style="width:44px"></span></li>
-      <li><span class="name">Outline</span><span class="val">2 px ink</span><span class="bar" style="width:16px"></span></li>
-      <li><span class="name">Padding</span><span class="val">28 px</span><span class="bar" style="width:36px"></span></li>
-      <li><span class="name">Tilt</span><span class="val">±1.5°</span><span class="bar" style="width:18px"></span></li>
-      <li><span class="name">Density</span><span class="val">Comfortable</span><span class="bar" style="width:48px"></span></li>
+      <li><span class="name">Corners</span><span class="val">__CORNER_RADIUS__</span><span class="bar" style="width:44px"></span></li>
+      <li><span class="name">Padding</span><span class="val">__PADDING__</span><span class="bar" style="width:36px"></span></li>
+      <li><span class="name">Gap</span><span class="val">__GAP__</span><span class="bar" style="width:32px"></span></li>
+      <li><span class="name">Elevation</span><span class="val">__ELEVATION__</span><span class="bar" style="width:18px"></span></li>
+      <li><span class="name">Density</span><span class="val">__DENSITY__</span><span class="bar" style="width:48px"></span></li>
     </ul>
   </div>
 </section>
@@ -409,155 +345,94 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
 <section id="motion" data-screen-label="04 Motion">
   <div class="section-head">
     <div class="num">iv — motion</div>
-    <h2>Bouncy.<br/><em>Hopeful.</em></h2>
-    <p class="lede">Elements arrive with a small bounce — overshoot, then settle. Like flowers nodding in a breeze.</p>
+    <h2>__EASING_HEADLINE__</h2>
+    <p class="lede">__EASING_LEDE__</p>
   </div>
   <div class="two-col">
     <div class="panel">
       <span class="label-row">— easing —</span>
-      <h4>back.out(1.2)</h4>
-      <p>Gentle overshoot, soft landing. Use for entrances of cards, headlines, and decorative SVG.</p>
-      <pre>cubic-bezier(0.34, 1.36, 0.64, 1)</pre>
+      <h4>__EASING_NAME__</h4>
+      <p>__EASING_DESC__</p>
+      <pre>__EASING_VALUE__</pre>
     </div>
     <div class="panel">
       <span class="label-row">— duration —</span>
-      <h4>0.9s</h4>
-      <p>Slides resolve in 0.9 seconds. Cards bounce in 0.6. Hovers in 0.2.</p>
-      <pre>--dur-slide: 0.9s
---dur-enter: 0.6s
---dur-hover: 0.2s</pre>
+      <h4>__DURATION_DEFAULT__</h4>
+      <p>__DURATION_DESC__</p>
+      <pre>__DURATION_VALUES__</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ───────────── BACKGROUND ───────────── -->
+<section id="background" data-screen-label="05 Background">
+  <div class="section-head">
+    <div class="num">v — background</div>
+    <h2>__BG_HEADLINE__</h2>
+    <p class="lede">__BG_LEDE__</p>
+  </div>
+  <div class="two-col">
+    <div class="bg-preview"><canvas id="bg-preview-canvas"></canvas><span class="badge">__BG_BADGE__</span></div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <ul class="tokens" style="border-top:none">
+        <li><span class="name">Geometry</span><span class="val">__BG_TYPE__</span><span class="bar" style="width:36px"></span></li>
+        <li><span class="name">Density</span><span class="val">__BG_DENSITY__</span><span class="bar" style="width:42px"></span></li>
+        <li><span class="name">Speed</span><span class="val">__BG_SPEED__</span><span class="bar" style="width:18px"></span></li>
+        <li><span class="name">Strength</span><span class="val">__BG_STRENGTH__</span><span class="bar" style="width:52px"></span></li>
+        <li><span class="name">Grain</span><span class="val">__BG_GRAIN__</span><span class="bar" style="width:24px"></span></li>
+      </ul>
+      <details class="code-block"><summary>shader config (json)</summary>
+<pre>__SHADER_CONFIG__</pre>
+      </details>
+      <details class="code-block"><summary>vertex shader (glsl)</summary>
+<pre id="vtx-src">__SHADER_VERTEX__</pre>
+      </details>
+      <details class="code-block"><summary>fragment shader (glsl)</summary>
+<pre id="frg-src">__SHADER_FRAGMENT__</pre>
+      </details>
     </div>
   </div>
 </section>
 
 <!-- ───────────── GUIDELINES ───────────── -->
-<section id="guidelines" data-screen-label="05 Guidelines">
+<section id="guidelines" data-screen-label="06 Guidelines">
   <div class="section-head">
-    <div class="num">v — guidelines</div>
+    <div class="num">vi — guidelines</div>
     <h2>Yes please.<br/><em>No thank you.</em></h2>
     <p class="lede">A short list of rules. The garden softens the moment any are broken.</p>
   </div>
   <div class="rules-grid">
     <div class="rules-col do">
       <h3>yes please.</h3>
-      <ul>
-        <li>Use sage and blush together — they share happily.</li>
-        <li>Round every corner at least 18px.</li>
-        <li>Outline every card in 2px ink.</li>
-        <li>Tilt cards ±1.5°. Never perfectly aligned.</li>
-        <li>Scatter daisies, stars, and rainbows freely.</li>
-      </ul>
+      <ul>__DOS__</ul>
     </div>
     <div class="rules-col dont">
       <h3>no thank you.</h3>
-      <ul>
-        <li>Use sharp 0px corners. The page should feel kind.</li>
-        <li>Set type in heavy condensed sans — it fights the mood.</li>
-        <li>Apply harsh drop-shadows. Outlines only.</li>
-        <li>Use cool grey. Tint everything warm.</li>
-        <li>Lock cards to a strict grid.</li>
-      </ul>
+      <ul>__DONTS__</ul>
     </div>
   </div>
 </section>
 
 <!-- ───────────── TEMPLATES ───────────── -->
-<section id="templates" class="templates-wrap" data-screen-label="06 Templates">
+<section id="templates" class="templates-wrap" data-screen-label="07 Templates">
   <div class="section-head">
-    <div class="num">vi — templates</div>
-    <h2>Seven<br/><em>little garden plots.</em></h2>
+    <div class="num">vii — templates</div>
+    <h2>__SLIDE_COUNT_WORD__<br/><em>little garden plots.</em></h2>
     <p class="lede">The full library at 1920×1080. Each thumbnail is the live slide, scaled.</p>
   </div>
   <div class="templates-grid" id="templates-grid"></div>
 </section>
 
 <template id="tmpl-source">
-
-<div class="tmpl" data-idx="01"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--cover">
-<svg class="cover-deco-1" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 2 L14 9 L21 11 L14 13 L12 22 L10 13 L3 11 L10 9 Z" stroke="#2A2624" stroke-width="1.2" fill="currentColor"/></svg>
-<svg class="cover-deco-2" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><circle cx="12" cy="12" r="3" fill="#F7D060" stroke="#2A2624" stroke-width="1.2"/><circle cx="12" cy="4" r="2.8" fill="currentColor" stroke="#2A2624" stroke-width="1.2"/><circle cx="12" cy="20" r="2.8" fill="currentColor" stroke="#2A2624" stroke-width="1.2"/><circle cx="4" cy="12" r="2.8" fill="currentColor" stroke="#2A2624" stroke-width="1.2"/><circle cx="20" cy="12" r="2.8" fill="currentColor" stroke="#2A2624" stroke-width="1.2"/></svg>
-<svg class="cover-deco-3" viewBox="0 0 60 30" xmlns="http://www.w3.org/2000/svg"><path d="M5 28 Q30 -5 55 28" stroke="#F4B5C9" stroke-width="5" fill="none"/><path d="M10 28 Q30 0 50 28" stroke="#F7D060" stroke-width="5" fill="none"/><path d="M15 28 Q30 5 45 28" stroke="#BBD0A4" stroke-width="5" fill="none"/></svg>
-<svg class="cover-deco-4" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 3 L13.5 9 L19.5 9.5 L15 13.5 L16.8 19.5 L12 16 L7.2 19.5 L9 13.5 L4.5 9.5 L10.5 9 Z" stroke="#2A2624" stroke-width="1.2"/></svg>
-<h1 class="display">{{headline}}</h1>
-<p class="hand">— {{text}} —</p>
-<p class="lead">{{body}}</p>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">cover</span><span class="idx">i / vii</span></div></div>
-
-<div class="tmpl" data-idx="02"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--chapter">
-<div class="chap-num">~ {{label}} ~</div>
-<h2 class="h1">{{headline}}</h2>
-<p class="lead">{{body}}</p>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">chapter</span><span class="idx">ii / vii</span></div></div>
-
-<div class="tmpl" data-idx="03"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--note">
-<div class="note-text">"{{body}}"</div>
-<div class="note-attr">— {{text}}, {{label}}</div>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">note</span><span class="idx">iii / vii</span></div></div>
-
-<div class="tmpl" data-idx="04"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--cards">
-<header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header>
-<div class="slide-body">
-<div class="pcard"><span class="tag">{{text}}</span><h3>{{headline}}</h3><p>{{body}}</p></div>
-<div class="pcard"><span class="tag">{{text}}</span><h3>{{headline}}</h3><p>{{body}}</p></div>
-<div class="pcard"><span class="tag">{{text}}</span><h3>{{headline}}</h3><p>{{body}}</p></div>
-</div>
-<footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">cards</span><span class="idx">iv / vii</span></div></div>
-
-<div class="tmpl" data-idx="05"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--stats">
-<header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header>
-<div class="slide-body">
-<h2 class="h2"><em>{{headline}}</em></h2>
-<div class="stats-grid">
-<div class="stat-card"><span class="v">{{number}}</span><span class="l">{{body}}</span><span class="n">{{label}}</span></div>
-<div class="stat-card"><span class="v">{{number}}</span><span class="l">{{body}}</span><span class="n">{{label}}</span></div>
-<div class="stat-card"><span class="v">{{number}}</span><span class="l">{{body}}</span><span class="n">{{label}}</span></div>
-</div>
-</div>
-<footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">stats</span><span class="idx">v / vii</span></div></div>
-
-<div class="tmpl" data-idx="06"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--list">
-<header class="slide-chrome"><span>{{label}}</span><span class="accent">{{label}}</span></header>
-<div class="slide-body">
-<div class="list-head"><span class="label">{{label}}</span><h3 class="h3">{{headline}}</h3><p class="body muted">{{body}}</p></div>
-<ul class="list-items">
-<li><span class="num">{{number}}.</span><div><span class="h">{{headline}}</span><span class="d">{{body}}</span></div></li>
-<li><span class="num">{{number}}.</span><div><span class="h">{{headline}}</span><span class="d">{{body}}</span></div></li>
-<li><span class="num">{{number}}.</span><div><span class="h">{{headline}}</span><span class="d">{{body}}</span></div></li>
-<li><span class="num">{{number}}.</span><div><span class="h">{{headline}}</span><span class="d">{{body}}</span></div></li>
-</ul>
-</div>
-<footer class="slide-foot"><span>{{label}}</span><span>{{number}}</span></footer>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">list</span><span class="idx">vi / vii</span></div></div>
-
-<div class="tmpl" data-idx="07"><div class="tmpl-thumb"><div class="scale-wrap"><div class="ds-slide-frame">
-<section class="slide slide--end">
-<h2 class="end-mark">{{text}} <em>{{text}}</em></h2>
-<p class="end-sub">— {{body}} —</p>
-</section>
-</div></div></div><div class="tmpl-foot"><span class="name">end</span><span class="idx">vii / vii</span></div></div>
-
+__SLIDE_CARDS__
 </template>
 
-<footer class="endcap" data-screen-label="07 End">
+<footer class="endcap" data-screen-label="08 End">
   <h2 class="endmark">thank you <em>!</em></h2>
   <div class="meta">
-    <div><b>Daisy Days</b></div>
+    <div><b>__NAME__</b></div>
     <div>DM Serif Display / Caveat / Quicksand</div>
-    <div>Compiled May 2026 ☘</div>
+    <div>Compiled __DATE__ ☘</div>
   </div>
 </footer>
 
@@ -569,6 +444,8 @@ footer.endcap .meta b{color:var(--ink);font-family:var(--f-disp);font-weight:400
   if(document.fonts&&document.fonts.ready)document.fonts.ready.then(rescale);
 })();
 </script>
+
+__SHADER_SCRIPT__
 
 </body>
 </html>
