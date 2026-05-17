@@ -1079,16 +1079,19 @@ async function runTestSuite(
         videoMetadata.durationSeconds,
         snapshotMetadata.durationSeconds,
       );
+      const fps = fpsToNumber(suite.meta.renderConfig.fps);
+      // Container duration includes audio padding past the last video frame
+      // (e.g. many-cuts: 5.654s container vs 5.6s of video). At i=99 the
+      // raw container duration maps to a frame index past nb_frames, and
+      // ffmpeg's PSNR filter emits no `average:` line for a non-existent
+      // frame. Subtract one frame interval so the last checkpoint always
+      // lands on a frame the video stream actually contains.
+      const sampleDuration = Math.max(0, videoDuration - 1 / fps);
 
       const minPsnrForMode = resolveMinPsnrForMode(options.mode, suite.meta.minPsnr);
       for (let i = 0; i < 100; i++) {
-        const time = (videoDuration * i) / 100;
-        const psnr = psnrAtCheckpoint(
-          renderedOutputPath,
-          snapshotVideoPath,
-          time,
-          fpsToNumber(suite.meta.renderConfig.fps),
-        );
+        const time = (sampleDuration * i) / 100;
+        const psnr = psnrAtCheckpoint(renderedOutputPath, snapshotVideoPath, time, fps);
         visualCheckpoints.push({
           time,
           psnr,
