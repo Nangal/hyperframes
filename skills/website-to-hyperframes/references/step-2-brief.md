@@ -164,8 +164,4 @@ You have all of these before proceeding:
 5. **Narration** — yes (full), minimal (hook only), or no (visual-only)
 6. **Format** — landscape, portrait, or square
 
-Write a one-paragraph **Creative Direction Summary** and confirm with the user:
-
-> "Here's what I'll build: A 25-35s cinematic product demo in landscape. Dark atmosphere matching your brand's design language. Opening with your logo drawing itself, followed by a dramatic 3D MacBook reveal of your dashboard. Middle section: moderate-paced feature walkthrough with clean transitions. Closing with a gradient background and CTA. Full narration with ambient underscore. It's going to go into a production storyboard development to make everything more engaging and interesting. Does this capture what you want, or should I adjust anything?"
-
-Only proceed to Step 3 (Storyboard) after the user confirms.
+Proceed directly to Step 3. The storyboard's Global Direction section captures the creative plan — no separate summary needed.
