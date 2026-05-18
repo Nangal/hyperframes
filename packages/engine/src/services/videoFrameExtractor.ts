@@ -512,8 +512,10 @@ export function resolveProjectRelativeSrc(
   baseDir: string,
   compiledDir?: string,
 ): string {
-  const fromCompiled = compiledDir ? join(compiledDir, src) : null;
-  const fromBase = join(baseDir, src);
+  const qIdx = src.indexOf("?");
+  const cleanSrc = qIdx >= 0 ? src.slice(0, qIdx) : src;
+  const fromCompiled = compiledDir ? join(compiledDir, cleanSrc) : null;
+  const fromBase = join(baseDir, cleanSrc);
   const candidates: string[] = [];
   if (fromCompiled) candidates.push(fromCompiled);
   candidates.push(fromBase);
