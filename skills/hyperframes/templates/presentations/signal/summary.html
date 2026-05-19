@@ -695,28 +695,344 @@
     />
 
 <!-- slide--cover -->
-<section class="slide dark slide--cover"> <div class="cover-body">  <div class="label muted">[Period] · [Audience] · [Deck Type]</div>  <div class="rule"></div>  <h1 class="display"> [Presentation]<br />Title</h1>  <p class="lead" >A short description of the deck, its purpose, and the decision it supports.</p>  <div class="cover-meta"> <span class="label muted">[Author Name] · [Role]</span> <span class="label muted">[Version] · [Status] · [Period]</span> </div> </div> </section>
+<section class="slide dark slide--cover">
+        <div class="cover-body">
+          
+          <div class="label muted">
+            [Period] · [Audience] · [Deck Type]
+          </div>
+
+          
+          <div class="rule"></div>
+
+          
+          <h1 class="display">
+            [Presentation]<br />Title
+          </h1>
+
+          
+          <p
+            class="lead"
+            style="
+              
+              font-family: var(--f-heading);
+              max-width: 52%;
+              color: var(--c-fg-2);
+            "
+          >
+            A short description of the deck, its purpose, and the decision it
+            supports.
+          </p>
+
+          
+          <div class="cover-meta">
+            <span class="label muted">[Author Name] · [Role]</span>
+            <span class="label muted">[Version] · [Status] · [Period]</span>
+          </div>
+        </div>
+      </section>
 
 <!-- slide--chapter -->
-<section class="slide dark slide--chapter">  <div class="chapter-num">01 · [Section]</div>  <div class="chapter-rule"></div>  <h1 class="h1" >Section headline with one emphasized idea</h1>  <p class="lead muted" >A brief setup sentence that explains what this section covers and why it matters.</p> </section>
+<section class="slide dark slide--chapter">
+        
+        <div class="chapter-num">
+          01 · [Section]
+        </div>
+        
+        <div class="chapter-rule"></div>
+        
+        <h1
+          class="h1"
+          style="max-width: 62%; margin-bottom: var(--gap-md)"
+        >
+          Section headline with one emphasized idea
+        </h1>
+        
+        <p
+          class="lead muted"
+          style="max-width: 50%"
+        >
+          A brief setup sentence that explains what this section covers and why
+          it matters.
+        </p>
+      </section>
 
 <!-- slide--statement -->
-<section class="slide dark slide--statement">  <div class="slide-chrome"> <span class="label muted" >[Slide Label]</span > <span class="label muted">03</span> </div> <div class="slide-body"> <div class="statement-body">  <div class="kicker">[Kicker Label]</div>  <div class="rule"></div>  <h1 class="h1" >A concise statement that frames the main argument in one memorable sentence.</h1> </div> </div> <div class="slide-foot"> <span class="label muted"></span> <span class="label muted">03 / 18</span> </div> </section>
+<section class="slide dark slide--statement">
+        
+        <div class="slide-chrome">
+          <span class="label muted"
+            >[Slide Label]</span
+          >
+          <span class="label muted">03</span>
+        </div>
+
+        <div class="slide-body">
+          <div class="statement-body">
+            
+            <div class="kicker">
+              [Kicker Label]
+            </div>
+            
+            <div class="rule"></div>
+            
+            <h1
+              class="h1"
+              style="max-width: 68%"
+            >
+              A concise statement that frames the main argument in one
+              memorable sentence.
+            </h1>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span class="label muted"></span>
+          <span class="label muted">03 / 18</span>
+        </div>
+      </section>
 
 <!-- slide--split -->
-<section class="slide light slide--split">  <div class="slide-chrome"> <span class="label" >[Category] · [Topic]</span > <span class="label" >04</span > </div> <div class="slide-body">  <div class="split-text"> <div class="kicker">[Kicker Label]</div> <h2 class="h2">Main headline for a split-layout slide</h2> <p class="lead">Use this paragraph for the core explanation. Keep it short, specific, and easy to scan.</p>  <ul class="bullet-list"> <li>First supporting point with concise context</li> <li>Second supporting point with concise context</li> <li>Third supporting point with concise context</li> </ul> </div>  <div class="split-image" > <div > <span >Image Placeholder</span > </div> <p class="img-caption">Image Placeholder</p> </div> </div> <div class="slide-foot"> <span class="label"></span> <span class="label">[Caption for image]</span> </div> </section>
+<section class="slide light slide--split">
+        
+        <div class="slide-chrome">
+          <span
+            class="label"
+            style="color: var(--c-fg-light-2)"
+            >[Category] · [Topic]</span
+          >
+          <span
+            class="label"
+            style="color: var(--c-fg-light-2)"
+            >04</span
+          >
+        </div>
+
+        <div class="slide-body">
+          
+          <div class="split-text">
+            <div class="kicker">[Kicker Label]</div>
+            <h2 class="h2">
+              Main headline for a split-layout slide
+            </h2>
+            <p class="lead" style="color: var(--c-fg-light-2)">
+              Use this paragraph for the core explanation. Keep it short,
+              specific, and easy to scan.
+            </p>
+            
+            <ul class="bullet-list" style="font-size: var(--sz-body)">
+              <li>First supporting point with concise context</li>
+              <li>Second supporting point with concise context</li>
+              <li>Third supporting point with concise context</li>
+            </ul>
+          </div>
+
+          
+          <div
+            class="split-image"
+            style="display: flex; flex-direction: column; gap: var(--gap-sm)"
+          >
+            <div
+              style="
+                flex: 1;
+                background: var(--c-bg-light-alt);
+                border: 1px solid var(--c-border-light);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                min-height: 28vh;
+              "
+            >
+              <span
+                style="
+                  font-family: var(--f-mono);
+                  font-size: var(--sz-label);
+                  color: var(--c-fg-light-3);
+                  letter-spacing: 0.12em;
+                  text-transform: uppercase;
+                "
+                >Image Placeholder</span
+              >
+            </div>
+            <p class="img-caption" style="color: var(--c-fg-light-3)">
+              [Caption for image]
+            </p>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span class="label" style="color: var(--c-fg-light-2)"></span>
+          <span class="label" style="color: var(--c-fg-light-2)">04 / 18</span>
+        </div>
+      </section>
 
 <!-- slide--stats -->
-<section class="slide dark slide--stats">  <div class="slide-chrome"> <span class="label muted" >[Category] · [Metrics]</span > <span class="label muted">05</span> </div> <div class="slide-body">  <h2 class="h2">Three metrics that summarize the current state</h2>  <div class="stats-grid"> <div class="stat-card"> <div class="stat-value">[X]%</div> <div class="stat-label">Short description of the first metric and its meaning</div> <div class="stat-note">[Source] · [Date]</div> </div> <div class="stat-card"> <div class="stat-value">[Y]×</div> <div class="stat-label">Short description of the second metric and its meaning</div> <div class="stat-note">[Method or source]</div> </div> <div class="stat-card"> <div class="stat-value">[Z]</div> <div class="stat-label">Short description of the third metric and its meaning</div> <div class="stat-note">[Benchmark]</div> </div> </div> </div> <div class="slide-foot"> <span class="label muted"></span> <span class="label muted">05 / 18</span> </div> </section>
+<section class="slide dark slide--stats">
+        
+        <div class="slide-chrome">
+          <span class="label muted"
+            >[Category] · [Metrics]</span
+          >
+          <span class="label muted">05</span>
+        </div>
+
+        <div class="slide-body">
+          
+          <h2 class="h2">
+            Three metrics that summarize the current state
+          </h2>
+
+          
+          <div class="stats-grid">
+            <div class="stat-card">
+              <div class="stat-value">[X]%</div>
+              <div class="stat-label">
+                Short description of the first metric and its meaning
+              </div>
+              <div class="stat-note">[Source] · [Date]</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">[Y]×</div>
+              <div class="stat-label">
+                Short description of the second metric and its meaning
+              </div>
+              <div class="stat-note">[Method or source]</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-value">[Z]</div>
+              <div class="stat-label">
+                Short description of the third metric and its meaning
+              </div>
+              <div class="stat-note">[Benchmark]</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span class="label muted"></span>
+          <span class="label muted">05 / 18</span>
+        </div>
+      </section>
 
 <!-- slide--quote -->
-<section class="slide dark slide--quote">  <div class="quote-mark">"</div>  <p class="quote-text">A short pull quote or highlighted observation can sit here.</p>  <div class="quote-attr"> <span class="label accent">[Source Name]</span> <span class="label muted">[Source Role] · [Context]</span> </div> </section>
+<section class="slide dark slide--quote">
+        
+        <div class="quote-mark">"</div>
+
+        
+        <p class="quote-text">
+          A short pull quote or highlighted observation can sit here.
+        </p>
+
+        
+        <div class="quote-attr">
+          <span class="label accent">[Source Name]</span>
+          <span class="label muted">[Source Role] · [Context]</span>
+        </div>
+      </section>
 
 <!-- slide--list -->
-<section class="slide light slide--list">  <div class="slide-chrome"> <span class="label" >[Framework]</span > <span class="label" >07</span > </div> <div class="slide-body">  <div class="list-head"> <div class="kicker">[Kicker Label]</div> <h2 class="h2">Five principles that shape the recommended approach</h2> <p class="body">Use this sentence to introduce the list and clarify how the points should be read.</p> </div>  <ul class="bullet-list"> <li>First principle written as a complete sentence</li> <li>Second principle written as a complete sentence</li> <li>Third principle written as a complete sentence</li> <li>Fourth principle written as a complete sentence</li> <li>Fifth principle written as a complete sentence</li> </ul> </div> <div class="slide-foot"> <span class="label"></span> <span class="label">07 / 18</span> </div> </section>
+<section class="slide light slide--list">
+        
+        <div class="slide-chrome">
+          <span
+            class="label"
+            style="color: var(--c-fg-light-2)"
+            >[Framework]</span
+          >
+          <span
+            class="label"
+            style="color: var(--c-fg-light-2)"
+            >07</span
+          >
+        </div>
+
+        <div class="slide-body">
+          
+          <div class="list-head">
+            <div class="kicker">[Kicker Label]</div>
+            <h2 class="h2">
+              Five principles that shape the recommended approach
+            </h2>
+            <p class="body" style="color: var(--c-fg-light-2)">
+              Use this sentence to introduce the list and clarify how the
+              points should be read.
+            </p>
+          </div>
+
+          
+          <ul class="bullet-list">
+            <li>
+              First principle written as a complete sentence
+            </li>
+            <li>
+              Second principle written as a complete sentence
+            </li>
+            <li>
+              Third principle written as a complete sentence
+            </li>
+            <li>Fourth principle written as a complete sentence</li>
+            <li>Fifth principle written as a complete sentence</li>
+          </ul>
+        </div>
+
+        <div class="slide-foot">
+          <span class="label" style="color: var(--c-fg-light-2)"></span>
+          <span class="label" style="color: var(--c-fg-light-2)">07 / 18</span>
+        </div>
+      </section>
 
 <!-- slide--compare -->
-<section class="slide dark slide--compare">  <div class="slide-chrome"> <span class="label muted" >[Before] · [After]</span > <span class="label muted">08</span> </div> <div class="slide-body">  <div class="compare-panel left"> <div class="compare-label">[Current State]</div> <h3 class="h3">Headline describing the current state</h3> <p class="lead">Describe the current approach, the friction it creates, and why it needs to change.</p> <ul class="bullet-list"> <li>Current limitation or source of friction</li> <li>Current limitation or source of friction</li> <li>Current limitation or source of friction</li> </ul> </div>  <div class="compare-panel right"> <div class="compare-label after">[Proposed State]</div> <h3 class="h3">Headline describing the proposed approach</h3> <p class="lead">Describe the improved approach, the behavior it enables, and the outcome it supports.</p> <ul class="bullet-list"> <li>Expected improvement or capability</li> <li>Expected improvement or capability</li> <li>Expected improvement or capability</li> </ul> </div> </div> <div class="slide-foot"> <span class="label muted"></span> <span class="label muted">08 / 18</span> </div> </section>
+<section class="slide dark slide--compare">
+        
+        <div class="slide-chrome">
+          <span class="label muted"
+            >[Before] · [After]</span
+          >
+          <span class="label muted">08</span>
+        </div>
+
+        <div class="slide-body">
+          
+          <div class="compare-panel left">
+            <div class="compare-label">[Current State]</div>
+            <h3 class="h3">
+              Headline describing the current state
+            </h3>
+            <p class="lead" style="color: var(--c-fg-2)">
+              Describe the current approach, the friction it creates, and why it
+              needs to change.
+            </p>
+            <ul class="bullet-list" style="font-size: var(--sz-body)">
+              <li>Current limitation or source of friction</li>
+              <li>Current limitation or source of friction</li>
+              <li>Current limitation or source of friction</li>
+            </ul>
+          </div>
+
+          
+          <div class="compare-panel right">
+            <div class="compare-label after">[Proposed State]</div>
+            <h3 class="h3">
+              Headline describing the proposed approach
+            </h3>
+            <p class="lead" style="color: var(--c-fg-2)">
+              Describe the improved approach, the behavior it enables, and the
+              outcome it supports.
+            </p>
+            <ul class="bullet-list" style="font-size: var(--sz-body)">
+              <li>Expected improvement or capability</li>
+              <li>Expected improvement or capability</li>
+              <li>Expected improvement or capability</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="slide-foot">
+          <span class="label muted"></span>
+          <span class="label muted">08 / 18</span>
+        </div>
+      </section>
 
 <!-- slide--editorial -->
 <section class="slide dark slide--editorial">  <div class="slide-chrome"> <span class="label muted" >— § [Section]</span > <span class="label muted" >[Deck Name] · [Period] · <span class="accent">[Year]</span></span > </div>  <div class="editorial-stamp"> [Issue] <span class="accent">[N]</span> · [Review Label] </div>  <h2 class="editorial-hl">Editorial headline with one accented word for emphasis.</h2>  <div class="editorial-cols">  <div class="editorial-col-left"> <div class="editorial-col-head">[Sequence]</div> <div class="log-list"> <div class="log-row"> <span class="log-dt">[Date]</span> <span class="log-dd" >First event or observation appears. Short implication.</span > </div> <div class="log-row"> <span class="log-dt">[Date]</span> <span class="log-dd" >Second event or observation appears. Short implication.</span > </div> <div class="log-row"> <span class="log-dt">[Date]</span> <span class="log-dd" >Third event or observation appears. Short implication.</span > </div> <div class="log-row"> <span class="log-dt">[Date]</span> <span class="log-dd" >Fourth event adds context. A key pattern holds across the data.</span > </div> <div class="log-row"> <span class="log-dt">[Date]</span> <span class="log-dd" >Fifth event confirms part of the hypothesis and challenges another assumption.</span > </div> <div class="log-row"> <span class="log-dt">[Date]</span> <span class="log-dd" >Final event closes the sequence and clarifies the next question.</span > </div> </div> </div>  <div class="editorial-col-right"> <div class="editorial-col-head">[Key Readings]</div>  <div class="stat-4"> <div class="stat-4-cell"> <div class="stat-4-val">[A]%</div> <div class="stat-4-label">Metric label · [Segment] · [Period]</div> </div> <div class="stat-4-cell"> <div class="stat-4-val">[B]x</div> <div class="stat-4-label">Metric label vs. comparison period</div> </div> <div class="stat-4-cell"> <div class="stat-4-val">[C]pt</div> <div class="stat-4-label">Metric label · [Segment]</div> </div> <div class="stat-4-cell"> <div class="stat-4-val">+[D]</div> <div class="stat-4-label">Net change across selected group</div> </div> </div> </div> </div>  <div class="editorial-analysis">Use this analysis line to synthesize the sequence above. Explain what changed, why it matters, and what decision should follow.</div>  <div class="slide-foot"> <span class="label muted" >Sources: [Source A] · [Source B] · [Source C] · [Source D]</span > <span class="label muted">09 / 18</span> </div> </section>

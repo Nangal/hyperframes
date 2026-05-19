@@ -63,6 +63,42 @@
         opacity: 0.25;
         pointer-events: none;
       }
+      .tp-nav {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+      .tp-nav-arrow {
+        background: transparent;
+        border: 1px solid #2a2a2a;
+        color: #bbb;
+        width: 28px;
+        height: 28px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 18px;
+        line-height: 1;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.15s;
+        padding: 0;
+      }
+      .tp-nav-arrow:hover {
+        background: #1a1a1a;
+        color: #fff;
+        border-color: #444;
+      }
+      .tp-nav-title {
+        font-size: 12px;
+        font-weight: 600;
+        color: #fff;
+        letter-spacing: 0.04em;
+        min-width: 160px;
+        text-align: center;
+      }
 
       /* ── Phases ── */
       .phase {
@@ -1343,6 +1379,11 @@
     <div class="phase-bar">
       <div class="phase-tab active" id="tab-mood" onclick="showPhase('mood')">1. Template</div>
       <div class="phase-tab disabled" id="tab-tune" onclick="showPhase('tune')">2. Fine-tune</div>
+      <div class="tp-nav" id="tp-nav" style="display:none">
+        <button class="tp-nav-arrow" id="tp-nav-prev" onclick="tpNavTo(-1)" title="Previous">&#8249;</button>
+        <span class="tp-nav-title" id="tp-nav-title"></span>
+        <button class="tp-nav-arrow" id="tp-nav-next" onclick="tpNavTo(1)" title="Next">&#8250;</button>
+      </div>
       <button class="header-btn" id="fab" onclick="showOutput()">Create DESIGN.html</button>
     </div>
 
@@ -1892,6 +1933,8 @@
         });
         document.getElementById("phase-" + name).classList.add("active");
         document.getElementById("tab-" + name).classList.add("active");
+        var nav = document.getElementById("tp-nav");
+        if (nav) nav.style.display = (name === "tune" && window._currentTemplateSlug) ? "flex" : "none";
         if (name === "mood") {
           document.getElementById("fab").classList.remove("visible");
           document.getElementById("tab-tune").classList.add("disabled");
@@ -3196,10 +3239,55 @@
         document.getElementById("md-overlay").classList.remove("visible");
       }
 
+      // Template's actual --tp-* values, indexed by slug. Used for slide injection so slides render natively.
+      var NATIVE_TEMPLATE_PALETTES = {
+        "8-bit-orbit": ["#0A0E27","#0F1B3D","#E2D5F2","#F0A6CA"],
+        "biennale-yellow": ["#1B2566","#E9E5DB","#F0DA7C","#F1EE2E"],
+        "block-frame": ["#FFDC8B","#000000","#FFFFFF","#FE90E8"],
+        "blue-professional": ["#111111","#fdfae7","#6b6b6b","#1e2bfa"],
+        "bold-poster": ["#1C1410","#FFFFFF","#F5F2EF","#D8000F"],
+        "broadside": ["#f0ece5","#111111","#282826","#e85d26"],
+        "capsule": ["#1A1A1A","#F5F5F0","#1E1E1E","#E85D4E"],
+        "cartesian": ["#1a1a1a","#ede8e0","#b8b0a4","#e2dbd1"],
+        "cobalt-grid": ["#1F2BE0","#F0EBDE","#E6E0CE","#1F2BE0"],
+        "coral": ["#1A1A1A","#F5F0E8","#6B6B6B","#E85D5D"],
+        "creative-mode": ["#0F0F0F","#EFE9D9","#2A2A2A","#1F8A4C"],
+        "daisy-days": ["#2D2D2D","#F5F0E6","#F7C8D4","#F8635F"],
+        "editorial-forest": ["#1a1a17","#efe7d4","#3a5a36","#2e4a2a"],
+        "editorial-tri-tone": ["#7A1F35","#F2D86A","#7A1F35","#F2B6C6"],
+        "emerald-editorial": ["#0F1A5C","#3CD896","#3A4593","#25B377"],
+        "grove": ["#d4cfbf","#192b1b","#dedad0","#c8524a"],
+        "long-table": ["#B53D2A","#FAF1E2","#E8D7B6","#8E2D1F"],
+        "mat": ["#f0e8d2","#232e26","#2e3d30","#c07030"],
+        "monochrome": ["#1a1a16","#fafadf","#1a1a16","#fafadf"],
+        "neo-grid-bold": ["#0A0A0A","#ECECE8","#0A0A0A","#E6FF3D"],
+        "peoples-platform": ["#0E0E14","#F4E9D6","#F5F2EA","#2C2CDC"],
+        "pink-script": ["#060507","#F5EDF1","#0F0D11","#ED3D8C"],
+        "playful": ["#1A1A1A","#F0C8A0","#F7DEC6","#E8B88E"],
+        "raw-grid": ["#0a0a0a","#ffffff","#f5f5f5","#f2d4cf"],
+        "retro-windows": ["#000000","#c0c0c0","#808080","#000080"],
+        "retro-zine": ["#1A1A1A","#C8B99A","#1A1A1A","#008F4D"],
+        "sakura-chroma": ["#3A2516","#F1E6CB","#3A2516","#E5392A"],
+        "scatterbrain": ["#2d2a26","#faf8f3","#5c5750","#ffe066"],
+        "signal": ["#e2dcd0","#1c2644","#2e3d5c","#c8a870"],
+        "soft-editorial": ["#2A241B","#F2EEDF","#5C5345","#E1A4C2"],
+        "stencil-tablet": ["#000000","#F4EFE0","#0A0A0A","#3F73B7"],
+        "studio": ["#f5d200","#1c1c1c","#2e2e2c","#f5d200"],
+        "vellum": ["#E8D85C","#2a3870","#343f80","#3a7878"],
+      };
+
       function updateSlideIframes() {
         var iframes = document.querySelectorAll("#sc-scene-grid iframe, #sc-specimen-grid iframe");
         if (!iframes.length) return;
-        var p = picks.palette !== null ? PALETTES[picks.palette] : PALETTES[0];
+        var slug = window._currentTemplateSlug;
+        // For Template Default: inject template's own --tp-* values so slides render exactly like the original template.
+        var p;
+        if ((picks.palette === null || picks.palette === 0) && NATIVE_TEMPLATE_PALETTES[slug]) {
+          var ntp = NATIVE_TEMPLATE_PALETTES[slug];
+          p = { primary: ntp[0], secondary: ntp[1], tertiary: ntp[2], accent: ntp[3] };
+        } else {
+          p = picks.palette !== null ? PALETTES[picks.palette] : PALETTES[0];
+        }
         var cr = picks.corners !== null ? CORNERS[picks.corners] : CORNERS[1];
         var dnIdx = picks.density !== null ? picks.density : 1;
         var dp = picks.depth !== null ? DEPTHS[picks.depth] : DEPTHS[0];
@@ -3208,60 +3296,48 @@
         var gapV = DENSITIES[dnIdx].gap || "16px";
         var shadowV = dp.css || "none";
 
-        // Rewrite the original :root block in the template's own <style> tag
+        // Build :root override (will be injected as separate style tag so other vars in original :root are preserved)
+        var I = " !important";
         var newRoot =
           ":root{" +
-          "--bg:" +
-          p.secondary +
-          ";--fg:" +
-          p.primary +
-          ";--mt:" +
-          (p.tertiary || "#888") +
-          ";--ac:" +
-          p.accent +
-          ";" +
-          "--tp-primary:" +
-          p.primary +
-          ";--tp-secondary:" +
-          p.secondary +
-          ";--tp-tertiary:" +
-          (p.tertiary || "#888") +
-          ";--tp-accent:" +
-          p.accent +
-          ";" +
-          "--hair:color-mix(in srgb," +
-          p.primary +
-          " 12%,transparent);--surf:color-mix(in srgb," +
-          p.secondary +
-          " 94%," +
-          p.primary +
-          ");--dim:color-mix(in srgb," +
-          p.primary +
-          " 55%," +
-          p.secondary +
-          ");" +
-          "--cr:" +
-          cr.value +
-          ";--pad:" +
-          padV +
-          ";--gap:" +
-          gapV +
-          ";--shadow:" +
-          shadowV +
-          ";" +
+          "--bg:" + p.secondary + I +
+          ";--fg:" + p.primary + I +
+          ";--mt:" + (p.tertiary || "#888") + I +
+          ";--ac:" + p.accent + I + ";" +
+          "--tp-primary:" + p.primary + I +
+          ";--tp-secondary:" + p.secondary + I +
+          ";--tp-tertiary:" + (p.tertiary || "#888") + I +
+          ";--tp-accent:" + p.accent + I + ";" +
+          "--hair:color-mix(in srgb," + p.primary + " 12%,transparent)" + I +
+          ";--surf:color-mix(in srgb," + p.secondary + " 94%," + p.primary + ")" + I +
+          ";--dim:color-mix(in srgb," + p.primary + " 55%," + p.secondary + ")" + I + ";" +
+          "--cr:" + cr.value + I +
+          ";--pad:" + padV + I +
+          ";--gap:" + gapV + I +
+          ";--shadow:" + shadowV + I + ";" +
           "}";
 
         iframes.forEach(function (ifr) {
           if (!ifr.contentDocument || !ifr.contentDocument.head) return;
           var doc = ifr.contentDocument;
-          // Find and rewrite the first <style> tag that contains :root
-          var styles = doc.head.querySelectorAll("style");
-          for (var si = 0; si < styles.length; si++) {
-            var txt = styles[si].textContent;
-            if (txt.indexOf(":root") !== -1) {
-              styles[si].textContent = txt.replace(/:root\s*\{[^}]+\}/, newRoot);
-              break;
-            }
+          // Set CSS vars directly on documentElement — wins over style sheets due to specificity
+          var root = doc.documentElement;
+          var props = [
+            ["--bg", p.secondary],
+            ["--fg", p.primary],
+            ["--mt", p.tertiary || "#888"],
+            ["--ac", p.accent],
+            ["--tp-primary", p.primary],
+            ["--tp-secondary", p.secondary],
+            ["--tp-tertiary", p.tertiary || "#888"],
+            ["--tp-accent", p.accent],
+            ["--cr", cr.value],
+            ["--pad", padV],
+            ["--gap", gapV],
+            ["--shadow", shadowV],
+          ];
+          for (var pi = 0; pi < props.length; pi++) {
+            root.style.setProperty(props[pi][0], props[pi][1], "important");
           }
           // Force body colors directly
           if (doc.body) {
@@ -3314,7 +3390,7 @@
         var NATIVE_PALETTES = {
           "8-bit-orbit": ["#F3F2EA", "#0A1429", "#4ADDE5", "#FF52A2"],
           "biennale-yellow": ["#F3ECDA", "#1B2960", "#C9572A", "#F4E36A"],
-          "block-frame": ["#E0F0FF", "#0A1628", "#529DAC", "#00D4FF"],
+          "block-frame": ["#FFDC8B", "#000000", "#FFFFFF", "#FE90E8"],
           "blue-professional": ["#F1ECDF", "#11151B", "#444C5A", "#2C5BFF"],
           "bold-poster": ["#F4ECDB", "#161210", "#6E5B45", "#E53935"],
           broadside: ["#f0ece5", "#111111", "#282826", "#e85d26"],
@@ -3344,7 +3420,7 @@
           signal: ["#EBE2C9", "#14202F", "#6E7780", "#BD9E54"],
           "soft-editorial": ["#F3EFE3", "#2A2A28", "#9BAA8F", "#D9A6A6"],
           "stencil-tablet": ["#EAE3D2", "#2B2723", "#8E6E48", "#B85D3A"],
-          studio: ["#FAFAF7", "#050505", "#ABABAB", "#F6FF1F"],
+          studio: ["#FAFAF7", "#050505", "#ABABAB", "#f5d200"],
           vellum: ["#FCFAF1", "#0F1A2E", "#6D9CA1", "#F4E2A4"],
         };
         var NATIVE_FONTS = {
@@ -3394,10 +3470,12 @@
         }
         if (PALETTES[0]._native !== slug && NATIVE_PALETTES[slug]) {
           var np = NATIVE_PALETTES[slug];
+          var ntpe = NATIVE_TEMPLATE_PALETTES[slug];
           PALETTES[0].primary = np[0];
           PALETTES[0].secondary = np[1];
-          PALETTES[0].tertiary = np[2];
-          PALETTES[0].accent = np[3];
+          // Tertiary + accent: prefer template's native --tp-* values so Template Default chip matches actual slide colors
+          PALETTES[0].tertiary = (ntpe && ntpe[2]) || np[2];
+          PALETTES[0].accent = (ntpe && ntpe[3]) || np[3];
           PALETTES[0].name = "Template Default";
           PALETTES[0]._native = slug;
           buildPalOpts();
@@ -3703,16 +3781,32 @@
           h = h.replace("</head>", fontLinks.join("\n") + "\n" + pickerFontLink + "\n</head>");
           if (styleMatch) {
             var tmplCss = styleMatch[0].replace(/<\/?style[^>]*>/g, "");
-            tmplCss = tmplCss.replace(/--tp-primary:\s*[^;]+;/g, "--tp-primary: var(--primary);");
+            // Detect template convention: if template's --tp-primary is DARK (ink-role), swap mapping
+            // so design.html's --primary (canvas in DESIGN conv) doesn't get assigned to template's ink slot.
+            var _ntpc = NATIVE_TEMPLATE_PALETTES[slug];
+            function _lc(h) {
+              if (!h || h[0] !== "#") return 0.5;
+              var x = h.slice(1);
+              if (x.length === 3) x = x.split("").map(function(c){return c+c;}).join("");
+              if (x.length < 6) return 0.5;
+              return 0.299*parseInt(x.slice(0,2),16)/255 + 0.587*parseInt(x.slice(2,4),16)/255 + 0.114*parseInt(x.slice(4,6),16)/255;
+            }
+            // Swap only for STANDARD light-theme templates: tp-primary dark (ink) AND tp-secondary light (paper).
+            // FLIPPED (both light) and DARK-theme (both dark) templates: no swap.
+            var _tpSwap = _ntpc && _lc(_ntpc[0]) < 0.5 && _lc(_ntpc[1]) > 0.5;
+            var _tpPriRef = _tpSwap ? "var(--secondary)" : "var(--primary)";
+            var _tpSecRef = _tpSwap ? "var(--primary)" : "var(--secondary)";
+            tmplCss = tmplCss.replace(/--tp-primary:\s*[^;]+;/g, "--tp-primary: " + _tpPriRef + ";");
             tmplCss = tmplCss.replace(
               /--tp-secondary:\s*[^;]+;/g,
-              "--tp-secondary: var(--secondary);",
+              "--tp-secondary: " + _tpSecRef + ";",
             );
-            tmplCss = tmplCss.replace(
-              /--tp-tertiary:\s*[^;]+;/g,
-              "--tp-tertiary: var(--tertiary);",
-            );
-            tmplCss = tmplCss.replace(/--tp-accent:\s*[^;]+;/g, "--tp-accent: var(--accent);");
+            // Conditional rewrite for --tp-tertiary and --tp-accent: only override when user picks non-default palette.
+            // Preserves native template colors for Template Default; allows themeing when palette changes.
+            if (picks.palette !== null && picks.palette > 0) {
+              tmplCss = tmplCss.replace(/--tp-tertiary:\s*[^;]+;/g, "--tp-tertiary: var(--tertiary);");
+              tmplCss = tmplCss.replace(/--tp-accent:\s*[^;]+;/g, "--tp-accent: var(--accent);");
+            }
             var scoped = tmplCss
               .replace(/:root\s*\{/g, ".ds-slide-frame {")
               .replace(/^\s*\*\s*,/gm, ".ds-slide-frame *,")
@@ -3737,19 +3831,7 @@
               "}";
             scoped +=
               "\n.ds-slide-frame .slide,.ds-slide-frame section{display:flex!important;flex-direction:column!important;opacity:1!important;position:relative!important;width:1920px!important;height:1080px!important}";
-            scoped +=
-              "\n.ds-slide-frame .slide.dark{background:" +
-              p.secondary +
-              "!important;color:" +
-              p.primary +
-              "!important}";
-            scoped += "\n.ds-slide-frame .slide.orange{background:" + p.accent + "!important}";
-            scoped +=
-              "\n.ds-slide-frame .slide.light{background:" +
-              p.primary +
-              "!important;color:" +
-              p.secondary +
-              "!important}";
+            // .slide.dark/.light/.orange overrides removed — template's native semantics preserved
             // Force picker's font choices onto slide content
             if (picks.type !== null) {
               var ft = TYPEPAIRS[picks.type];
@@ -5805,7 +5887,7 @@
         var overrideStyle = doc.createElement("style");
         overrideStyle.id = "tp-slide-override";
         overrideStyle.textContent =
-          ".deck, .slide-deck, .slides-container, deck-stage { display: block !important; width: 1920px !important; height: 1080px !important; transform: none !important; position: relative !important; overflow: hidden !important; }" +
+          ".deck, .slide-deck, .slides-container, .presentation, deck-stage { display: block !important; width: 1920px !important; height: 1080px !important; transform: none !important; position: relative !important; overflow: hidden !important; }" +
           ".slide, section.slide, div.slide, deck-stage > section { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; min-height: 0 !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }" +
           ".slide.active, section.slide.active, div.slide.active, deck-stage > section.active { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }";
         doc.head.appendChild(overrideStyle);
@@ -6019,10 +6101,50 @@
         }, 900);
       }
 
+      function tpUpdateNav() {
+        var nav = document.getElementById("tp-nav");
+        var slug = window._currentTemplateSlug;
+        if (!nav || !slug || !ALL_TEMPLATES.length) return;
+        var idx = -1;
+        for (var i = 0; i < ALL_TEMPLATES.length; i++) {
+          if (ALL_TEMPLATES[i].slug === slug) { idx = i; break; }
+        }
+        if (idx < 0) { nav.style.display = "none"; return; }
+        var n = ALL_TEMPLATES.length;
+        var prev = ALL_TEMPLATES[(idx - 1 + n) % n];
+        var next = ALL_TEMPLATES[(idx + 1) % n];
+        var cur = ALL_TEMPLATES[idx];
+        nav.style.display = "flex";
+        document.getElementById("tp-nav-title").textContent = cur.name;
+        document.getElementById("tp-nav-prev").title = prev.name;
+        document.getElementById("tp-nav-next").title = next.name;
+      }
+
+      function tpNavTo(dir) {
+        var slug = window._currentTemplateSlug;
+        if (!slug || !ALL_TEMPLATES.length) return;
+        var idx = -1;
+        for (var i = 0; i < ALL_TEMPLATES.length; i++) {
+          if (ALL_TEMPLATES[i].slug === slug) { idx = i; break; }
+        }
+        if (idx < 0) return;
+        var n = ALL_TEMPLATES.length;
+        var nxt = ALL_TEMPLATES[(idx + dir + n) % n];
+        var pal = tpActivePal > 0 ? PALETTES[tpActivePal] : null;
+        handleTemplatePick({
+          slug: nxt.slug,
+          name: nxt.name,
+          tagline: nxt.tagline,
+          scheme: nxt.scheme,
+          palette: pal ? { bg: pal.secondary, fg: pal.primary, accent: pal.accent, muted: pal.tertiary } : null,
+        });
+      }
+
       function handleTemplatePick(pick) {
         if (!pick || !pick.slug) return;
         window._currentTemplateSlug = pick.slug;
         PALETTES[0]._native = null; // Reset so native palette is re-read for new template
+        tpUpdateNav();
         var tn = document.getElementById("current-tmpl-name");
         if (tn) tn.textContent = pick.name;
         _origVarCache = {};
@@ -6207,7 +6329,7 @@
                       }
                       var ovr = sDoc.createElement("style");
                       ovr.textContent =
-                        ".deck, .slide-deck, .slides-container, deck-stage { display: block !important; width: 1920px !important; height: 1080px !important; transform: none !important; position: relative !important; overflow: hidden !important; }" +
+                        ".deck, .slide-deck, .slides-container, .presentation, deck-stage { display: block !important; width: 1920px !important; height: 1080px !important; transform: none !important; position: relative !important; overflow: hidden !important; }" +
                         ".slide, section.slide, div.slide, deck-stage > section { position: absolute !important; inset: 0 !important; width: 100% !important; height: 100% !important; min-height: 0 !important; opacity: 0 !important; visibility: hidden !important; pointer-events: none !important; }" +
                         ".slide.active, section.slide.active, div.slide.active, deck-stage > section.active { opacity: 1 !important; visibility: visible !important; pointer-events: auto !important; }";
                       sDoc.head.appendChild(ovr);
@@ -6232,6 +6354,8 @@
                         if (w > 0) specIfr.style.transform = "scale(" + w / 1920 + ")";
                         else setTimeout(scaleSpec, 50);
                       })();
+                      // Re-run slide injection to cover this newly-loaded specimen iframe
+                      if (typeof updateSlideIframes === "function") updateSlideIframes();
                     });
                   })(si);
                 }
