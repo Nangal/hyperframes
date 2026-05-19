@@ -103,3 +103,10 @@ claude-design-hyperframes-video/
 .claude/worktrees/
 .claude/
 docs/superpowers/
+
+# hyperframes pick — generated picker + per-project picker data
+.hyperframes/
+
+# hyperframes pick — generated user-design template (created when DESIGN.html exists)
+/templates/
+
