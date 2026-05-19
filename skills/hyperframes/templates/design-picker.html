@@ -1665,9 +1665,9 @@
         { name: "Generous", padding: "40px", gap: "32px", desc: "Spacious", label: "32–48px" },
       ];
       var DEPTHS = [
-        { name: "Flat", desc: "No shadows" },
-        { name: "Subtle", desc: "Faint shadows" },
-        { name: "Layered", desc: "Glows + depth" },
+        { name: "Flat", desc: "No shadows", css: "none" },
+        { name: "Subtle", desc: "Faint shadows", css: "0 2px 8px rgba(0,0,0,0.06)" },
+        { name: "Layered", desc: "Glows + depth", css: "0 8px 24px rgba(0,0,0,0.12)" },
       ];
 
       // Load fonts
@@ -3187,12 +3187,7 @@
         var t = picks.type !== null ? TYPEPAIRS[picks.type] : TYPEPAIRS[0];
         var padV = DENSITIES[dnIdx].padding || "20px";
         var gapV = DENSITIES[dnIdx].gap || "16px";
-        var shadowV =
-          dp.name === "Flat"
-            ? "none"
-            : dp.name === "Layered"
-              ? "0 8px 24px rgba(0,0,0,0.12)"
-              : "0 2px 8px rgba(0,0,0,0.06)";
+        var shadowV = dp.css || "none";
 
         // Rewrite the original :root block in the template's own <style> tag
         var newRoot =
@@ -3457,14 +3452,7 @@
         h = h.replace(/__ELEVATION__/g, dp.name);
         h = h.replace(/__DENSITY__/g, dn.name + " — " + dn.desc);
         h = h.replace(/__BORDER__/g, "4px solid");
-        h = h.replace(
-          /__SHADOW__/g,
-          dp.name === "Flat"
-            ? "none"
-            : dp.name === "Layered"
-              ? "0 8px 24px rgba(0,0,0,0.12)"
-              : "0 2px 8px rgba(0,0,0,0.06)",
-        );
+        h = h.replace(/__SHADOW__/g, dp.css || "none");
         h = h.replace(/__EASING_NAME__/g, e.name.toLowerCase());
         h = h.replace(/__EASING_VALUE__/g, e.value);
         h = h.replace(/__EASING_DESC__/g, e.desc);
@@ -3726,11 +3714,7 @@
               ";--gap:" +
               (dn.gap || "16px") +
               ";--shadow:" +
-              (dp.name === "Flat"
-                ? "none"
-                : dp.name === "Layered"
-                  ? "0 8px 24px rgba(0,0,0,0.12)"
-                  : "0 2px 8px rgba(0,0,0,0.06)") +
+              (dp.css || "none") +
               "}";
             scoped +=
               "\n.ds-slide-frame .slide,.ds-slide-frame section{display:flex!important;flex-direction:column!important;opacity:1!important;position:relative!important;width:1920px!important;height:1080px!important}";
@@ -4599,7 +4583,7 @@
             elevation: dp.name,
             padding: padVal,
             gap: gapVal,
-            shadow: dp.name === "Flat" ? "none" : "0 2px 12px rgba(0,0,0,0.08)",
+            shadow: dp.css || "none",
           },
           motion: easeObj
             ? { easing: easeObj.value, energy: easeObj.name.toLowerCase(), desc: easeObj.desc }
@@ -4711,14 +4695,7 @@
           h = h.replace(/__ELEVATION__/g, dp.name);
           h = h.replace(/__DENSITY__/g, dn.name + " — " + dn.desc);
           h = h.replace(/__BORDER__/g, "4px solid");
-          h = h.replace(
-            /__SHADOW__/g,
-            dp.name === "Flat"
-              ? "none"
-              : dp.name === "Layered"
-                ? "0 8px 24px rgba(0,0,0,0.12)"
-                : "0 2px 8px rgba(0,0,0,0.06)",
-          );
+          h = h.replace(/__SHADOW__/g, dp.css || "none");
 
           // Motion
           if (easeObj) {

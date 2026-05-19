@@ -9,7 +9,17 @@ Usage:
 """
 import sys, re, os
 
-RULES = [
+def _compile_rules(rules):
+    for r in rules:
+        if 'pattern' in r:
+            r['_re'] = re.compile(r['pattern'])
+        if 'exclude' in r:
+            r['_re_ex'] = re.compile(r['exclude'])
+        if 'check_missing' in r:
+            r['_re_miss'] = re.compile(r['check_missing'])
+    return rules
+
+RULES = _compile_rules([
     {
         'name': 'hardcoded-radius',
         'pattern': r'border-radius:\s*(\d+px)',
@@ -79,7 +89,7 @@ RULES = [
                            '__EASING_NAME__', '__EASING_VALUE__'],
         'only_files': ['design.html'],
     },
-]
+])
 
 def lint(path):
     with open(path) as f:
@@ -106,21 +116,25 @@ def lint(path):
         # Missing-property check on matched selectors (skip @media re-declarations)
         if 'check_missing' in rule:
             seen = set()
-            for m in re.finditer(rule['pattern'], css):
+            pat = rule.get('_re') or re.compile(rule['pattern'])
+            miss = rule.get('_re_miss') or re.compile(rule['check_missing'])
+            for m in pat.finditer(css):
                 block = m.group(0)
                 selector = block.split('{')[0].strip()
                 if selector in seen:
                     continue
                 seen.add(selector)
-                if not re.search(rule['check_missing'], block):
+                if not miss.search(block):
                     errors.append(f"{rule['name']}: {selector} — {rule['message']}")
             continue
 
         # Pattern match check
+        pat = rule.get('_re') or re.compile(rule['pattern'])
+        excl = rule.get('_re_ex')
         for i, line in enumerate(lines, 1):
-            if 'exclude' in rule and re.search(rule['exclude'], line):
+            if excl and excl.search(line):
                 continue
-            for m in re.finditer(rule['pattern'], line):
+            for m in pat.finditer(line):
                 msg = rule['message'].replace('{match}', m.group(1) if m.groups() else m.group(0))
                 errors.append(f"L{i} {rule['name']}: {msg}")
 
