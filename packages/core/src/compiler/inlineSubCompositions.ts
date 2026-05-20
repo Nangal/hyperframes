@@ -97,6 +97,7 @@ export interface InlineSubCompositionsResult {
   styles: string[];
   scripts: string[];
   externalScriptSrcs: string[];
+  externalLinkHrefs: string[];
   variablesByComp: Record<string, Record<string, unknown>>;
 }
 
@@ -149,6 +150,7 @@ export function inlineSubCompositions(
   const styles: string[] = [];
   const scripts: string[] = [];
   const externalScriptSrcs: string[] = [];
+  const externalLinkHrefs: string[] = [];
   const variablesByComp: Record<string, Record<string, unknown>> = {};
 
   for (const hostEl of hosts) {
@@ -219,6 +221,14 @@ export function inlineSubCompositions(
         const externalSrc = (s.getAttribute("src") || "").trim();
         if (externalSrc && !externalScriptSrcs.includes(externalSrc)) {
           externalScriptSrcs.push(externalSrc);
+        }
+      }
+      for (const link of [
+        ...compDoc.head.querySelectorAll('link[rel="stylesheet"], link[rel="preconnect"]'),
+      ]) {
+        const href = (link.getAttribute("href") || "").trim();
+        if (href && !externalLinkHrefs.includes(href)) {
+          externalLinkHrefs.push(href);
         }
       }
     }
@@ -325,5 +335,5 @@ export function inlineSubCompositions(
     hostEl.removeAttribute("data-composition-src");
   }
 
-  return { styles, scripts, externalScriptSrcs, variablesByComp };
+  return { styles, scripts, externalScriptSrcs, externalLinkHrefs, variablesByComp };
 }

@@ -685,6 +685,7 @@ export async function bundleToSingleHtml(
   const compStyleChunks: string[] = [...subCompResult.styles];
   const compScriptChunks: string[] = [...subCompResult.scripts];
   const compExternalScriptSrcs: string[] = [...subCompResult.externalScriptSrcs];
+  const compExternalLinkHrefs: string[] = [...subCompResult.externalLinkHrefs];
   const compVariablesByComp: Record<string, Record<string, unknown>> = {
     ...subCompResult.variablesByComp,
   };
@@ -808,6 +809,18 @@ export async function bundleToSingleHtml(
       const extScript = document.createElement("script");
       extScript.setAttribute("src", extSrc);
       document.body.appendChild(extScript);
+    }
+  }
+
+  for (const href of compExternalLinkHrefs) {
+    if (!document.querySelector(`link[href="${href}"]`)) {
+      const linkEl = document.createElement("link");
+      linkEl.setAttribute(
+        "rel",
+        href.includes(".css") || href.includes("css2?") ? "stylesheet" : "preconnect",
+      );
+      linkEl.setAttribute("href", href);
+      document.head.appendChild(linkEl);
     }
   }
 

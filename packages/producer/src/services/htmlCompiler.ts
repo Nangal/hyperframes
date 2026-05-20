@@ -612,6 +612,19 @@ function inlineSubCompositions(
     }
   }
 
+  if (result.externalLinkHrefs.length && head) {
+    for (const href of result.externalLinkHrefs) {
+      if (document.querySelector(`link[href="${href}"]`)) continue;
+      const el = document.createElement("link");
+      el.setAttribute(
+        "rel",
+        href.includes(".css") || href.includes("css2?") ? "stylesheet" : "preconnect",
+      );
+      el.setAttribute("href", href);
+      head.appendChild(el);
+    }
+  }
+
   // Append collected styles to <head>
   if (result.styles.length && head) {
     const styleEl = document.createElement("style");
