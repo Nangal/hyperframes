@@ -48,11 +48,15 @@ export async function captureScrollScreenshots(page: Page, outputDir: string): P
           '[class*="popup"] [class*="close"]',
           '[class*="modal"] [class*="close"]',
           '[class*="overlay"] [class*="close"]',
-          // Common GDPR patterns
-          'button[id*="accept"]',
-          'button[id*="agree"]',
-          'button[class*="accept-all"]',
-          'button[class*="acceptAll"]',
+          // Common GDPR patterns — scoped under a cookie/consent/gdpr ancestor
+          // so we don't click "Accept invitation" / "Accept terms" / etc. on
+          // unrelated buttons elsewhere on the page.
+          '[id*="cookie" i] button[id*="accept" i]',
+          '[id*="consent" i] button[id*="accept" i]',
+          '[id*="gdpr" i] button[id*="accept" i]',
+          '[class*="cookie" i] button[class*="accept-all" i]',
+          '[class*="cookie" i] button[class*="acceptAll" i]',
+          '[class*="consent" i] button[class*="accept-all" i]',
           // Notification prompts
           'button[class*="decline"]',
           'button[class*="not-now"]',

@@ -20,6 +20,11 @@
 import { readdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
 import { join } from "node:path";
 import * as fontkit from "fontkit";
+import type { Font, FontCollection } from "fontkit";
+
+function isFontCollection(value: Font | FontCollection): value is FontCollection {
+  return value.type === "TTC" || value.type === "DFont";
+}
 
 export interface FontFileMetadata {
   /** Filename relative to capture/assets/fonts/ (e.g. "19cfc7226ec3afaa-s.woff2") */
@@ -129,24 +134,17 @@ function readSingleFont(fullPath: string, filename: string): FontFileMetadata {
 
   try {
     const buf = readFileSync(fullPath);
-    // fontkit.create returns Font | TTCFont — for TTC (collections) take the first font.
-    const created = fontkit.create(buf) as unknown as {
-      familyName?: string;
-      subfamilyName?: string;
-      postscriptName?: string;
-      "OS/2"?: { usWeightClass?: number; fsSelection?: number };
-      variationAxes?: Record<string, unknown>;
-      fonts?: Array<unknown>;
-    };
-    // If it's a TTC collection, pick the first font inside.
-    const font = (
-      created.fonts && created.fonts.length > 0 ? created.fonts[0] : created
-    ) as typeof created;
+    // fontkit.create returns Font | FontCollection. For TTC/DFont collections,
+    // take the first font inside; otherwise the value is already a single Font.
+    const created: Font | FontCollection = fontkit.create(buf);
+    const font: Font | undefined = isFontCollection(created) ? created.fonts[0] : created;
+    if (!font) return empty;
 
     const rawFamily = (font.familyName || "").trim();
     const subfamily = (font.subfamilyName || "").trim();
     const postscript = (font.postscriptName || "").trim();
-    const italicBit = (font["OS/2"]?.fsSelection ?? 0) & 0x01;
+    const fsSelection = font["OS/2"]?.fsSelection;
+    const italicBit = Boolean(fsSelection?.italic || fsSelection?.oblique);
     const style: "normal" | "italic" =
       italicBit || /italic|oblique/i.test(subfamily) ? "italic" : "normal";
     const variationAxes = font.variationAxes ? Object.keys(font.variationAxes) : [];

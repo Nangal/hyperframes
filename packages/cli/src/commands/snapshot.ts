@@ -487,7 +487,7 @@ export default defineCommand({
     describe: {
       type: "string",
       description:
-        "Ask Gemini vision to describe every frame. Pass true for default analysis, or a custom question (e.g. --describe 'Is the logo visible in every beat?')",
+        "Gemini vision frame analysis. Runs by default when GEMINI_API_KEY is set. Pass a custom question (e.g. --describe 'Is the logo visible in every beat?') to override the default prompt, or --describe false to opt out.",
     },
   },
   async run({ args }) {
@@ -500,9 +500,16 @@ export default defineCommand({
           .map((s) => parseFloat(s.trim()))
           .filter((n) => !isNaN(n))
       : undefined;
-    // --describe is opt-in for a custom question, but Gemini analysis always
-    // runs by default (silently skipped if GEMINI_API_KEY is not set).
-    const describeArg = args.describe ? String(args.describe) : "true";
+    // Gemini frame analysis runs by default (silently skipped if
+    // GEMINI_API_KEY is not set). `--describe "custom question"` overrides
+    // the default prompt with a targeted question. `--describe false` opts
+    // out entirely.
+    const describeArg =
+      args.describe === undefined
+        ? "true"
+        : String(args.describe) === "false"
+          ? null
+          : String(args.describe);
 
     const label = atTimestamps
       ? `${atTimestamps.length} frames at [${atTimestamps.map((t) => t.toFixed(1) + "s").join(", ")}]`
@@ -541,11 +548,10 @@ export default defineCommand({
         /* non-critical */
       }
 
-      // Optional Gemini vision descriptions (--describe flag).
-      // Not run automatically — agents invoke it when they want an objective
-      // written analysis of each frame. Pass --describe for the default prompt,
-      // or --describe "custom question" to ask Gemini something specific.
-      if (describeArg) {
+      // Gemini vision descriptions. Runs by default — see describeArg
+      // resolution above. `null` means the user explicitly opted out with
+      // `--describe false`; missing GEMINI_API_KEY logs a skip and continues.
+      if (describeArg !== null) {
         try {
           const geminiKey = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
           if (!geminiKey) {

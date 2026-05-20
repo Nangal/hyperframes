@@ -93,7 +93,10 @@ function buildPrompt(
     const fullDir = join(outputDir, dir);
     if (!existsSync(fullDir)) return [];
     const baseName = baseFile.replace(/\.jpg$/, "");
-    const paginatedRe = new RegExp(`^${baseName}(?:-(\\d+))?\\.jpg$`);
+    // Escape regex metacharacters in baseName so future callers can pass
+    // filenames containing `.`, `+`, `(`, etc. without the regex breaking.
+    const escapedBase = baseName.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const paginatedRe = new RegExp(`^${escapedBase}(?:-(\\d+))?\\.jpg$`);
     // Sort by the numeric page suffix so `contact-sheet-10.jpg` lands after
     // `contact-sheet-2.jpg`, not before (default string sort orders them
     // lexicographically and breaks at 10+ pages). Unpaginated `contact-sheet.jpg`
