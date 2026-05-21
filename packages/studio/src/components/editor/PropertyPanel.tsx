@@ -323,7 +323,7 @@ export const PropertyPanel = memo(function PropertyPanel({
           </div>
           <div className="mt-3">
             <MetricField
-              label="Layer"
+              label="Z-index"
               value={String(parseInt(styles["z-index"] || "auto", 10) || 0)}
               scrub
               onCommit={(next) => onSetStyle("z-index", next)}

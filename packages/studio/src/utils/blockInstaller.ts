@@ -9,12 +9,28 @@ import { formatTimelineAttributeNumber } from "../player/components/timelineEdit
 import { saveProjectFilesWithHistory } from "./studioFileHistory";
 import type { EditHistoryKind } from "./editHistory";
 
+function getMaxZIndexFromIframe(iframe: HTMLIFrameElement | null): number {
+  try {
+    const doc = iframe?.contentDocument;
+    if (!doc) return 0;
+    let max = 0;
+    for (const el of doc.body.querySelectorAll("*")) {
+      const z = parseInt(getComputedStyle(el).zIndex, 10);
+      if (Number.isFinite(z) && z > max) max = z;
+    }
+    return max;
+  } catch {
+    return 0;
+  }
+}
+
 interface AddBlockOptions {
   projectId: string;
   blockName: string;
   activeCompPath: string | null;
   placement?: { start: number; track: number };
   visualPosition?: { left: number; top: number };
+  previewIframe?: HTMLIFrameElement | null;
   timelineElements: TimelineElement[];
   readProjectFile: (path: string) => Promise<string>;
   writeProjectFile: (path: string, content: string) => Promise<void>;
@@ -126,12 +142,7 @@ export async function addBlockToProject(
             ? Math.max(...relevantElements.map((te) => te.track)) + 1
             : 1);
 
-      const zIndexMatches = originalContent.matchAll(/z-index:\s*(\d+)/g);
-      let maxExistingZ = 0;
-      for (const m of zIndexMatches) {
-        maxExistingZ = Math.max(maxExistingZ, parseInt(m[1]!, 10));
-      }
-      const zIndex = maxExistingZ + 1;
+      const zIndex = getMaxZIndexFromIframe(opts.previewIframe ?? null) + 1;
 
       const width = isBlock
         ? (block as { dimensions: { width: number } }).dimensions.width
