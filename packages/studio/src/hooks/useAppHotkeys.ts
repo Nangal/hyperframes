@@ -351,28 +351,20 @@ export function useAppHotkeys({
 
   // ── History hotkey for iframe forwarding ──
 
-  const handleHistoryHotkey = useCallback(
-    // fallow-ignore-next-line complexity
-    (event: KeyboardEvent) => {
-      if (!(event.metaKey || event.ctrlKey)) return;
-      if (shouldIgnoreHistoryShortcut(event.target)) return;
-      // Undo: Cmd/Ctrl+Z
-      if (event.key.toLowerCase() === "z" && !event.shiftKey) {
-        event.preventDefault();
-        void handleUndoRef.current();
-        return;
-      }
-      // Redo: Cmd/Ctrl+Shift+Z or Ctrl+Y
-      if (
-        (event.key.toLowerCase() === "z" && event.shiftKey) ||
-        (event.ctrlKey && !event.metaKey && event.key.toLowerCase() === "y")
-      ) {
-        event.preventDefault();
-        void handleRedoRef.current();
-      }
-    },
-    [],
-  );
+  const handleHistoryHotkey = useCallback((event: KeyboardEvent) => {
+    if (!(event.metaKey || event.ctrlKey)) return;
+    if (shouldIgnoreHistoryShortcut(event.target)) return;
+    const key = event.key.toLowerCase();
+    if (key === "z" && !event.shiftKey) {
+      event.preventDefault();
+      void handleUndoRef.current();
+      return;
+    }
+    if ((key === "z" && event.shiftKey) || (event.ctrlKey && !event.metaKey && key === "y")) {
+      event.preventDefault();
+      void handleRedoRef.current();
+    }
+  }, []);
 
   const syncPreviewHistoryHotkey = useCallback(
     (iframe: HTMLIFrameElement | null) => {
