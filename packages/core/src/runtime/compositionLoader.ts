@@ -85,6 +85,10 @@ function prepareFlattenedInnerRoot(innerRoot: HTMLElement): HTMLElement {
     prepared.setAttribute("data-hf-authored-id", authoredRootId);
   }
   prepared.setAttribute("data-hf-inner-root", "true");
+  const w = prepared.getAttribute("data-width");
+  const h = prepared.getAttribute("data-height");
+  prepared.style.width = w ? `${w}px` : "100%";
+  prepared.style.height = h ? `${h}px` : "100%";
   return prepared;
 }
 

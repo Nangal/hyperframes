@@ -399,6 +399,13 @@ export function prepareFlattenedInnerRoot(innerRoot: Element): Element {
     prepared.setAttribute("data-hf-authored-id", authoredRootId);
   }
   prepared.setAttribute("data-hf-inner-root", "true");
+  const w = prepared.getAttribute("data-width");
+  const h = prepared.getAttribute("data-height");
+  const widthVal = w ? `${w}px` : "100%";
+  const heightVal = h ? `${h}px` : "100%";
+  const existingStyle = (prepared.getAttribute("style") || "").trim();
+  const fill = `width:${widthVal};height:${heightVal}`;
+  prepared.setAttribute("style", existingStyle ? `${existingStyle};${fill}` : fill);
   return prepared;
 }
 
