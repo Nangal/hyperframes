@@ -1018,18 +1018,6 @@
     "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/vfx-liquid-background.png"
   },
   {
-    "name": "vfx-liquid-glass",
-    "type": "block",
-    "title": "Liquid Glass",
-    "description": "VFX composition block",
-    "tags": [
-      "html-in-canvas",
-      "webgl"
-    ],
-    "href": "/catalog/blocks/vfx-liquid-glass",
-    "preview": "https://static.heygen.ai/hyperframes-oss/docs/images/catalog/blocks/vfx-liquid-glass.png"
-  },
-  {
     "name": "vfx-magnetic",
     "type": "block",
     "title": "Magnetic",

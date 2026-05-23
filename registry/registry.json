@@ -340,10 +340,6 @@
       "type": "hyperframes:block"
     },
     {
-      "name": "vfx-liquid-glass",
-      "type": "hyperframes:block"
-    },
-    {
       "name": "liquid-glass-notification",
       "type": "hyperframes:block"
     },
