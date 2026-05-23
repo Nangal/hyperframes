@@ -413,6 +413,35 @@ describe("detectRenderModeHints", () => {
     expect(result.reasons.map((reason) => reason.code)).toEqual(["requestAnimationFrame"]);
   });
 
+  it("detects html-in-canvas API via layoutsubtree canvas attribute", () => {
+    const html = `<!DOCTYPE html>
+<html><body>
+  <div data-composition-id="root" data-width="1920" data-height="1080">
+    <canvas id="glass-canvas" layoutsubtree width="1920" height="1080">
+      <div class="panel">Glass content</div>
+    </canvas>
+  </div>
+</body></html>`;
+
+    const result = detectRenderModeHints(html);
+
+    expect(result.reasons.map((reason) => reason.code)).toContain("htmlInCanvas");
+    expect(result.recommendScreenshot).toBe(true);
+  });
+
+  it("does not flag htmlInCanvas for plain canvas elements without layoutsubtree", () => {
+    const html = `<!DOCTYPE html>
+<html><body>
+  <div data-composition-id="root" data-width="1920" data-height="1080">
+    <canvas id="my-canvas" width="1920" height="1080"></canvas>
+  </div>
+</body></html>`;
+
+    const result = detectRenderModeHints(html);
+
+    expect(result.reasons.map((reason) => reason.code)).not.toContain("htmlInCanvas");
+  });
+
   it("does not recommend screenshot mode for nested compositions that hoist GSAP from a CDN script", async () => {
     const projectDir = mkdtempSync(join(tmpdir(), "hf-render-mode-"));
     const compositionsDir = join(projectDir, "compositions");

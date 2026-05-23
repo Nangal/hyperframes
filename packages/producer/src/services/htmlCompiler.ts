@@ -54,7 +54,7 @@ export interface CompiledComposition {
   hasShaderTransitions: boolean;
 }
 
-export type RenderModeHintCode = "iframe" | "requestAnimationFrame";
+export type RenderModeHintCode = "iframe" | "requestAnimationFrame" | "htmlInCanvas";
 
 export interface RenderModeHint {
   code: RenderModeHintCode;
@@ -95,6 +95,14 @@ function stripCompilerMountBootstrap(source: string): string {
 export function detectRenderModeHints(html: string): RenderModeHints {
   const reasons: RenderModeHint[] = [];
   const { document } = parseHTML(html);
+
+  if (document.querySelector("canvas[layoutsubtree]")) {
+    reasons.push({
+      code: "htmlInCanvas",
+      message:
+        "Detected html-in-canvas API (layoutsubtree canvas). Chrome does not support concurrent drawElementImage across multiple workers; render is pinned to a single worker.",
+    });
+  }
 
   if (document.querySelector("iframe")) {
     reasons.push({
