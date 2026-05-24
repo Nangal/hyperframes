@@ -26,20 +26,168 @@
         background: #050508;
       }
       .ios-home {
-        display: flex;
-        flex-direction: column;
+        position: relative;
         height: 844px;
+        overflow: hidden;
+        background: #010101;
+      }
+      .ios-wallpaper {
+        position: absolute;
+        inset: 0;
         background:
-          radial-gradient(circle at 20% 10%, rgba(126, 87, 255, 0.32), transparent 28%),
-          radial-gradient(circle at 82% 20%, rgba(0, 199, 255, 0.28), transparent 26%),
-          radial-gradient(circle at 50% 86%, rgba(255, 126, 80, 0.24), transparent 28%),
-          linear-gradient(145deg, #070811 0%, #101421 46%, #05070d 100%);
+          radial-gradient(ellipse at 50% 50%, rgba(12, 16, 24, 0.96), transparent 31%),
+          radial-gradient(circle at 50% 54%, rgba(255, 255, 255, 0.06), transparent 8%),
+          linear-gradient(180deg, #020202, #000);
+      }
+      .ios-wallpaper::before,
+      .ios-wallpaper::after {
+        content: "";
+        position: absolute;
+        left: 92px;
+        top: 210px;
+        width: 210px;
+        height: 360px;
+        border-radius: 50% 50% 42% 46%;
+        border: 4px solid transparent;
+        background:
+          linear-gradient(#020202, #020202) padding-box,
+          conic-gradient(
+              from 215deg,
+              rgba(255, 255, 255, 0),
+              rgba(255, 255, 255, 0.92),
+              rgba(53, 131, 255, 0.92),
+              rgba(38, 255, 168, 0.8),
+              rgba(255, 63, 54, 0.72),
+              rgba(255, 255, 255, 0)
+            )
+            border-box;
+        filter: blur(0.35px) saturate(1.25);
+        opacity: 0.82;
+        transform: rotate(7deg);
+      }
+      .ios-wallpaper::after {
+        left: 118px;
+        top: 400px;
+        width: 140px;
+        height: 190px;
+        border-width: 3px;
+        opacity: 0.62;
+        transform: rotate(-27deg);
+      }
+      .ios-status {
+        position: relative;
+        z-index: 2;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 27px 30px 10px;
+        color: #f6f6f6;
+        font-size: 22px;
+        font-weight: 760;
+        letter-spacing: 0;
+        text-shadow: 0 2px 8px rgba(0, 0, 0, 0.55);
+      }
+      .ios-status-left,
+      .ios-status-right {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .ios-location {
+        display: grid;
+        place-items: center;
+        width: 18px;
+        height: 18px;
+        border-radius: 999px;
+        background: #2f80ed;
+        color: #fff;
+        font-size: 12px;
+        line-height: 1;
+      }
+      .ios-signal {
+        display: flex;
+        align-items: end;
+        gap: 3px;
+        height: 18px;
+      }
+      .ios-signal span {
+        width: 5px;
+        border-radius: 3px;
+        background: rgba(255, 255, 255, 0.92);
+      }
+      .ios-signal span:nth-child(1) {
+        height: 7px;
+      }
+      .ios-signal span:nth-child(2) {
+        height: 10px;
+      }
+      .ios-signal span:nth-child(3) {
+        height: 13px;
+      }
+      .ios-signal span:nth-child(4) {
+        height: 17px;
+        background: rgba(255, 255, 255, 0.48);
+      }
+      .ios-wifi {
+        position: relative;
+        width: 23px;
+        height: 17px;
+      }
+      .ios-wifi span {
+        position: absolute;
+        left: 50%;
+        border: 4px solid rgba(255, 255, 255, 0.94);
+        border-color: rgba(255, 255, 255, 0.94) transparent transparent transparent;
+        border-radius: 50%;
+        transform: translateX(-50%);
+      }
+      .ios-wifi span:nth-child(1) {
+        top: 0;
+        width: 28px;
+        height: 28px;
+      }
+      .ios-wifi span:nth-child(2) {
+        top: 6px;
+        width: 18px;
+        height: 18px;
+      }
+      .ios-wifi span:nth-child(3) {
+        top: 13px;
+        width: 7px;
+        height: 7px;
+        border-radius: 999px;
+        background: #fff;
+        border: 0;
+      }
+      .ios-battery {
+        position: relative;
+        min-width: 34px;
+        height: 21px;
+        padding: 1px 5px 0;
+        border-radius: 6px;
+        background: #59d768;
+        color: #fff;
+        font-size: 15px;
+        font-weight: 850;
+        line-height: 20px;
+      }
+      .ios-battery::after {
+        content: "";
+        position: absolute;
+        right: -3px;
+        top: 7px;
+        width: 3px;
+        height: 7px;
+        border-radius: 0 3px 3px 0;
+        background: rgba(255, 255, 255, 0.5);
       }
       .ios-app-grid {
+        position: relative;
+        z-index: 2;
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 10px 6px;
-        padding: 8px 18px 4px;
+        gap: 14px 22px;
+        padding: 20px 28px 0;
       }
       .ios-app {
         position: relative;
@@ -52,77 +200,130 @@
         box-shadow:
           0 8px 20px rgba(0, 0, 0, 0.34),
           inset 0 1px 0 rgba(255, 255, 255, 0.24);
+        filter: grayscale(1) saturate(0.08) contrast(1.2) brightness(0.86);
       }
       .ios-app-icon {
-        width: 58px;
-        height: 58px;
-        margin: 0 auto 3px;
-        border-radius: 15px;
+        width: 62px;
+        height: 62px;
+        margin: 0 auto 7px;
+        border-radius: 18px;
       }
       .ios-app-label {
-        color: rgba(255, 255, 255, 0.76);
-        font-size: 9px;
+        color: #fff;
+        font-size: 13px;
+        font-weight: 640;
         line-height: 1.1;
         text-shadow: 0 1px 5px rgba(0, 0, 0, 0.65);
         white-space: nowrap;
       }
       .ios-badge {
         position: absolute;
-        top: -3px;
-        right: 2px;
-        min-width: 13px;
-        padding: 1px 4px;
-        border-radius: 8px;
-        background: #ff3b30;
-        color: #fff;
-        font-size: 7px;
+        top: -8px;
+        right: -8px;
+        min-width: 24px;
+        padding: 3px 7px;
+        border-radius: 999px;
+        background: #f7f7f7;
+        color: #303030;
+        font-size: 15px;
         font-weight: 700;
         font-variant-numeric: tabular-nums;
         box-shadow: 0 1px 4px rgba(0, 0, 0, 0.32);
       }
       .ios-search-pill {
-        justify-self: center;
-        width: 104px;
-        padding: 7px 0;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.16);
-        border: 1px solid rgba(255, 255, 255, 0.14);
-        color: rgba(255, 255, 255, 0.56);
-        font-size: 12px;
-        font-weight: 500;
+        position: absolute;
+        z-index: 2;
+        left: 50%;
+        bottom: 105px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 7px;
+        width: 116px;
+        padding: 9px 0;
+        border-radius: 19px;
+        background: rgba(255, 255, 255, 0.11);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 15px;
+        font-weight: 650;
         text-align: center;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
-      }
-      .ios-liquid-stack {
-        flex: 1;
-        display: grid;
-        grid-template-rows: auto auto 1fr auto;
-        gap: 8px;
-        padding: 6px 16px 8px;
-      }
-      .ios-glass-card {
-        border: 1px solid rgba(255, 255, 255, 0.2);
-        background:
-          linear-gradient(135deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0.08)),
-          rgba(28, 35, 52, 0.48);
+        transform: translateX(-50%);
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.34),
-          0 14px 36px rgba(0, 0, 0, 0.28);
+          inset 0 1px 0 rgba(255, 255, 255, 0.17),
+          0 10px 22px rgba(0, 0, 0, 0.34);
       }
-      .ios-glass-notification {
+      .ios-search-pill::before {
+        content: "";
+        width: 12px;
+        height: 12px;
+        border: 3px solid rgba(255, 255, 255, 0.72);
+        border-radius: 999px;
+        box-sizing: border-box;
+      }
+      .ios-search-pill::after {
+        content: "";
+        width: 7px;
+        height: 3px;
+        border-radius: 999px;
+        background: rgba(255, 255, 255, 0.72);
+        transform: rotate(45deg) translate(-6px, 6px);
+        margin-left: -10px;
+      }
+      .ios-notification-layer {
+        display: none;
+        position: absolute;
+        z-index: 5;
+        top: 82px;
+        left: 15px;
+        right: 15px;
+        height: 222px;
+        pointer-events: none;
+      }
+      .ios-notification-card {
+        position: absolute;
+        left: 0;
+        right: 0;
         display: flex;
         align-items: center;
         gap: 10px;
-        min-height: 58px;
-        padding: 9px 11px;
-        border-radius: 22px;
+        min-height: 60px;
+        padding: 9px 12px;
+        border-radius: 23px;
+        border: 1px solid rgba(255, 255, 255, 0.27);
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.42), rgba(255, 255, 255, 0.13)),
+          rgba(140, 150, 164, 0.52);
+        -webkit-backdrop-filter: blur(22px) saturate(1.35);
+        backdrop-filter: blur(22px) saturate(1.35);
+        box-shadow:
+          inset 0 1px 0 rgba(255, 255, 255, 0.46),
+          0 14px 34px rgba(0, 0, 0, 0.38);
+        opacity: 0;
+        transform: translateY(-120px) scale(0.98);
       }
-      .ios-glass-notification img {
-        width: 34px;
-        height: 34px;
-        border-radius: 9px;
-        object-fit: cover;
+      .ios-notification-card:nth-child(2) {
+        top: 68px;
+      }
+      .ios-notification-card:nth-child(3) {
+        top: 136px;
+      }
+      .ios-notification-icon {
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background-position: center;
+        background-size: cover;
         flex: 0 0 auto;
+      }
+      .ios-notification-messages {
+        background-image: url("assets/icons/notify-messages.jpg");
+      }
+      .ios-notification-hyperframes {
+        background-image: url("assets/icons/slack.jpg");
+      }
+      .ios-notification-gmail {
+        background-image: url("assets/icons/gmail.jpg");
       }
       .ios-notification-copy {
         min-width: 0;
@@ -132,89 +333,57 @@
         display: flex;
         justify-content: space-between;
         gap: 8px;
-        color: rgba(255, 255, 255, 0.88);
-        font-size: 11px;
+        color: #fff;
+        font-size: 12px;
         font-weight: 750;
       }
       .ios-notification-body {
         margin-top: 2px;
-        color: rgba(255, 255, 255, 0.64);
-        font-size: 10px;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 11px;
         line-height: 1.25;
       }
-      .ios-widget-row {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px;
-      }
-      .ios-widget {
-        min-height: 82px;
-        padding: 11px 12px;
-        border-radius: 24px;
-      }
-      .ios-widget-label {
-        color: rgba(255, 255, 255, 0.55);
-        font-size: 9px;
-        font-weight: 800;
-        letter-spacing: 0.8px;
-        text-transform: uppercase;
-      }
-      .ios-widget-value {
-        margin-top: 5px;
-        color: #fff;
-        font-size: 20px;
-        font-weight: 820;
-        line-height: 1;
-      }
-      .ios-widget-caption {
-        margin-top: 6px;
-        color: rgba(255, 255, 255, 0.62);
-        font-size: 10px;
-        line-height: 1.2;
-      }
-      .ios-control-strip {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 7px;
-        min-height: 52px;
-        padding: 8px;
-        border-radius: 24px;
-      }
-      .ios-toggle {
-        display: grid;
-        place-items: center;
-        min-height: 36px;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.18);
-        color: rgba(255, 255, 255, 0.84);
-        font-size: 15px;
-        font-weight: 820;
-        box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
-      }
-      .ios-toggle.active {
-        background: linear-gradient(135deg, rgba(88, 166, 255, 0.9), rgba(52, 211, 153, 0.72));
-      }
       .ios-dock {
+        position: absolute;
+        z-index: 2;
+        left: 14px;
+        right: 14px;
+        bottom: 13px;
         display: flex;
         justify-content: space-around;
-        margin: 0 12px 12px;
-        padding: 8px 12px;
-        border-radius: 24px;
-        background: rgba(255, 255, 255, 0.15);
-        border: 1px solid rgba(255, 255, 255, 0.13);
+        padding: 10px 16px;
+        border-radius: 37px;
+        background: rgba(255, 255, 255, 0.08);
+        border: 1px solid rgba(255, 255, 255, 0.16);
+        -webkit-backdrop-filter: blur(18px) saturate(1.2);
+        backdrop-filter: blur(18px) saturate(1.2);
         box-shadow:
-          inset 0 1px 0 rgba(255, 255, 255, 0.18),
+          inset 0 1px 0 rgba(255, 255, 255, 0.16),
           0 14px 36px rgba(0, 0, 0, 0.24);
       }
       .ios-dock-item {
         position: relative;
-        width: 52px;
-        height: 52px;
+        width: 62px;
+        height: 62px;
       }
       .ios-dock-icon {
-        width: 52px;
-        height: 52px;
-        border-radius: 13px;
+        width: 62px;
+        height: 62px;
+        border-radius: 18px;
+        background-position: center;
+        background-size: cover;
+      }
+      .ios-dock-phone {
+        background-image: url("assets/icons/phone.jpg");
+      }
+      .ios-dock-brave {
+        background-image: url("assets/icons/brave.jpg");
+      }
+      .ios-dock-messages {
+        background-image: url("assets/icons/messages.jpg");
+      }
+      .ios-dock-music {
+        background-image: url("assets/icons/music.jpg");
       }
     </style>
   </head>
@@ -258,20 +427,16 @@
             <div id="phone-title" style="display: none"></div>
             <span id="phone-count" style="display: none"></span>
             <div id="phone-cards" style="display: none"></div>
-            <div
-              style="
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 12px 22px 6px;
-                font-size: 14px;
-                font-weight: 700;
-              "
-            >
-              <span style="font-variant-numeric: tabular-nums">15:16</span>
-              <div style="display: flex; gap: 5px; align-items: center; font-size: 11px">
-                <span>●●●●</span><span>5G</span
-                ><span style="color: #30d158; font-weight: 600">92%</span>
+            <div class="ios-wallpaper"></div>
+            <div class="ios-status">
+              <div class="ios-status-left">
+                <span style="font-variant-numeric: tabular-nums">15:16</span>
+                <span class="ios-location">▲</span>
+              </div>
+              <div class="ios-status-right">
+                <div class="ios-signal"><span></span><span></span><span></span><span></span></div>
+                <div class="ios-wifi"><span></span><span></span><span></span></div>
+                <div class="ios-battery">92</div>
               </div>
             </div>
             <div id="ios-app-grid" class="ios-app-grid">
@@ -297,7 +462,7 @@
               </div>
               <div class="ios-app">
                 <img class="ios-app-icon" src="assets/icons/itunes-store.jpg" alt="" />
-                <div class="ios-app-label">iTunes</div>
+                <div class="ios-app-label">iTunes Store</div>
               </div>
               <div class="ios-app">
                 <img class="ios-app-icon" src="assets/icons/fitness.jpg" alt="" />
@@ -323,60 +488,102 @@
                 <img class="ios-app-icon" src="assets/icons/calendar.jpg" alt="" />
                 <div class="ios-app-label">Calendar</div>
               </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/photos.jpg" alt="" />
+                <div class="ios-app-label">Photos</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/chatgpt.jpg" alt="" />
+                <div class="ios-app-label">ChatGPT</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/slack.jpg" alt="" />
+                <div class="ios-app-label">Slack</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/instagram.jpg" alt="" />
+                <span class="ios-badge">1</span>
+                <div class="ios-app-label">Instagram</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/x.jpg" alt="" />
+                <span class="ios-badge">4</span>
+                <div class="ios-app-label">X</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/proton-mail.jpg" alt="" />
+                <span class="ios-badge">797</span>
+                <div class="ios-app-label">Proton Mail</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/gmail.jpg" alt="" />
+                <span class="ios-badge">31.8K</span>
+                <div class="ios-app-label">Gmail</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/revolut.jpg" alt="" />
+                <div class="ios-app-label">Revolut</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/phone.jpg" alt="" />
+                <span class="ios-badge">9+</span>
+                <div class="ios-app-label">Phone</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/brave.jpg" alt="" />
+                <div class="ios-app-label">Brave</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/messages.jpg" alt="" />
+                <span class="ios-badge">282</span>
+                <div class="ios-app-label">Messages</div>
+              </div>
+              <div class="ios-app">
+                <img class="ios-app-icon" src="assets/icons/music.jpg" alt="" />
+                <div class="ios-app-label">Music</div>
+              </div>
             </div>
 
-            <div class="ios-liquid-stack">
-              <div id="ios-notification-a" class="ios-glass-card ios-glass-notification">
-                <img src="assets/icons/notify-messages.jpg" alt="" />
+            <div class="ios-notification-layer">
+              <div id="ios-notification-a" class="ios-notification-card">
+                <div class="ios-notification-icon ios-notification-messages"></div>
                 <div class="ios-notification-copy">
                   <div class="ios-notification-title"><span>Messages</span><span>now</span></div>
-                  <div class="ios-notification-body">Liquid glass preview is ready for review.</div>
+                  <div class="ios-notification-body">Liquid Glass preview is ready for review.</div>
                 </div>
               </div>
-              <div id="ios-notification-b" class="ios-glass-card ios-glass-notification">
-                <img src="assets/icons/slack.jpg" alt="" />
+              <div id="ios-notification-b" class="ios-notification-card">
+                <div class="ios-notification-icon ios-notification-hyperframes"></div>
                 <div class="ios-notification-copy">
                   <div class="ios-notification-title"><span>HyperFrames</span><span>1m</span></div>
-                  <div class="ios-notification-body">
-                    Rendering with one worker. Browser proof attached.
-                  </div>
+                  <div class="ios-notification-body">One-worker render is ready.</div>
                 </div>
               </div>
-              <div class="ios-widget-row">
-                <div id="ios-live-widget" class="ios-glass-card ios-widget">
-                  <div class="ios-widget-label">Live activity</div>
-                  <div class="ios-widget-value">92%</div>
-                  <div class="ios-widget-caption">Frames encoded without dropped captures.</div>
-                </div>
-                <div id="ios-music-widget" class="ios-glass-card ios-widget">
-                  <div class="ios-widget-label">Now playing</div>
-                  <div class="ios-widget-value">Glass</div>
-                  <div class="ios-widget-caption">Aurora shader mix · spatial preview</div>
+              <div id="ios-notification-c" class="ios-notification-card">
+                <div class="ios-notification-icon ios-notification-gmail"></div>
+                <div class="ios-notification-copy">
+                  <div class="ios-notification-title"><span>Gmail</span><span>2m</span></div>
+                  <div class="ios-notification-body">Preview videos are live on CDN.</div>
                 </div>
               </div>
-              <div id="ios-control-strip" class="ios-glass-card ios-control-strip">
-                <div class="ios-toggle active">Wi-Fi</div>
-                <div class="ios-toggle active">5G</div>
-                <div class="ios-toggle">Focus</div>
-                <div class="ios-toggle">Air</div>
-              </div>
-              <div class="ios-search-pill">Search</div>
             </div>
+
+            <div class="ios-search-pill">Search</div>
 
             <div id="ios-real-dock" class="ios-dock">
               <div class="ios-dock-item">
-                <img class="ios-dock-icon" src="assets/icons/phone.jpg" alt="" />
+                <div class="ios-dock-icon ios-dock-phone"></div>
                 <span class="ios-badge">9+</span>
               </div>
               <div class="ios-dock-item">
-                <img class="ios-dock-icon" src="assets/icons/brave.jpg" alt="" />
+                <div class="ios-dock-icon ios-dock-brave"></div>
               </div>
               <div class="ios-dock-item">
-                <img class="ios-dock-icon" src="assets/icons/messages.jpg" alt="" />
+                <div class="ios-dock-icon ios-dock-messages"></div>
                 <span class="ios-badge">282</span>
               </div>
               <div class="ios-dock-item">
-                <img class="ios-dock-icon" src="assets/icons/music.jpg" alt="" />
+                <div class="ios-dock-icon ios-dock-music"></div>
               </div>
             </div>
           </div>
@@ -750,12 +957,137 @@
       lapTex.minFilter = THREE.LinearFilter;
       lapTex.magFilter = THREE.LinearFilter;
       lapTex.generateMipmaps = false;
+      var glassBuffer = document.createElement("canvas");
+      glassBuffer.width = 390;
+      glassBuffer.height = 844;
+      var glassBufferCtx = glassBuffer.getContext("2d");
+
+      function pathRoundRect(ctx, x, y, w, h, r) {
+        var rr = Math.min(r, w / 2, h / 2);
+        ctx.beginPath();
+        ctx.moveTo(x + rr, y);
+        ctx.lineTo(x + w - rr, y);
+        ctx.quadraticCurveTo(x + w, y, x + w, y + rr);
+        ctx.lineTo(x + w, y + h - rr);
+        ctx.quadraticCurveTo(x + w, y + h, x + w - rr, y + h);
+        ctx.lineTo(x + rr, y + h);
+        ctx.quadraticCurveTo(x, y + h, x, y + h - rr);
+        ctx.lineTo(x, y + rr);
+        ctx.quadraticCurveTo(x, y, x + rr, y);
+        ctx.closePath();
+      }
+
+      function drawNotificationCard(ctx, progress, top, iconSelector, title, time, body) {
+        var p = Math.max(0, Math.min(1, progress));
+        if (p <= 0.001) return;
+        var q = notificationEase(p);
+        var lift = Math.sin(q * PI);
+        var y = 106 + top + (1 - q) * -58 + lift * 6;
+        var x = 13;
+        var w = 364;
+        var h = 66 + lift * 2;
+        ctx.save();
+        ctx.globalAlpha = q * 0.98;
+        ctx.shadowColor = "rgba(0,0,0,0.54)";
+        ctx.shadowBlur = 22;
+        ctx.shadowOffsetY = 14;
+        pathRoundRect(ctx, x, y, w, h, 23);
+        ctx.clip();
+        ctx.filter = "blur(12px) saturate(1.55) brightness(1.24)";
+        ctx.drawImage(glassBuffer, -4, -4, 398, 852);
+        ctx.filter = "none";
+        pathRoundRect(ctx, x, y, w, h, 23);
+        var fill = ctx.createLinearGradient(x, y, x + w, y + h);
+        fill.addColorStop(0, "rgba(255,255,255,0.54)");
+        fill.addColorStop(0.45, "rgba(188,202,219,0.46)");
+        fill.addColorStop(1, "rgba(94,108,130,0.36)");
+        ctx.fillStyle = fill;
+        ctx.fill();
+        ctx.globalCompositeOperation = "screen";
+        var caustic = ctx.createLinearGradient(x + 40, y, x + w - 20, y + h);
+        caustic.addColorStop(0, "rgba(255,255,255,0.18)");
+        caustic.addColorStop(0.36, "rgba(117,230,255,0.15)");
+        caustic.addColorStop(0.64, "rgba(255,143,220,0.12)");
+        caustic.addColorStop(1, "rgba(255,255,255,0.08)");
+        ctx.fillStyle = caustic;
+        ctx.fillRect(x, y, w, h);
+        ctx.globalCompositeOperation = "source-over";
+        ctx.shadowColor = "transparent";
+        pathRoundRect(ctx, x + 0.5, y + 0.5, w - 1, h - 1, 22.5);
+        ctx.strokeStyle = "rgba(255,255,255,0.72)";
+        ctx.lineWidth = 1;
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x + 24, y + 11);
+        ctx.bezierCurveTo(x + 105, y - 2, x + 220, y + 7, x + w - 42, y + 12);
+        ctx.strokeStyle = "rgba(255,255,255,0.38)";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        pathRoundRect(ctx, x + 10, y + 14, 38, 38, 11);
+        ctx.fillStyle = "rgba(255,255,255,0.58)";
+        ctx.fill();
+        var icon = document.querySelector(iconSelector);
+        if (icon && icon.complete) {
+          ctx.save();
+          pathRoundRect(ctx, x + 10, y + 14, 38, 38, 11);
+          ctx.clip();
+          ctx.drawImage(icon, x + 10, y + 14, 38, 38);
+          ctx.restore();
+        }
+        ctx.fillStyle = "#fff";
+        ctx.shadowColor = "rgba(0,0,0,0.32)";
+        ctx.shadowBlur = 3;
+        ctx.shadowOffsetY = 1;
+        ctx.font = "800 13px Inter, system-ui, sans-serif";
+        ctx.textBaseline = "top";
+        ctx.fillText(title, x + 60, y + 13);
+        ctx.globalAlpha = q * 0.92;
+        ctx.font = "800 12px Inter, system-ui, sans-serif";
+        ctx.fillText(time, x + w - ctx.measureText(time).width - 14, y + 13);
+        ctx.globalAlpha = q * 0.95;
+        ctx.font = "650 12px Inter, system-ui, sans-serif";
+        ctx.fillText(body, x + 60, y + 34);
+        ctx.restore();
+      }
+
+      function drawCanvasNotifications(ctx) {
+        glassBufferCtx.clearRect(0, 0, 390, 844);
+        glassBufferCtx.drawImage(ctx.canvas, 0, 0);
+        drawNotificationCard(
+          ctx,
+          S.iosN1,
+          0,
+          'img[src="assets/icons/messages.jpg"]',
+          "Messages",
+          "now",
+          "Liquid Glass preview is ready for review.",
+        );
+        drawNotificationCard(
+          ctx,
+          S.iosN2,
+          68,
+          'img[src="assets/icons/slack.jpg"]',
+          "HyperFrames",
+          "1m",
+          "One-worker render is ready.",
+        );
+        drawNotificationCard(
+          ctx,
+          S.iosN3,
+          136,
+          'img[src="assets/icons/gmail.jpg"]',
+          "Gmail",
+          "2m",
+          "Preview videos are live on CDN.",
+        );
+      }
 
       function captureScreens() {
         if (!apiOk || !paintReady) return;
         try {
           capPhoneCtx.clearRect(0, 0, 390, 844);
           capPhoneCtx.drawElementImage(phoneHtmlEl, 0, 0, 390, 844);
+          drawCanvasNotifications(capPhoneCtx);
           capLapCtx.clearRect(0, 0, 1440, 900);
           capLapCtx.drawElementImage(lapHtmlEl, 0, 0, 1440, 900);
           phoneTex.needsUpdate = true;
@@ -833,6 +1165,7 @@
       }
 
       var enterEase = cbz(0.16, 1.0, 0.3, 1.0);
+      var notificationEase = cbz(0.22, 0.0, 0.16, 1.0);
       var spinEase = cbz(0.76, 0.0, 0.18, 1.0);
       var driftEase = cbz(0.45, 0.0, 0.15, 1.0);
       var snapEase = cbz(0.22, 1.15, 0.36, 1.0);
@@ -863,8 +1196,9 @@
         cardReveal: 0,
         titleFade: 0,
         counter: 0,
-        iosAlert: 0,
-        iosPanel: 0,
+        iosN1: 0,
+        iosN2: 0,
+        iosN3: 0,
         p: 0,
       };
 
@@ -886,21 +1220,19 @@
           allCards[ci2].style.opacity = cardProgress;
           allCards[ci2].style.transform = "translateY(" + (1 - cardProgress) * 15 + "px)";
         }
-        var n1 = document.getElementById("ios-notification-a");
-        var n2 = document.getElementById("ios-notification-b");
-        var ctl = document.getElementById("ios-control-strip");
-        if (n1) {
-          n1.style.opacity = 0.42 + S.iosAlert * 0.58;
-          n1.style.transform = "translateY(" + (1 - S.iosAlert) * 10 + "px)";
+        function dropNotification(id, progress) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          var p = Math.max(0, Math.min(1, progress));
+          var q = notificationEase(p);
+          var overshoot = Math.sin(q * PI) * 5;
+          el.style.opacity = q;
+          el.style.transform =
+            "translateY(" + ((1 - q) * -125 + overshoot) + "px) scale(" + (0.98 + q * 0.02) + ")";
         }
-        if (n2) {
-          n2.style.opacity = 0.35 + S.iosPanel * 0.65;
-          n2.style.transform = "translateY(" + (1 - S.iosPanel) * 12 + "px)";
-        }
-        if (ctl) {
-          ctl.style.opacity = 0.72 + S.iosPanel * 0.28;
-          ctl.style.transform = "scale(" + (0.97 + S.iosPanel * 0.03) + ")";
-        }
+        dropNotification("ios-notification-a", S.iosN1);
+        dropNotification("ios-notification-b", S.iosN2);
+        dropNotification("ios-notification-c", S.iosN3);
         // Re-capture HTML to texture
         captureScreens();
 
@@ -928,7 +1260,7 @@
       window.__timelines = window.__timelines || {};
       window.__timelines["ios26-liquid-glass"] = tl;
 
-      tl.to(S, { p: 1, drift: 15, duration: 15, ease: "none", onUpdate: render }, 0);
+      tl.to(S, { p: 1, drift: 15, duration: 15, ease: "none" }, 0);
 
       // ── iOS 26 Showcase: full-device hero with a subtle drift-in ──
       tl.to(S, { cZ: 6.45, duration: 12, ease: driftEase }, 0.5);
@@ -944,8 +1276,10 @@
 
       // Move MacBook off screen so it doesn't appear
       tl.set(S, { lpX: 10 }, 0);
-      tl.to(S, { iosAlert: 1, duration: 0.8, ease: breatheEase }, 0.35);
-      tl.to(S, { iosPanel: 1, duration: 1.1, ease: breatheEase }, 0.75);
+      tl.to(S, { iosN1: 1, duration: 0.72, ease: "none" }, 0.85);
+      tl.to(S, { iosN2: 1, duration: 0.74, ease: "none" }, 1.7);
+      tl.to(S, { iosN3: 1, duration: 0.76, ease: "none" }, 2.55);
+      tl.to({}, { duration: 15, ease: "none", onUpdate: render }, 0);
     </script>
   </body>
 </html>

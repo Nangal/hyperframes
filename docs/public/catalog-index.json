@@ -431,13 +431,14 @@
     "name": "ios26-liquid-glass",
     "type": "block",
     "title": "iOS 26 Liquid Glass Home Screen",
-    "description": "3D iPhone with pixel-perfect iOS 26 home screen featuring liquid glass app icons, status bar, dock, and search pill — rendered via WebGPU glass shaders on a layoutsubtree canvas mapped to a GLTF device model.",
+    "description": "3D iPhone with a normal iOS 26 home screen, liquid glass app icons, shader wallpaper, dock, and fluid glass notifications that drop from the status area onto a GLTF device model.",
     "tags": [
       "liquid-glass-html-in-canvas",
       "webgpu",
       "3d",
       "iphone",
       "ios26",
+      "notifications",
       "gltf",
       "html-in-canvas"
     ],
