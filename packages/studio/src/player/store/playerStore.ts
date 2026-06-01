@@ -63,6 +63,11 @@ interface PlayerState {
   /** Work-area out-point (seconds). When set, loop ends here and E jumps here. */
   outPoint: number | null;
 
+  /** Set of selected keyframe keys in format `${elementId}:${percentage}`. */
+  selectedKeyframes: Set<string>;
+  toggleSelectedKeyframe: (key: string) => void;
+  clearSelectedKeyframes: () => void;
+
   /** Keyframe data per element id, populated from parsed GSAP animations. */
   keyframeCache: Map<string, KeyframeCacheEntry>;
   setKeyframeCache: (elementId: string, data: KeyframeCacheEntry | undefined) => void;
@@ -122,6 +127,16 @@ export const usePlayerStore = create<PlayerState>((set) => ({
   manualZoomPercent: 100,
   inPoint: null,
   outPoint: null,
+
+  selectedKeyframes: new Set(),
+  toggleSelectedKeyframe: (key) =>
+    set((s) => {
+      const next = new Set(s.selectedKeyframes);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return { selectedKeyframes: next };
+    }),
+  clearSelectedKeyframes: () => set({ selectedKeyframes: new Set() }),
 
   keyframeCache: new Map(),
   setKeyframeCache: (elementId, data) =>
@@ -194,6 +209,7 @@ export const usePlayerStore = create<PlayerState>((set) => ({
       selectedElementId: null,
       inPoint: null,
       outPoint: null,
+      selectedKeyframes: new Set(),
       keyframeCache: new Map(),
     }),
 }));

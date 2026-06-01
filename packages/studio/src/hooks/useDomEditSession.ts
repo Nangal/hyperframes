@@ -224,6 +224,7 @@ export function useDomEditSession({
     addKeyframe,
     removeKeyframe,
     convertToKeyframes,
+    removeAllKeyframes,
   } = useGsapScriptCommits({
     projectIdRef,
     activeCompPath,
@@ -369,6 +370,28 @@ export function useDomEditSession({
     [domEditSelection, convertToKeyframes],
   );
 
+  const handleGsapRemoveAllKeyframes = useCallback(
+    (animId: string) => {
+      if (!domEditSelection) return;
+      removeAllKeyframes(domEditSelection, animId);
+    },
+    [domEditSelection, removeAllKeyframes],
+  );
+
+  /**
+   * Reset keyframes for the currently selected element.
+   * Finds the animation with keyframes from the resolved GSAP animations
+   * and sends a remove-all-keyframes mutation. Returns true if keyframes
+   * were found and the mutation was dispatched.
+   */
+  const handleResetSelectedElementKeyframes = useCallback((): boolean => {
+    if (!domEditSelection) return false;
+    const withKeyframes = selectedGsapAnimations.find((a) => a.keyframes);
+    if (!withKeyframes) return false;
+    removeAllKeyframes(domEditSelection, withKeyframes.id);
+    return true;
+  }, [domEditSelection, selectedGsapAnimations, removeAllKeyframes]);
+
   // Sync selection from preview document on load / refresh
   // eslint-disable-next-line no-restricted-syntax
   useEffect(() => {
@@ -512,5 +535,7 @@ export function useDomEditSession({
     handleGsapAddKeyframe,
     handleGsapRemoveKeyframe,
     handleGsapConvertToKeyframes,
+    handleGsapRemoveAllKeyframes,
+    handleResetSelectedElementKeyframes,
   };
 }

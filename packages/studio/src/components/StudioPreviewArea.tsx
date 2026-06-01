@@ -101,6 +101,10 @@ export function StudioPreviewArea({
     handleDomGroupPathOffsetCommit,
     handleDomBoxSizeCommit,
     handleDomRotationCommit,
+    selectedGsapAnimations,
+    handleGsapRemoveKeyframe,
+    handleGsapUpdateMeta,
+    handleGsapAddKeyframe,
   } = useDomEditContext();
 
   return (
@@ -121,6 +125,25 @@ export function StudioPreviewArea({
           onResizeElement={handleTimelineElementResize}
           onBlockedEditAttempt={handleBlockedTimelineEdit}
           onSelectTimelineElement={handleTimelineElementSelect}
+          onDeleteKeyframe={(_elId, pct) => {
+            const anim = selectedGsapAnimations.find((a) => a.keyframes);
+            if (anim) handleGsapRemoveKeyframe(anim.id, pct);
+          }}
+          onChangeKeyframeEase={(_elId, _pct, ease) => {
+            const anim = selectedGsapAnimations.find((a) => a.keyframes);
+            if (anim) handleGsapUpdateMeta(anim.id, { ease });
+          }}
+          // fallow-ignore-next-line complexity
+          onMoveKeyframe={(_el, oldPct, newPct) => {
+            const anim = selectedGsapAnimations.find((a) => a.keyframes);
+            if (!anim?.keyframes) return;
+            const kf = anim.keyframes.keyframes.find((k) => k.percentage === oldPct);
+            if (!kf) return;
+            handleGsapRemoveKeyframe(anim.id, oldPct);
+            for (const [prop, val] of Object.entries(kf.properties)) {
+              handleGsapAddKeyframe(anim.id, newPct, prop, val);
+            }
+          }}
           onCompIdToSrcChange={setCompIdToSrc}
           onCompositionLoadingChange={setCompositionLoading}
           onCompositionChange={(compPath) => {

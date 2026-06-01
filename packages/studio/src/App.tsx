@@ -266,8 +266,9 @@ export function StudioApp() {
   const handleDomEditElementDeleteRef = useRef<(s: DomEditSelection) => Promise<void>>(
     async () => {},
   );
-  const domEditDeleteBridge = async (s: DomEditSelection) =>
-    handleDomEditElementDeleteRef.current(s);
+  const domEditDeleteBridge = (s: DomEditSelection) => handleDomEditElementDeleteRef.current(s);
+  const resetKeyframesRef = useRef<() => boolean>(() => false);
+  const deleteSelectedKeyframesRef = useRef<() => void>(() => {});
   const { handleCopy, handlePaste, handleCut } = useClipboard({
     projectId,
     activeCompPath,
@@ -299,6 +300,8 @@ export function StudioApp() {
     handleCopy,
     handlePaste,
     handleCut,
+    onResetKeyframes: () => resetKeyframesRef.current(),
+    onDeleteSelectedKeyframes: () => deleteSelectedKeyframesRef.current(),
   });
 
   const selectSidebarTabStable = useCallback(
@@ -349,7 +352,16 @@ export function StudioApp() {
   domEditSelectionBridgeRef.current = domEditSession.domEditSelection;
   clearDomSelectionRef.current = domEditSession.clearDomSelection;
   handleDomEditElementDeleteRef.current = domEditSession.handleDomEditElementDelete;
-
+  resetKeyframesRef.current = domEditSession.handleResetSelectedElementKeyframes;
+  deleteSelectedKeyframesRef.current = () => {
+    const sk = usePlayerStore.getState().selectedKeyframes;
+    const a = domEditSession.selectedGsapAnimations.find((x) => x.keyframes);
+    if (!a || sk.size === 0) return;
+    sk.forEach((k) => {
+      const p = Number(k.split(":")[1]);
+      if (Number.isFinite(p)) domEditSession.handleGsapRemoveKeyframe(a.id, p);
+    });
+  };
   useCaptionDetection({
     projectId,
     activeCompPath,

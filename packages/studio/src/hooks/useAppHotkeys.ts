@@ -77,6 +77,8 @@ interface UseAppHotkeysParams {
   handleCopy: () => boolean;
   handlePaste: () => Promise<void>;
   handleCut: () => Promise<boolean>;
+  onResetKeyframes: () => boolean;
+  onDeleteSelectedKeyframes: () => void;
 }
 
 // ── Hook ──
@@ -98,6 +100,8 @@ export function useAppHotkeys({
   handleCopy,
   handlePaste,
   handleCut,
+  onResetKeyframes,
+  onDeleteSelectedKeyframes,
 }: UseAppHotkeysParams) {
   const previewHotkeyWindowRef = useRef<Window | null>(null);
   const handleAppKeyDownRef = useRef<((event: KeyboardEvent) => void) | undefined>(undefined);
@@ -197,6 +201,10 @@ export function useAppHotkeys({
   handlePasteRef.current = handlePaste;
   const handleCutRef = useRef(handleCut);
   handleCutRef.current = handleCut;
+  const onResetKeyframesRef = useRef(onResetKeyframes);
+  onResetKeyframesRef.current = onResetKeyframes;
+  const onDeleteSelectedKeyframesRef = useRef(onDeleteSelectedKeyframes);
+  onDeleteSelectedKeyframesRef.current = onDeleteSelectedKeyframes;
 
   // ── Consolidated keydown handler ──
 
@@ -292,7 +300,7 @@ export function useAppHotkeys({
       return;
     }
 
-    // Delete / Backspace — remove selected element (timeline clip or preview selection)
+    // Delete / Backspace — remove selected keyframes > reset keyframes > remove element
     if (
       (event.key === "Delete" || event.key === "Backspace") &&
       !event.metaKey &&
@@ -300,6 +308,26 @@ export function useAppHotkeys({
       !event.altKey &&
       !isEditableTarget(event.target)
     ) {
+      // Priority: selected keyframes take precedence over clip deletion
+      const { selectedKeyframes } = usePlayerStore.getState();
+      if (selectedKeyframes.size > 0) {
+        onDeleteSelectedKeyframesRef.current();
+        usePlayerStore.getState().clearSelectedKeyframes();
+        event.preventDefault();
+        return;
+      }
+
+      // Backspace: try resetting keyframes first; fall through to delete if none found
+      if (event.key === "Backspace") {
+        const { selectedElementId, keyframeCache } = usePlayerStore.getState();
+        if (selectedElementId && keyframeCache.has(selectedElementId)) {
+          if (onResetKeyframesRef.current()) {
+            event.preventDefault();
+            return;
+          }
+        }
+      }
+
       const { selectedElementId, elements } = usePlayerStore.getState();
       if (selectedElementId) {
         const element = elements.find((el) => (el.key ?? el.id) === selectedElementId);
