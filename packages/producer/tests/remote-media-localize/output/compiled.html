@@ -34,27 +34,21 @@
 <body>
   <!--
     Regression fixture for PR #1146 (remote media localization) and
-    PR #1140 (crossorigin strip on <audio id="hf-audio-0" data-start="0" data-hf-auto-start="">).
+    PR #1140 (crossorigin strip).
 
-    Before the fix:
-      - <video id="hf-video-0" data-start="0" data-hf-auto-start="" data-has-audio="true"> src stayed as S3 URL → Puppeteer couldn't buffer within
-        pageReadyTimeout → all frames rendered black.
-      - <audio id="hf-audio-1" data-start="0" data-hf-auto-start=""> → CORS rejection in renderer →
-        audio stage silently dropped the track → no audio in output.
+    Before the fix: remote S3 src on video + audio elements caused black
+    frames (Chrome buffering timeout) and silent output (CORS rejection).
 
-    After the fix (htmlCompiler.localizeRemoteMediaSources):
-      - Remote <video id="hf-video-1" data-start="0" data-hf-auto-start="" data-has-audio="true">/<audio id="hf-audio-2" data-start="0" data-hf-auto-start=""> src attrs are rewritten to _remote_media/
-        in compiled.html — the snapshot verifies this rewrite happened.
-      - crossorigin attrs are stripped from both elements.
-      - Video frames must not be black (PSNR > threshold vs baseline).
-      - Audio must be present (minAudioCorrelation).
+    After the fix: localizeRemoteMediaSources() downloads the files and
+    rewrites src to _remote_media/ before render. crossorigin attrs stripped.
+    PSNR and audio correlation verify the fix actually works end-to-end.
   -->
-  <div id="root" data-composition-id="main" data-width="1280" data-height="720" data-start="0" data-duration="3">
+  <div id="root" data-composition-id="main" data-width="1280" data-height="720" data-start="0" data-duration="4">
     <!-- Remote video: must be localized to _remote_media/ and crossorigin stripped -->
-    <video id="bg-video" src="_remote_media/download_26528e90ebdf.mp4" data-start="0" data-duration="3" muted playsinline data-end="3" data-has-audio="false"></video>
+    <video id="bg-video" src="_remote_media/download_26528e90ebdf.mp4" data-start="0" data-duration="4" muted playsinline data-end="4" data-has-audio="false"></video>
 
     <!-- Remote audio: src must be localized + crossorigin stripped -->
-    <audio id="bg-audio" src="_remote_media/download_1cb75829e1a1.wav" data-start="0" data-duration="3" data-volume="0.7" data-end="3"></audio>
+    <audio id="bg-audio" src="_remote_media/download_1cb75829e1a1.wav" data-start="0" data-duration="4" data-volume="0.7" data-end="4"></audio>
 
     <div class="label">remote-media-localize regression</div>
   </div>

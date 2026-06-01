@@ -34,20 +34,14 @@
 <body>
   <!--
     Regression fixture for PR #1146 (remote media localization) and
-    PR #1140 (crossorigin strip on <audio>).
+    PR #1140 (crossorigin strip).
 
-    Before the fix:
-      - <video> src stayed as S3 URL → Puppeteer couldn't buffer within
-        pageReadyTimeout → all frames rendered black.
-      - <audio crossorigin="anonymous"> → CORS rejection in renderer →
-        audio stage silently dropped the track → no audio in output.
+    Before the fix: remote S3 src on video + audio elements caused black
+    frames (Chrome buffering timeout) and silent output (CORS rejection).
 
-    After the fix (htmlCompiler.localizeRemoteMediaSources):
-      - Remote <video>/<audio> src attrs are rewritten to _remote_media/
-        in compiled.html — the snapshot verifies this rewrite happened.
-      - crossorigin attrs are stripped from both elements.
-      - Video frames must not be black (PSNR > threshold vs baseline).
-      - Audio must be present (minAudioCorrelation).
+    After the fix: localizeRemoteMediaSources() downloads the files and
+    rewrites src to _remote_media/ before render. crossorigin attrs stripped.
+    PSNR and audio correlation verify the fix actually works end-to-end.
   -->
   <div
     id="root"
@@ -55,7 +49,7 @@
     data-width="1280"
     data-height="720"
     data-start="0"
-    data-duration="3"
+    data-duration="4"
   >
     <!-- Remote video: must be localized to _remote_media/ and crossorigin stripped -->
     <video
@@ -63,7 +57,7 @@
       src="https://gen-os-static.s3.us-east-2.amazonaws.com/astral_assets/uploaded_assets/12ca139c_8bf35a3b61b84ab69251ad5091e4c69b.mp4"
       crossorigin="anonymous"
       data-start="0"
-      data-duration="3"
+      data-duration="4"
       muted
       playsinline
     ></video>
@@ -74,7 +68,7 @@
       src="https://gen-os-static.s3.us-east-2.amazonaws.com/astral_assets/generated_assets/f87f97d4_0c49f6fa95224cc3bd4f5ea3a0d937c5.wav"
       crossorigin="anonymous"
       data-start="0"
-      data-duration="3"
+      data-duration="4"
       data-volume="0.7"
     ></audio>
 
