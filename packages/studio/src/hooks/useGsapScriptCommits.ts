@@ -286,7 +286,9 @@ export function useGsapScriptCommits({
         if (!data.changed) return;
       }
 
-      const start = currentTime ?? (Number.parseFloat(selection.dataAttributes.start ?? "0") || 0);
+      const rawStart =
+        currentTime ?? (Number.parseFloat(selection.dataAttributes.start ?? "0") || 0);
+      const start = Math.round(rawStart * 1000) / 1000;
       const toDefaults: Record<string, Record<string, number>> = {
         from: { opacity: 0 },
         to: { opacity: 1 },

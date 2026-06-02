@@ -298,8 +298,10 @@ export const AnimationCard = memo(function AnimationCard({
           {methodLabel}
         </span>
         <span className="text-[11px] font-medium text-neutral-400" title="When this effect plays">
-          {typeof animation.position === "number" ? `${animation.position}s` : animation.position} –{" "}
-          {typeof endTime === "number" ? `${endTime.toFixed(1)}s` : endTime}
+          {typeof animation.position === "number"
+            ? `${parseFloat(animation.position.toFixed(3))}s`
+            : animation.position}{" "}
+          – {typeof endTime === "number" ? `${parseFloat(endTime.toFixed(3))}s` : endTime}
         </span>
         <span className="ml-auto text-[10px] text-neutral-500" title={easeName}>
           {easeLabel}
@@ -350,7 +352,7 @@ export const AnimationCard = memo(function AnimationCard({
                 value={
                   typeof animation.position === "string"
                     ? animation.position
-                    : String(Math.max(0, animation.position))
+                    : String(parseFloat(Math.max(0, animation.position).toFixed(3)))
                 }
                 suffix={typeof animation.position === "number" ? "s" : undefined}
                 tooltip="When this effect begins on the timeline"
