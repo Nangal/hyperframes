@@ -15,6 +15,7 @@ interface DomEditSessionSlice {
   handleGsapRemoveKeyframe: (animId: string, pct: number) => void;
   handleGsapAddKeyframe: (animId: string, pct: number, prop: string, val: number | string) => void;
   handleGsapConvertToKeyframes: (animId: string) => void;
+  handleGsapAddAnimation: (method: "to" | "from" | "set" | "fromTo") => void;
 }
 
 interface TimelineToolbarProps {
@@ -46,30 +47,29 @@ function useKeyframeToggle(session?: DomEditSessionSlice) {
   }
 
   // fallow-ignore-next-line complexity
-  const onToggle =
-    sel && (kfAnim || flatAnim)
-      ? () => {
-          const t = usePlayerStore.getState().currentTime;
-          if (kfAnim?.keyframes) {
-            const elStart = Number.parseFloat(sel.dataAttributes?.start ?? "0") || 0;
-            const elDuration = Number.parseFloat(sel.dataAttributes?.duration ?? "1") || 1;
-            const pct =
-              elDuration > 0
-                ? Math.max(0, Math.min(100, Math.round(((t - elStart) / elDuration) * 100)))
-                : 0;
-            const existing = kfAnim.keyframes.keyframes.find(
-              (k) => Math.abs(k.percentage - pct) <= 1,
-            );
-            if (existing) {
-              session.handleGsapRemoveKeyframe(kfAnim.id, existing.percentage);
-            }
-            // Adding a keyframe with correct interpolated values requires
-            // the runtime bridge (drag flow). The toggle only removes.
-          } else if (flatAnim) {
-            session.handleGsapConvertToKeyframes(flatAnim.id);
+  const onToggle = sel
+    ? () => {
+        const t = usePlayerStore.getState().currentTime;
+        if (kfAnim?.keyframes) {
+          const elStart = Number.parseFloat(sel.dataAttributes?.start ?? "0") || 0;
+          const elDuration = Number.parseFloat(sel.dataAttributes?.duration ?? "1") || 1;
+          const pct =
+            elDuration > 0
+              ? Math.max(0, Math.min(100, Math.round(((t - elStart) / elDuration) * 100)))
+              : 0;
+          const existing = kfAnim.keyframes.keyframes.find(
+            (k) => Math.abs(k.percentage - pct) <= 1,
+          );
+          if (existing) {
+            session.handleGsapRemoveKeyframe(kfAnim.id, existing.percentage);
           }
+        } else if (flatAnim) {
+          session.handleGsapConvertToKeyframes(flatAnim.id);
+        } else {
+          session.handleGsapAddAnimation("to");
         }
-      : undefined;
+      }
+    : undefined;
 
   return { state, onToggle };
 }
