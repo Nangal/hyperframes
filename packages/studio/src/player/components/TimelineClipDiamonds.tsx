@@ -28,7 +28,7 @@ interface TimelineClipDiamondsProps {
   onContextMenuKeyframe?: (e: React.MouseEvent, elementId: string, percentage: number) => void;
 }
 
-const DIAMOND_RATIO = 0.45;
+const DIAMOND_RATIO = 0.8;
 
 export const TimelineClipDiamonds = memo(function TimelineClipDiamonds({
   keyframesData,
@@ -150,18 +150,18 @@ export const TimelineClipDiamonds = memo(function TimelineClipDiamonds({
             }}
             title={`${kf.percentage}%`}
           >
-            <svg width={diamondSize} height={diamondSize} viewBox="0 0 14 14">
+            <svg width={diamondSize} height={diamondSize} viewBox="0 0 10 10">
               {isKfSelected && (
                 <path
-                  d="M7 0.5L13.5 7L7 13.5L0.5 7Z"
+                  d="M5 0L10 5L5 10L0 5Z"
                   fill="none"
                   stroke={accentColor}
-                  strokeWidth="1.2"
+                  strokeWidth="0.8"
                   opacity={0.5}
                 />
               )}
               <path
-                d="M7 2.5L11.5 7L7 11.5L2.5 7Z"
+                d="M5 1L9 5L5 9L1 5Z"
                 fill={color}
                 opacity={isKfSelected || atPlayhead ? 1 : 0.55}
               />
