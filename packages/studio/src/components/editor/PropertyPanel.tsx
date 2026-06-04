@@ -208,6 +208,9 @@ export const PropertyPanel = memo(function PropertyPanel({
   const manualOffsetEditingDisabled = !element.capabilities.canApplyManualOffset;
   const manualSizeEditingDisabled = !element.capabilities.canApplyManualSize;
   const sourceLabel = element.id ? `#${element.id}` : element.selector;
+  const isFitWidth = styles.width === "fit-content";
+  const isFitHeight = styles.height === "fit-content";
+  const isFitContent = isFitWidth && isFitHeight;
   const showEditableSections = element.capabilities.canEditStyles;
   const manualOffset = readStudioPathOffset(element.element);
   const manualSize = readStudioBoxSize(element.element);
@@ -333,16 +336,16 @@ export const PropertyPanel = memo(function PropertyPanel({
             />
             <MetricField
               label="W"
-              value={formatPxMetricValue(resolvedWidth)}
-              disabled={manualSizeEditingDisabled}
-              scrub
+              value={isFitWidth ? "fit" : formatPxMetricValue(resolvedWidth)}
+              disabled={manualSizeEditingDisabled || isFitWidth}
+              scrub={!isFitWidth}
               onCommit={(next) => commitManualSize("width", next)}
             />
             <MetricField
               label="H"
-              value={formatPxMetricValue(resolvedHeight)}
-              disabled={manualSizeEditingDisabled}
-              scrub
+              value={isFitHeight ? "fit" : formatPxMetricValue(resolvedHeight)}
+              disabled={manualSizeEditingDisabled || isFitHeight}
+              scrub={!isFitHeight}
               onCommit={(next) => commitManualSize("height", next)}
             />
             <MetricField
@@ -359,6 +362,33 @@ export const PropertyPanel = memo(function PropertyPanel({
               onCommit={(next) => onSetStyle("z-index", next)}
             />
           </div>
+          {element.capabilities.canApplyManualSize && (
+            <div className="mt-3">
+              <button
+                type="button"
+                className={`w-full rounded-md px-2.5 py-1.5 text-[11px] font-medium transition-colors ${
+                  isFitContent
+                    ? "bg-studio-accent/20 text-studio-accent border border-studio-accent/30"
+                    : "bg-neutral-800 text-neutral-400 border border-neutral-700 hover:bg-neutral-750 hover:text-neutral-300"
+                }`}
+                onClick={() => {
+                  if (isFitContent) {
+                    const bcr = element.element.getBoundingClientRect();
+                    const w = Math.round(bcr.width) || 100;
+                    const h = Math.round(bcr.height) || 100;
+                    onSetStyle("width", `${w}px`);
+                    onSetStyle("height", `${h}px`);
+                  } else {
+                    onSetStyle("width", "fit-content");
+                    onSetStyle("height", "fit-content");
+                  }
+                }}
+                title={isFitContent ? "Switch to fixed size" : "Size to fit content"}
+              >
+                {isFitContent ? "Fit Content ✓" : "Fit Content"}
+              </button>
+            </div>
+          )}
         </Section>
 
         {STUDIO_GSAP_PANEL_ENABLED &&
