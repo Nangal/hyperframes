@@ -23,7 +23,7 @@ import {
 } from "./domEditOverlayGeometry";
 import { type GestureKind, type GestureState } from "./domEditOverlayGestures";
 import type { UseDomEditOverlayGesturesOptions } from "./useDomEditOverlayGestures";
-import { collectSnapContext, buildExcludeKeys } from "./snapTargetCollection";
+import { collectSnapContext, buildExcludeElements } from "./snapTargetCollection";
 
 export function startGroupDrag(
   e: React.PointerEvent<HTMLElement>,
@@ -69,8 +69,10 @@ export function startGroupDrag(
       ? collectSnapContext({
           overlayEl,
           iframe,
-          excludeKeys: buildExcludeKeys({ groupSelections: items.map((i) => i.selection) }),
-          activeCompositionPath: null,
+          excludeElements: buildExcludeElements({
+            iframe,
+            groupSelections: items.map((i) => i.selection),
+          }),
         })
       : undefined;
 
@@ -146,8 +148,7 @@ export function startGesture(
       ? collectSnapContext({
           overlayEl,
           iframe,
-          excludeKeys: buildExcludeKeys({ selection: sel }),
-          activeCompositionPath: null,
+          excludeElements: buildExcludeElements({ iframe, selection: sel }),
         })
       : undefined;
 

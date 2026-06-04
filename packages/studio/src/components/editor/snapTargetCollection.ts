@@ -1,10 +1,7 @@
 // fallow-ignore-file code-duplication
 import type { DomEditSelection } from "./domEditing";
-import type { DomEditContextOptions } from "./domEditingTypes";
-import { collectDomEditLayerItems } from "./domEditingLayers";
 import {
   isElementVisibleForOverlay,
-  selectionCacheKey,
   toOverlayRect,
   type OverlayRect,
 } from "./domEditOverlayGeometry";
@@ -30,12 +27,35 @@ function readPositiveDimension(value: string | null): number | null {
   return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
 }
 
+const IGNORED_TAGS = new Set(["script", "style", "link", "meta", "base", "template", "br", "wbr"]);
+
+function collectVisibleElements(
+  root: HTMLElement,
+  excludeElements: Set<HTMLElement>,
+  maxItems: number,
+): HTMLElement[] {
+  const result: HTMLElement[] = [];
+  const visit = (el: HTMLElement) => {
+    if (result.length >= maxItems) return;
+    for (const child of Array.from(el.children)) {
+      if (!(child instanceof HTMLElement)) continue;
+      if (IGNORED_TAGS.has(child.tagName.toLowerCase())) continue;
+      if (child.hasAttribute("data-composition-id")) continue;
+      if (excludeElements.has(child)) continue;
+      if (!isElementVisibleForOverlay(child)) continue;
+      result.push(child);
+      visit(child);
+    }
+  };
+  visit(root);
+  return result;
+}
+
 // fallow-ignore-next-line complexity
 export function collectSnapContext(input: {
   overlayEl: HTMLDivElement;
   iframe: HTMLIFrameElement;
-  excludeKeys: Set<string>;
-  activeCompositionPath: string | null;
+  excludeElements: Set<HTMLElement>;
 }): SnapContext {
   const prefs = readStudioUiPreferences();
   const snapEnabled = prefs.snapEnabled ?? true;
@@ -45,7 +65,8 @@ export function collectSnapContext(input: {
     return { targets: [], compositionTarget: null, gridEdges: null, snapEnabled };
   }
 
-  const root = doc.querySelector<HTMLElement>("[data-composition-id]") ?? doc.documentElement;
+  const root =
+    doc.querySelector<HTMLElement>("[data-composition-id]") ?? (doc.documentElement as HTMLElement);
   const rootRect = root?.getBoundingClientRect();
   const declaredWidth = readPositiveDimension(root?.getAttribute("data-width") ?? null);
   const declaredHeight = readPositiveDimension(root?.getAttribute("data-height") ?? null);
@@ -71,26 +92,17 @@ export function collectSnapContext(input: {
   };
   const compositionTarget = buildCompositionSnapTarget(compositionOverlayRect);
 
-  const options: DomEditContextOptions = {
-    activeCompositionPath: input.activeCompositionPath,
-    isMasterView: true,
-  };
-  const layerItems = collectDomEditLayerItems(root, options);
+  const elements = collectVisibleElements(root, input.excludeElements, 80);
 
   const rects: Array<{ left: number; top: number; width: number; height: number }> = [];
   const ids: string[] = [];
 
-  for (const item of layerItems) {
-    const key = item.key;
-    if (input.excludeKeys.has(key)) continue;
-
-    if (!isElementVisibleForOverlay(item.element)) continue;
-
-    const rect = toOverlayRect(input.overlayEl, input.iframe, item.element);
+  for (let i = 0; i < elements.length; i++) {
+    const el = elements[i];
+    const rect = toOverlayRect(input.overlayEl, input.iframe, el);
     if (!rect) continue;
-
     rects.push(rect);
-    ids.push(key);
+    ids.push(`snap-target-${i}`);
   }
 
   const targets = extractSnapTargets(rects, ids);
@@ -105,18 +117,20 @@ export function collectSnapContext(input: {
   return { targets, compositionTarget, gridEdges, snapEnabled };
 }
 
-export function buildExcludeKeys(input: {
+export function buildExcludeElements(input: {
+  iframe: HTMLIFrameElement;
   selection?: DomEditSelection | null;
   groupSelections?: DomEditSelection[];
-}): Set<string> {
-  const keys = new Set<string>();
-  if (input.selection) {
-    keys.add(selectionCacheKey(input.selection));
+}): Set<HTMLElement> {
+  const elements = new Set<HTMLElement>();
+  const sel = input.selection;
+  if (sel?.element) {
+    elements.add(sel.element);
   }
   if (input.groupSelections) {
-    for (const sel of input.groupSelections) {
-      keys.add(selectionCacheKey(sel));
+    for (const gs of input.groupSelections) {
+      if (gs.element) elements.add(gs.element);
     }
   }
-  return keys;
+  return elements;
 }
