@@ -38,6 +38,8 @@ export interface GestureState {
   editScaleY: number;
   manualEditDragToken?: string;
   snapContext?: SnapContext;
+  lastSnappedDx?: number;
+  lastSnappedDy?: number;
 }
 
 export interface GroupGestureState {
@@ -46,6 +48,8 @@ export interface GroupGestureState {
   originItems: GroupOverlayItem[];
   members: ManualOffsetDragMember[];
   snapContext?: SnapContext;
+  lastSnappedDx?: number;
+  lastSnappedDy?: number;
 }
 
 export interface BlockedMoveState {

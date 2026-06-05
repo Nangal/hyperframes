@@ -187,6 +187,8 @@ export function createDomEditOverlayGestureHandlers(opts: UseDomEditOverlayGestu
           opts.snapGuidesRef.current = { guides: snap.guides, spacingGuides };
         }
       }
+      groupG.lastSnappedDx = dx;
+      groupG.lastSnappedDy = dy;
 
       setDraftGroupOverlayItems(
         groupG.originItems.map((item) => ({
@@ -257,6 +259,8 @@ export function createDomEditOverlayGestureHandlers(opts: UseDomEditOverlayGestu
             });
         opts.snapGuidesRef.current = { guides: snap.guides, spacingGuides };
       }
+      g.lastSnappedDx = dx;
+      g.lastSnappedDy = dy;
 
       const nextBoxLeft = g.originLeft + dx;
       const nextBoxTop = g.originTop + dy;
@@ -352,13 +356,15 @@ export function createDomEditOverlayGestureHandlers(opts: UseDomEditOverlayGestu
     if (groupG) {
       opts.groupGestureRef.current = null;
       opts.rafPausedRef.current = false;
-      const dx = e.clientX - groupG.startX;
-      const dy = e.clientY - groupG.startY;
-      if (Math.hypot(dx, dy) < BLOCKED_MOVE_THRESHOLD_PX) {
+      const rawDx = e.clientX - groupG.startX;
+      const rawDy = e.clientY - groupG.startY;
+      if (Math.hypot(rawDx, rawDy) < BLOCKED_MOVE_THRESHOLD_PX) {
         restoreGroupPathOffsets(groupG);
         opts.suppressNextBoxClickRef.current = true;
         return;
       }
+      const dx = groupG.lastSnappedDx ?? rawDx;
+      const dy = groupG.lastSnappedDy ?? rawDy;
       setDraftGroupOverlayItems(
         groupG.originItems.map((item) => ({
           ...item,
@@ -446,8 +452,8 @@ export function createDomEditOverlayGestureHandlers(opts: UseDomEditOverlayGestu
         })
         .finally(() => endStudioManualEditGesture(sel.element, g.manualEditDragToken));
     } else if (g.kind === "drag") {
-      const dx = e.clientX - g.startX;
-      const dy = e.clientY - g.startY;
+      const dx = g.lastSnappedDx ?? e.clientX - g.startX;
+      const dy = g.lastSnappedDy ?? e.clientY - g.startY;
       if (!g.pathOffsetMember) return;
       const finalOffset = applyManualOffsetDragCommit(g.pathOffsetMember, dx, dy);
       const nextBoxLeft = g.originLeft + dx;

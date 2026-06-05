@@ -1,12 +1,7 @@
 import { memo } from "react";
 import { Clock, Eye, Layers, MessageSquare, Move, X } from "../../icons/SystemIcons";
 import { type DomEditSelection } from "./domEditing";
-import {
-  readStudioBoxSize,
-  readStudioPathOffset,
-  readStudioRotation,
-  clearStudioBoxSize,
-} from "./manualEdits";
+import { readStudioBoxSize, readStudioPathOffset, readStudioRotation } from "./manualEdits";
 import type { ImportedFontAsset } from "./fontAssets";
 import {
   EMPTY_STYLES,
@@ -213,9 +208,6 @@ export const PropertyPanel = memo(function PropertyPanel({
   const manualOffsetEditingDisabled = !element.capabilities.canApplyManualOffset;
   const manualSizeEditingDisabled = !element.capabilities.canApplyManualSize;
   const sourceLabel = element.id ? `#${element.id}` : element.selector;
-  const isFitWidth = styles.width === "fit-content";
-  const isFitHeight = styles.height === "fit-content";
-  const isFitContent = isFitWidth && isFitHeight;
   const showEditableSections = element.capabilities.canEditStyles;
   const manualOffset = readStudioPathOffset(element.element);
   const manualSize = readStudioBoxSize(element.element);
@@ -344,43 +336,47 @@ export const PropertyPanel = memo(function PropertyPanel({
             <div className="flex-1">
               <MetricField
                 label="W"
-                value={isFitWidth ? "fit" : formatPxMetricValue(resolvedWidth)}
-                disabled={manualSizeEditingDisabled || isFitWidth}
-                scrub={!isFitWidth}
+                value={formatPxMetricValue(resolvedWidth)}
+                disabled={manualSizeEditingDisabled}
+                scrub
                 onCommit={(next) => commitManualSize("width", next)}
               />
             </div>
             <div className="flex-1">
               <MetricField
                 label="H"
-                value={isFitHeight ? "fit" : formatPxMetricValue(resolvedHeight)}
-                disabled={manualSizeEditingDisabled || isFitHeight}
-                scrub={!isFitHeight}
+                value={formatPxMetricValue(resolvedHeight)}
+                disabled={manualSizeEditingDisabled}
+                scrub
                 onCommit={(next) => commitManualSize("height", next)}
               />
             </div>
             {element.capabilities.canApplyManualSize && (
               <button
                 type="button"
-                className={`flex-shrink-0 rounded p-1 transition-colors ${
-                  isFitContent
-                    ? "text-studio-accent bg-studio-accent/10"
-                    : "text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800"
-                }`}
+                className="flex-shrink-0 rounded p-1 transition-colors text-neutral-500 hover:text-neutral-300 hover:bg-neutral-800"
                 onClick={() => {
-                  if (isFitContent) {
-                    const bcr = element.element.getBoundingClientRect();
-                    onSetStyle("width", `${Math.round(bcr.width) || 100}px`);
-                    onSetStyle("height", `${Math.round(bcr.height) || 100}px`);
-                  } else {
-                    clearStudioBoxSize(element.element);
-                    onSetStyle("width", "fit-content");
-                    onSetStyle("height", "fit-content");
-                    element.element.style.setProperty("width", "fit-content");
-                    element.element.style.setProperty("height", "fit-content");
+                  const el = element.element;
+                  const children = Array.from(el.children).filter(
+                    (c): c is HTMLElement => c.nodeType === 1,
+                  );
+                  if (children.length === 0) return;
+                  const parentRect = el.getBoundingClientRect();
+                  let maxRight = 0;
+                  let maxBottom = 0;
+                  for (const child of children) {
+                    const cr = child.getBoundingClientRect();
+                    if (cr.width <= 0 && cr.height <= 0) continue;
+                    const right = cr.right - parentRect.left;
+                    const bottom = cr.bottom - parentRect.top;
+                    if (right > maxRight) maxRight = right;
+                    if (bottom > maxBottom) maxBottom = bottom;
                   }
+                  const w = Math.max(1, Math.round(maxRight));
+                  const h = Math.max(1, Math.round(maxBottom));
+                  onSetManualSize(element, { width: w, height: h });
                 }}
-                title={isFitContent ? "Fixed size" : "Fit to content"}
+                title="Fit to visible children"
               >
                 <svg
                   width="14"
