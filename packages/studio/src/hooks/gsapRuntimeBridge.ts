@@ -209,10 +209,6 @@ export async function tryGsapDragIntercept(
   const gsapPos = readGsapPositionFromIframe(iframe, selector);
   if (!gsapPos) return false;
 
-  const ct = usePlayerStore.getState().currentTime;
-  const ts = resolveTweenStart(posAnim);
-  const td = resolveTweenDuration(posAnim);
-
   await commitGsapPositionFromDrag(selection, posAnim, offset, gsapPos, iframe, selector, {
     commitMutation,
   });
