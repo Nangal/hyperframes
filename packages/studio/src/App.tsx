@@ -10,9 +10,10 @@ import { usePanelLayout } from "./hooks/usePanelLayout";
 import { useFileManager } from "./hooks/useFileManager";
 import { usePreviewPersistence } from "./hooks/usePreviewPersistence";
 import { useTimelineEditing } from "./hooks/useTimelineEditing";
+import { addBlockToProject } from "./utils/blockInstaller";
+import type { BlockParam } from "@hyperframes/core/registry";
 import type { BlockPreviewInfo } from "./components/sidebar/BlocksTab";
 import { useDomEditSession } from "./hooks/useDomEditSession";
-import { useBlockHandlers } from "./hooks/useBlockHandlers";
 import { useAppHotkeys } from "./hooks/useAppHotkeys";
 import { useClipboard } from "./hooks/useClipboard";
 import { readStudioUiPreferences, writeStudioUiPreferences } from "./utils/studioUiPreferences";
@@ -34,7 +35,9 @@ import type { DomEditSelection } from "./components/editor/domEditing";
 import { AskAgentModal } from "./components/AskAgentModal";
 import { StudioGlobalDragOverlay } from "./components/StudioGlobalDragOverlay";
 import { StudioHeader } from "./components/StudioHeader";
-import { useGestureCommit } from "./hooks/useGestureCommit";
+import { useGestureRecording } from "./hooks/useGestureRecording";
+import { STUDIO_KEYFRAMES_ENABLED } from "./components/editor/manualEditingAvailability";
+import { simplifyGestureSamples } from "./utils/rdpSimplify";
 
 import { GestureTrailOverlay } from "./components/editor/GestureTrailOverlay";
 import { StudioLeftSidebar } from "./components/StudioLeftSidebar";
@@ -80,6 +83,12 @@ export function StudioApp() {
   const [compositionLoading, setCompositionLoading] = useState(true);
   const [refreshKey, setRefreshKey] = useState(0);
   const [, setPreviewDocumentVersion] = useState(0);
+  const [activeBlockParams, setActiveBlockParams] = useState<{
+    blockName: string;
+    blockTitle: string;
+    params: BlockParam[];
+    compositionPath: string;
+  } | null>(null);
   const [blockPreview, setBlockPreview] = useState<BlockPreviewInfo | null>(null);
 
   const previewIframeRef = useRef<HTMLIFrameElement | null>(null);
@@ -184,15 +193,8 @@ export function StudioApp() {
     isRecordingRef: isGestureRecordingRef,
   });
 
-  const {
-    activeBlockParams,
-    setActiveBlockParams,
-    handleAddBlock,
-    handleTimelineBlockDrop,
-    handlePreviewBlockDrop,
-  } = useBlockHandlers({
-    projectId,
-    blockCtxDeps: {
+  const blockCtx = useMemo(
+    () => ({
       activeCompPath,
       timelineElements,
       readProjectFile: fileManager.readProjectFile,
@@ -201,11 +203,70 @@ export function StudioApp() {
       refreshFileTree: fileManager.refreshFileTree,
       reloadPreview,
       showToast,
+    }),
+    [
+      activeCompPath,
+      timelineElements,
+      fileManager,
+      editHistory.recordEdit,
+      reloadPreview,
+      showToast,
+    ],
+  );
+  const handleAddBlock = useCallback(
+    (blockName: string) => {
+      if (!projectId) return;
+      void (async () => {
+        const result = await addBlockToProject({
+          projectId,
+          blockName,
+          ...blockCtx,
+          previewIframe: previewIframeRef.current,
+          currentTime: usePlayerStore.getState().currentTime,
+        });
+        const params = result?.block.type === "hyperframes:block" ? result.block.params : undefined;
+        if (params?.length) {
+          setActiveBlockParams({
+            blockName: result!.block.name,
+            blockTitle: result!.block.title,
+            params,
+            compositionPath: result!.compositionPath,
+          });
+          panelLayout.setRightCollapsed(false);
+          panelLayout.setRightPanelTab("block-params");
+        }
+      })();
     },
-    previewIframeRef,
-    setRightCollapsed: panelLayout.setRightCollapsed,
-    setRightPanelTab: panelLayout.setRightPanelTab,
-  });
+    [projectId, blockCtx, panelLayout],
+  );
+  const handleTimelineBlockDrop = useCallback(
+    (blockName: string, placement: { start: number; track: number }) => {
+      if (!projectId) return;
+      void addBlockToProject({
+        projectId,
+        blockName,
+        placement,
+        ...blockCtx,
+        previewIframe: previewIframeRef.current,
+        currentTime: usePlayerStore.getState().currentTime,
+      });
+    },
+    [projectId, blockCtx],
+  );
+  const handlePreviewBlockDrop = useCallback(
+    (blockName: string, position: { left: number; top: number }) => {
+      if (!projectId) return;
+      void addBlockToProject({
+        projectId,
+        blockName,
+        visualPosition: position,
+        ...blockCtx,
+        previewIframe: previewIframeRef.current,
+        currentTime: usePlayerStore.getState().currentTime,
+      });
+    },
+    [projectId, blockCtx],
+  );
 
   const clearDomSelectionRef = useRef<() => void>(() => {});
   const domEditSelectionBridgeRef = useRef<DomEditSelection | null>(null);
@@ -251,7 +312,9 @@ export function StudioApp() {
     onResetKeyframes: () => resetKeyframesRef.current(),
     onDeleteSelectedKeyframes: () => deleteSelectedKeyframesRef.current(),
     onAfterUndoRedo: () => invalidateGsapCacheRef.current(),
-    onToggleRecording: () => handleToggleRecordingRef.current(),
+    onToggleRecording: STUDIO_KEYFRAMES_ENABLED
+      ? () => handleToggleRecordingRef.current()
+      : undefined,
   });
   const selectSidebarTabStable = useCallback(
     (tab: SidebarTab) => leftSidebarRef.current?.selectTab(tab),
@@ -346,16 +409,125 @@ export function StudioApp() {
   const dragOverlay = useDragOverlay(fileManager.handleImportFiles);
 
   // Gesture recording
+  const gestureRecording = useGestureRecording();
+  const [gestureState, setGestureState] = useState<"idle" | "recording">("idle");
+  // Synchronous mirror of gestureState — immune to React batching.
+  // Prevents double-R-press within a single render cycle from swallowing the stop.
+  const gestureStateRef = useRef<"idle" | "recording">("idle");
+  const recordingAutoStopRef = useRef<ReturnType<typeof setInterval>>(undefined);
+  const recordingStartTimeRef = useRef(0);
+  const commitInFlightRef = useRef(false);
   const handleToggleRecordingRef = useRef<() => void>(() => {});
   const domEditSessionRef = useRef(domEditSession);
   domEditSessionRef.current = domEditSession;
 
-  const { gestureState, gestureRecording, handleToggleRecording } = useGestureCommit({
-    domEditSessionRef,
-    previewIframeRef,
-    showToast,
-    isGestureRecordingRef,
-  });
+  // Unmount: clear auto-stop interval
+  useEffect(() => () => clearInterval(recordingAutoStopRef.current), []);
+
+  // fallow-ignore-next-line complexity
+  const stopAndCommitRecording = useCallback(async () => {
+    clearInterval(recordingAutoStopRef.current);
+    if (commitInFlightRef.current) return;
+    commitInFlightRef.current = true;
+    gestureStateRef.current = "idle";
+    isGestureRecordingRef.current = false;
+    const frozenSamples = gestureRecording.stopRecording();
+    const store = usePlayerStore.getState();
+    store.setIsPlaying(false);
+    try {
+      const liveSession = domEditSessionRef.current;
+      const sel = liveSession.domEditSelection;
+      if (!sel) {
+        if (frozenSamples.length > 2) {
+          showToast("Selection lost during recording", "error");
+        }
+        return;
+      }
+      const duration = frozenSamples.length > 0 ? frozenSamples[frozenSamples.length - 1]!.time : 0;
+
+      if (frozenSamples.length <= 2) {
+        showToast("No gesture detected — move the pointer while recording", "error");
+        return;
+      }
+      if (duration <= 0) {
+        showToast("Recording too short — try again", "error");
+        return;
+      }
+
+      const simplified = simplifyGestureSamples(frozenSamples, duration, 5);
+      const sortedPcts = Array.from(simplified.keys()).sort((a, b) => a - b);
+
+      // Always create a new tween scoped to the recording range.
+      // Injecting into an existing tween creates keyframes before the recording
+      // start (from the convert-to-keyframes step), causing wrong positions.
+      const selector = sel.id ? `#${sel.id}` : sel.selector;
+      if (!selector) {
+        showToast("Cannot save — element has no selector", "error");
+        return;
+      }
+      if (liveSession.commitMutation) {
+        const recStart = recordingStartTimeRef.current;
+        const keyframes = sortedPcts.map((pct) => ({
+          percentage: pct,
+          properties: simplified.get(pct) as Record<string, number | string>,
+        }));
+
+        await liveSession.commitMutation(
+          {
+            type: "add-with-keyframes",
+            targetSelector: selector,
+            position: Math.round(recStart * 1000) / 1000,
+            duration: Math.round(duration * 1000) / 1000,
+            keyframes,
+          },
+          { label: "Gesture recording", softReload: true },
+        );
+      }
+      showToast(`Recorded ${sortedPcts.length} keyframes`, "info");
+    } finally {
+      store.requestSeek(recordingStartTimeRef.current);
+      gestureRecording.clearSamples();
+      setGestureState("idle");
+      commitInFlightRef.current = false;
+    }
+  }, [gestureRecording, showToast]);
+
+  const handleToggleRecording = useCallback(() => {
+    if (gestureStateRef.current === "recording") {
+      void stopAndCommitRecording();
+      return;
+    }
+    const sel = domEditSessionRef.current.domEditSelection;
+    if (!sel) {
+      showToast("Select an element first", "error");
+      return;
+    }
+    const iframe = previewIframeRef.current;
+    if (!iframe) {
+      showToast("Preview not ready — try again", "error");
+      return;
+    }
+
+    const store = usePlayerStore.getState();
+    recordingStartTimeRef.current = store.currentTime;
+    const elStart = Number.parseFloat(sel.dataAttributes?.start ?? "0") || 0;
+    const elDur = Number.parseFloat(sel.dataAttributes?.duration ?? "0") || 0;
+    const elementEnd = elDur > 0 ? elStart + elDur : undefined;
+    gestureRecording.startRecording(sel.element, iframe, elementEnd);
+    gestureStateRef.current = "recording";
+    isGestureRecordingRef.current = true;
+    setGestureState("recording");
+
+    clearInterval(recordingAutoStopRef.current);
+    const autoStopAt = elementEnd ?? Infinity;
+    recordingAutoStopRef.current = setInterval(() => {
+      const { currentTime: t, duration: d } = usePlayerStore.getState();
+      const limit = Math.min(autoStopAt, d);
+      if (limit > 0 && t >= limit - 0.05) {
+        void stopAndCommitRecording();
+      }
+    }, 100);
+  }, [gestureRecording, showToast, stopAndCommitRecording]);
   handleToggleRecordingRef.current = handleToggleRecording;
 
   const handlePreviewIframeRef = useCallback(
@@ -529,7 +701,7 @@ export function StudioApp() {
                     }}
                     recordingState={gestureState}
                     recordingDuration={gestureRecording.recordingDuration}
-                    onToggleRecording={handleToggleRecording}
+                    onToggleRecording={STUDIO_KEYFRAMES_ENABLED ? handleToggleRecording : undefined}
                   />
                 )}
               </div>

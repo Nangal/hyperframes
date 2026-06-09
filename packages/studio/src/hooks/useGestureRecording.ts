@@ -77,6 +77,7 @@ export function useGestureRecording() {
   const modifiersRef = useRef<Modifiers>({ shift: false, alt: false, meta: false });
   const accumulatedRef = useRef<AccumulatedState>({ opacity: 1, scale: 1, z: 0 });
   const basePositionRef = useRef({ x: 0, y: 0 });
+  const cssVarOffsetRef = useRef({ x: 0, y: 0 });
   const scaleRef = useRef(1);
   const hasMovedRef = useRef(false);
   const pointerElementOffsetRef = useRef({ x: 0, y: 0 });
@@ -133,18 +134,18 @@ export function useGestureRecording() {
       } catch {
         /* cross-origin guard */
       }
-      // When reapplyPathOffsets has run (translate restored to var-based),
-      // GSAP's cache was stripped — gsapX is 0 but the element is visually
-      // at CSSLeft + translate(offset). gsap.set wipes translate, so we need
-      // baseX to include the offset. When translate is "none" (GSAP owns it),
-      // gsapX already includes the baked offset — don't add.
+      // Path-offset CSS vars live on the element regardless of whether
+      // translate is currently var-based or "none" (GSAP-baked).
+      const cssOffX =
+        Number.parseFloat(element.style.getPropertyValue("--hf-studio-offset-x")) || 0;
+      const cssOffY =
+        Number.parseFloat(element.style.getPropertyValue("--hf-studio-offset-y")) || 0;
       const translateVal = element.style.translate ?? "";
       if (translateVal.includes("var(")) {
-        const offX = Number.parseFloat(element.style.getPropertyValue("--hf-studio-offset-x")) || 0;
-        const offY = Number.parseFloat(element.style.getPropertyValue("--hf-studio-offset-y")) || 0;
-        baseX += offX;
-        baseY += offY;
+        baseX += cssOffX;
+        baseY += cssOffY;
       }
+      cssVarOffsetRef.current = { x: cssOffX, y: cssOffY };
       accumulatedRef.current = { opacity: baseOpacity, scale: baseScaleVal, z: 0 };
       basePositionRef.current = { x: baseX, y: baseY };
 
@@ -278,6 +279,9 @@ export function useGestureRecording() {
               runtimeRef.current.maxSeekTime,
             );
             runtimeRef.current.seek(seekTime);
+            // Seek triggers reapplyPathOffsets which may restore translate to
+            // var-based. Clear it so gsap.set has sole control of positioning.
+            runtimeRef.current.element.style.setProperty("translate", "none");
             runtimeRef.current.set(runtimeRef.current.selector, { ...properties });
             runtimeRef.current.element.style.visibility = "visible";
             liveTime.notify(seekTime);
@@ -287,7 +291,10 @@ export function useGestureRecording() {
           }
         }
 
-        samplesRef.current.push({ time, properties });
+        const sampleProps = { ...properties };
+        if ("x" in sampleProps) sampleProps.x -= cssVarOffsetRef.current.x;
+        if ("y" in sampleProps) sampleProps.y -= cssVarOffsetRef.current.y;
+        samplesRef.current.push({ time, properties: sampleProps });
         trailRef.current.push({ x: pointerRef.current.x, y: pointerRef.current.y });
         setRecordingDuration(time);
         rafIdRef.current = requestAnimationFrame(tick);
