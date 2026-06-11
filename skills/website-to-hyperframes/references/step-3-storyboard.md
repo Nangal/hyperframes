@@ -140,6 +140,23 @@ There might be VFX blocks available (vfx-liquid-glass, vfx-iphone-device, vfx-sh
 
 **Shader transitions — block name ≠ shader name.** When you run the commands above and see `domain-warp-dissolve` in `registry/blocks/`, the HyperShader runtime name is `domain-warp` (without "-dissolve"). After installing a block, open its showcase HTML (`compositions/<block-name>.html`) and find the actual shader name used in `HyperShader.init()`. That is what you put in the storyboard. Then delete the showcase file — it's a demo only and will pollute your compositions/ directory with lint warnings.
 
+#### Canonical declaration format (auto-derived by `w2h-prep`)
+
+If the video uses shader transitions, declare them in a dedicated section of STORYBOARD.md so `w2h-prep` can emit them in `group_spec.json` automatically — no orchestrator hand-edit needed. Use this exact bullet format (case-insensitive on the shader name; `duration` is optional, defaults to `0.5`):
+
+```markdown
+## Shader Transitions
+
+- between beat-1-hero and beat-2-features: shader=domain-warp, duration=0.5
+- between beat-4-demo and beat-5-cta: shader=flash-through-white, duration=0.4
+```
+
+Rules:
+- **Beat ids must match `compositions/beat-N-<slug>.html` filenames** (drop the `.html`).
+- **Declare only the boundaries with a shader** — `w2h-prep` fills the remaining adjacent beat pairs with vanilla CSS crossfades (no `shader` field).
+- **Maximum 2 shader transitions per video** — keep them load-bearing (hero reveal, CTA punch). More than 2 flattens their impact and the engine starts struggling at GPU init.
+- If you don't declare a `## Shader Transitions` section, `w2h-prep` omits the `shader_transitions` field entirely and `assemble-index.mjs` falls through to a vanilla GSAP timeline (no HyperShader). That's the safe default — most videos don't need shader transitions.
+
 ### HTML-in-Canvas — plan for it here, build in Step 5
 
 The `drawElementImage` Chrome API captures any live HTML/CSS as a GPU-accelerated texture at 60fps. This is HyperFrames' highest-impact capability — it lets you render captured product screenshots or UI through:

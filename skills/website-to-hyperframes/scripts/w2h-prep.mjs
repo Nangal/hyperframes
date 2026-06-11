@@ -16,7 +16,22 @@
 //        groups: [ { scene_ids:[<sid>...],
 //                    scenes: { <sid>: { id, file, start_s,
 //                                        estimatedDuration_s, duration_s,
-//                                        surface, wordsPath } } } ] }
+//                                        surface, wordsPath } } } ],
+//        asset_check: { total_references, unique_assets, missing[] },
+//        shader_transitions?: { bg_color, accent_color?, scenes[],
+//                               transitions:[{time, duration, shader?}] } }
+//
+//      `asset_check` (PHASE C(a)): scans each beat HTML for capture/assets/X
+//      references, verifies each resolves to a file on disk. Empty missing[] is
+//      the happy path; preflight-finalize can promote missing assets to fail.
+//
+//      `shader_transitions` (PHASE C(b)): parsed from a "## Shader Transitions"
+//      block in STORYBOARD.md with lines of the form
+//      `- between <beat-id> and <beat-id>: shader=<name>[, duration=<n>]`.
+//      Field is OMITTED when no transitions are declared (assembler falls
+//      through to vanilla GSAP bootstrap, no HyperShader). When ANY are
+//      declared, the full scenes/transitions chain is emitted with the
+//      declared shaders on declared boundaries and CSS crossfade on the rest.
 //
 //   2. ./design-system/chunks/tokens.css   — :root { --font-*, --canvas, --ink, --brand-primary }
 //      Parsed from DESIGN.md when present; otherwise sane w2h defaults.
@@ -110,6 +125,102 @@ function extractCompositionRootDuration(html) {
     }
   }
   return null;
+}
+
+// ─── Asset-existence pre-flight (PHASE C(a)) ─────────────────────────────
+// Scan each beat HTML for `capture/assets/...` references in src=, xlink:href=,
+// and CSS url(). Verify each unique path resolves to a file on disk relative to
+// the project root. Returns a summary the orchestrator can surface AND that
+// downstream gates (preflight-finalize, perception) can use to flag missing
+// assets before render.
+//
+// Strategy: catch absent assets BEFORE the agent renders a 30-second MP4 that
+// 404s a logo, not after. The renderer fails silently on missing images at
+// snapshot time — the perception gate's blind spot — so this prep-time check
+// is the cheapest place to catch it.
+const ASSET_REF_RE =
+  /(?:src|xlink:href)\s*=\s*["']([^"']*\bcapture\/assets\/[^"']+)["']|url\(\s*["']?(capture\/assets\/[^"')]+)["']?\s*\)/gi;
+
+function verifyAssetReferences(projectDir, scenes) {
+  const missing = new Map(); // path → [beat ids that reference it]
+  const seen = new Set();
+  let total = 0;
+  for (const s of scenes) {
+    const abs = resolve(projectDir, s.file);
+    let html;
+    try {
+      html = readFileSync(abs, "utf-8");
+    } catch {
+      continue;
+    }
+    let m;
+    while ((m = ASSET_REF_RE.exec(html)) !== null) {
+      const p = m[1] || m[2];
+      if (!p) continue;
+      total++;
+      if (seen.has(p)) continue;
+      seen.add(p);
+      const onDisk = resolve(projectDir, p);
+      if (!existsSync(onDisk)) {
+        if (!missing.has(p)) missing.set(p, []);
+        if (!missing.get(p).includes(s.id)) missing.get(p).push(s.id);
+      }
+    }
+  }
+  return {
+    total_references: total,
+    unique_assets: seen.size,
+    missing: Array.from(missing, ([path, beats]) => ({ path, beats })),
+  };
+}
+
+// ─── Shader-transitions auto-derive (PHASE C(b)) ─────────────────────────
+// Parse a canonical "Shader Transitions" block in STORYBOARD.md. Each line
+// matches:
+//   - between <beat-id> and <beat-id>: shader=<name>[, duration=<n>]
+// Returns the assembler-shaped object, or null if no transitions are declared
+// (in which case prep omits shader_transitions and the assembler falls through
+// to vanilla GSAP bootstrap). When ANY transition is declared, the full chain
+// is emitted: declared boundaries get the named shader, undeclared adjacent
+// boundaries get CSS crossfade (no shader field). Invariant enforced:
+// scenes.length === transitions.length + 1.
+const SHADER_TRANSITION_RE =
+  /between\s+(beat-[a-z0-9_-]+|s-end)\s+and\s+(beat-[a-z0-9_-]+|s-end)\s*:\s*shader\s*=\s*([a-z][-a-z0-9_]*)(?:\s*,\s*duration\s*=\s*([0-9.]+))?/gi;
+
+function parseShaderTransitions(projectDir, scenes, bgColor, accentColor) {
+  const storyPath = join(projectDir, "STORYBOARD.md");
+  if (!existsSync(storyPath)) return null;
+  const text = readFileSync(storyPath, "utf-8");
+
+  const declared = new Map(); // `${from}::${to}` → { shader, duration }
+  let m;
+  while ((m = SHADER_TRANSITION_RE.exec(text)) !== null) {
+    declared.set(`${m[1]}::${m[2]}`, {
+      shader: m[3],
+      duration: m[4] ? parseFloat(m[4]) : 0.5,
+    });
+  }
+  if (declared.size === 0) return null;
+
+  // Build the full transitions chain over scenes[N-1] → scenes[N] pairs.
+  // Declared boundaries get the named shader; undeclared get a CSS crossfade.
+  const sceneIds = scenes.map((s) => s.id);
+  const transitions = [];
+  for (let i = 0; i < scenes.length - 1; i++) {
+    const fromId = scenes[i].id;
+    const toId = scenes[i + 1].id;
+    const decl = declared.get(`${fromId}::${toId}`);
+    const time = Number((scenes[i].start_s + scenes[i].duration_s).toFixed(3));
+    transitions.push({
+      time,
+      duration: decl?.duration ?? 0.5,
+      ...(decl?.shader ? { shader: decl.shader } : {}),
+    });
+  }
+
+  const result = { bg_color: bgColor, scenes: sceneIds, transitions };
+  if (accentColor) result.accent_color = accentColor;
+  return result;
 }
 
 function scanCompositionsDir(projectDir) {
@@ -380,6 +491,14 @@ function main() {
   const tokensPath = emitTokensCss(projectDir, tokens);
   const inferencePath = emitInferenceJson(projectDir, tokens);
 
+  // Asset-existence pre-flight (PHASE C(a)).
+  const assetCheck = verifyAssetReferences(projectDir, flatScenes);
+
+  // STORYBOARD.md → shader_transitions, if a canonical block is present
+  // (PHASE C(b)). When absent, the orchestrator can still add the field
+  // manually before invoking assemble-index — same contract as before.
+  const shaderTransitions = parseShaderTransitions(projectDir, flatScenes, tokens.canvas, tokens.brandPrimary);
+
   // transcript.json → per-scene words splits.
   const wordsPaths = splitTranscriptPerScene(projectDir, flatScenes);
 
@@ -430,16 +549,21 @@ function main() {
     captions_enabled: existsSync(join(projectDir, "compositions/captions.html")),
     sfx: [],
     ...(voice ? { voice } : {}),
-    // shader_transitions: NOT auto-emitted by w2h-prep. When the storyboard
-    // calls for shader transitions, the orchestrator adds this top-level field
-    // to group_spec.json BEFORE invoking assemble-index. Schema:
-    //   { bg_color: "#FFFFFF",
-    //     accent_color?: "#FF385C",
-    //     scenes: ["beat-1", "beat-2", ..., "s-end"],
-    //     transitions: [{ time, duration, shader? }, ...] }
-    // Invariant: scenes.length === transitions.length + 1. The assembler
-    // validates and exits 1 on violation. When absent the assembler falls
-    // through to vanilla GSAP timeline bootstrap (no HyperShader).
+    // shader_transitions auto-derived from STORYBOARD.md "Shader Transitions"
+    // block (PHASE C(b)). Canonical line format:
+    //   - between beat-X and beat-Y: shader=<name>[, duration=<n>]
+    // When the storyboard declares ANY transition, prep emits the full
+    // scenes/transitions chain (declared boundaries get the shader; the
+    // others fall through to CSS crossfade). When the storyboard declares
+    // NONE, this field is omitted entirely and assemble-index falls through
+    // to vanilla GSAP bootstrap. Invariant: scenes.length === transitions.length + 1.
+    // Orchestrator can still override or add this manually before invoking
+    // assemble-index — same backward-compatible contract as before.
+    ...(shaderTransitions ? { shader_transitions: shaderTransitions } : {}),
+    // asset_check: surface of `capture/assets/X` references that don't
+    // resolve on disk. Empty `missing[]` is the happy path. preflight-finalize
+    // can promote missing assets to a hard fail; for now prep warns.
+    asset_check: assetCheck,
     groups: [{ scene_ids: sceneIds, scenes: scenesMap }],
     // Flat scenes[] kept for human readability + legacy verify-output.mjs
     // backward compat (verify-output only reads total_duration_s + sfx[], so
@@ -470,6 +594,24 @@ function main() {
   }
   if (voice) {
     console.log(`  + voice (${voice.path}, ${voice.duration_s}s)`);
+  }
+  if (shaderTransitions) {
+    const namedCount = shaderTransitions.transitions.filter((t) => t.shader).length;
+    console.log(
+      `  + shader_transitions (${namedCount}/${shaderTransitions.transitions.length} named shader transitions from STORYBOARD.md)`,
+    );
+  }
+  if (assetCheck.unique_assets > 0) {
+    console.log(
+      `  + asset_check (${assetCheck.unique_assets} unique assets referenced, ${assetCheck.total_references} total references)`,
+    );
+  }
+  if (assetCheck.missing.length > 0) {
+    console.warn(`! w2h-prep: ${assetCheck.missing.length} referenced asset(s) missing on disk:`);
+    for (const m of assetCheck.missing) {
+      console.warn(`    ✗ ${m.path}  (referenced by: ${m.beats.join(", ")})`);
+    }
+    console.warn("  These will 404 at render time. Fix the path or capture the asset.");
   }
 }
 
