@@ -142,7 +142,7 @@ What's in foreground, midground, and background. Every beat should have at least
 
 ### SFX cues
 
-What sounds at what moment:
+What sounds at what moment (see [sound-effects.md](sound-effects.md) to search the catalog, choose by function + character, and time them):
 
 - "On the capture pulse — a soft, warm analog shutter click."
 - "Left side carries a faint low drone. On fold: drone cuts. Silence. Then a single clean chime."

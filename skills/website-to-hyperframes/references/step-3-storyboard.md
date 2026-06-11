@@ -152,24 +152,20 @@ When planning beats, decide which ones deserve an HTML-in-Canvas treatment vs. a
 
 ### SFX assignment — happens here, not in Step 5
 
-**Before writing beats,** read `skills/website-to-hyperframes/assets/sfx/manifest.json` (or your local copy at `sfx/manifest.json` if already copied to the project). Each entry has a filename, duration in seconds, and description. Assign **specific SFX files** to exact moments in the storyboard. Step 5 implements what you specify here — it makes no SFX decisions.
+SFX come from HeyGen's global catalog via the `hyperframes sfx` CLI — **not** a bundled file set. The full model (when to use them, the five families, the volume hierarchy, the trim/anchor recipe) lives in [`../../hyperframes/references/sound-effects.md`](../../hyperframes/references/sound-effects.md); read it. This step only decides _which moments get sound and what kind_ — Step 5 searches the catalog and wires the clips.
 
-Per beat, specify SFX like:
+**Browse first, then assign by function — not by filename.** Run `hyperframes sfx list` to see what families exist (impacts, whooshes, risers, memes, stingers, ambiences, …). For each beat that earns a sound, specify it by _what it does + how it feels_ (the catalog is searched by meaning), the moment, and a volume:
 
-- `sfx/impact-bass-1.mp3` at `0.2s`, volume `0.35` — on the hero image snapping into frame
-- `sfx/chime.mp3` at `3.8s`, volume `0.5` — on the logo appearing
+- a punchy transition whoosh at `0.2s`, volume `0.3` — on the hero image snapping in
+- a soft success chime at `3.8s`, volume `0.5` — on the logo appearing
 
-**Less is more.** Most beats need zero SFX. One SFX per beat is typical; multiple only if the beat has genuinely distinct punctuation moments. Never place SFX on shader transitions directly — shader transitions are already an audio-visual event.
+**Less is more.** Most beats need zero SFX; one per beat is typical (see the global doc's "count beats, not animations"). Never place SFX on shader transitions — they're already an audio-visual event.
 
-**How to place each sound type** (industry-standard rules):
+**Placement, trimming, and chains are all in the global doc — don't restate per-file timing here.** Step 5 follows it: `sfx add` measures each clip (peak, onset/tail, loudness), then trims dead air and anchors hits/risers precisely. (This replaces the old "peak at start/end, never trim" rules — catalog clips aren't a fixed hand-tuned set, so trimming to the _measured_ onset/tail is how you avoid late or cut-off sounds.)
 
-- **Impact/hit sounds** (`impact-bass-1`, `ping`, `pop`, `glitch-*`): peak is at the start of the clip. Trigger exactly at the visual moment. Let the decay tail bleed into the next scene — this is normal, called a J-Cut, and sounds professional. `data-duration` = full manifest duration, never trimmed.
-- **Riser/build-up sounds** (`riser`, `whoosh-cinematic`): peak is at the END of the clip. To make the peak land on a climax moment (a transition, a reveal), trigger at `climax_time - sfx_duration`. For `riser.mp3` (10.03s) peaking at a t=20s transition: trigger at t=9.97s.
-- **Short accent sounds** (`click`, `click-soft`, `chime`, `sparkle`, `ping`): trigger at the exact visual punctuation moment. Duration is short, no tail concern.
+**Volume under narration:** HyperFrames has no auto-ducking — keep SFX at 0.2–0.3 under VO. Note the intended volume per entry so Step 5 wires it.
 
-**Volume when SFX overlaps narration:** HyperFrames has no automatic audio ducking. If an SFX plays under spoken narration, set its volume to 0.2–0.3 max, not 0.5+. Specify this in the storyboard entry so Step 5 wires it correctly.
-
-**data-duration rule** (for Step 5 to implement): always equals the manifest's duration field exactly. Never set it shorter to "fit" the remaining beat time — truncating an impact mid-decay is the exact problem causing the cut-off sounds in v2 videos.
+**Access:** the catalog is free but needs a HeyGen API key. If it isn't set when Step 5 runs `sfx`, ask the user for one (free at https://app.heygen.com/developers/api) or build without SFX — never silently drop them.
 
 ### Architecture Constraint: Each Beat is an Independent Composition
 

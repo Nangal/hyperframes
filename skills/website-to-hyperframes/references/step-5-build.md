@@ -15,13 +15,17 @@ Load the `hyperframes` skill — it has the rules for data attributes, timeline 
 
 ---
 
-## 1. Copy SFX to project
+## 1. Get SFX from the catalog
+
+SFX come from HeyGen's free catalog via the `hyperframes sfx` CLI — see [`../../hyperframes/references/sound-effects.md`](../../hyperframes/references/sound-effects.md). For each SFX the storyboard (Step 3) assigned, search by its description and download it into the project:
 
 ```bash
-cp -r skills/website-to-hyperframes/assets/sfx/ <project-dir>/sfx/
-# If skill is installed elsewhere:
-find . -path "*/website-to-hyperframes/assets/sfx" -exec cp -r {} <project-dir>/sfx/ \;
+hyperframes sfx list                                    # the families, to orient (optional)
+hyperframes sfx search "punchy transition whoosh" --json
+hyperframes sfx add <id>                                # → assets/sfx/<id>.mp3, prints loudness/peak/onset/tail
 ```
+
+`sfx add` writes the clip to `assets/sfx/` and prints its analysis (peak time, onset/tail, loudness) — use it to trim and anchor per the global doc. If `HEYGEN_API_KEY` isn't set, `sfx` prints how to get a free key; ask the user for one or build without SFX — don't silently drop them.
 
 ## Known landmines — read before writing each beat composition
 
@@ -51,6 +55,7 @@ Every beat composition lives inside `<template id="<beat-id>-template">…</temp
   <script>/* beat-scoped GSAP timeline registered as window.__timelines["beat-3-feature-tour"] */</script>
 </template>
 ```
+
 
 ```html
 <!-- ❌ BAD: data-duration on the host div in index.html (legacy cell-A pattern) -->

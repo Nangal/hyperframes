@@ -68,6 +68,7 @@ const GROUPS: Group[] = [
         "Transcribe audio/video to word-level timestamps, or import an existing transcript",
       ],
       ["tts", "Generate speech audio from text using a local AI model (Kokoro-82M)"],
+      ["sfx", "Search and download sound effects from the HeyGen catalog"],
       ["remove-background", "Remove background from a video or image to produce transparent media"],
     ],
   },

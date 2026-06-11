@@ -267,3 +267,36 @@ export interface UploadAssetV3Response {
    */
   size_bytes: number;
 }
+
+export type AudioContentType = "music" | "sound_effects";
+export interface AudioSoundItem {
+  /**
+   * Unique identifier for the audio track.
+   */
+  id: string;
+  /**
+   * Display name of the audio track.
+   */
+  name: string;
+  /**
+   * Semantic description the track was indexed under.
+   */
+  description: string;
+  /**
+   * Temporary pre-signed URL to download the audio file. Expires; do not cache
+   * long-term.
+   */
+  audio_url: string;
+  /**
+   * Duration of the audio in seconds, when known.
+   */
+  duration?: number | null;
+  /**
+   * Semantic similarity score (0-1); higher means a closer match.
+   */
+  score: number;
+  /**
+   * Audio content type of this track.
+   */
+  type: AudioContentType;
+}

@@ -5,6 +5,7 @@
  * experiment-framework to regenerate.
  */
 import type {
+  AudioSoundItem,
   CreateHyperframesRenderRequest,
   CreateHyperframesRenderResponse,
   DeleteHyperframesRenderResponse,
@@ -299,6 +300,34 @@ export class HyperframesCloudClient {
     return await this.request<DeleteHyperframesRenderResponse>({
       method: "DELETE",
       path: `/v3/hyperframes/renders/${encodeURIComponent(args.render_id)}`,
+      signal: args.signal,
+    });
+  }
+
+  async searchSounds(args: {
+    query: string;
+    type?: "music" | "sound_effects";
+    limit?: number;
+    min_score?: number;
+    token?: string;
+    signal?: AbortSignal;
+  }): Promise<{ data?: Array<AudioSoundItem>; has_more?: boolean; next_token?: string | null }> {
+    const query: Record<string, string | number | undefined> = {
+      query: args.query,
+      type: args.type,
+      limit: args.limit,
+      min_score: args.min_score,
+      token: args.token,
+    };
+    return await this.request<{
+      data?: Array<AudioSoundItem>;
+      has_more?: boolean;
+      next_token?: string | null;
+    }>({
+      method: "GET",
+      path: "/v3/audio/sounds",
+      query,
+      unwrapData: false,
       signal: args.signal,
     });
   }
