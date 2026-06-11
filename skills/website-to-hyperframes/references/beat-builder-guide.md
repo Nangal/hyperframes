@@ -18,6 +18,8 @@ Four hidden pitfalls account for most rework in a single beat run — scan them 
 3. **GSAP `from()` + CSS `opacity:0` on the same element animates 0→0 forever.** Use `tl.fromTo()` with an explicit start state OR remove the CSS opacity:0.
 4. **Trust filenames by pattern, not by name.** New-format names `<role>-<word>-<hash>.svg` (e.g. `partner-logo-amazon-2TeU5qiM.svg`, `header-logo-airbnb-EfGh5678.svg`) are content-addressable — slug came from alt/aria/href, not heading proximity. Trust them. Names like `icon-27-XYZ.svg` are content-identified but slug-less — fine for non-critical use. **Still open and verify any brand-critical logo (header-logo, primary hero) before referencing it** — the cost of the wrong brand mark on the closer is high even at high trust. Legacy captures (no hash suffix, UUID names, `sx-…`/`flex-N` class-name leaks) keep the old "verify everything" rule.
 5. **`data-duration` on YOUR root `<div>` inside the `<template>` must equal the dispatch `estimatedDuration_s` to within 0.01s.** The assembler at the end of Step 5 cross-checks this and **exits 1 on mismatch** — your beat will never make it to the index.html. No more `data-duration` on host divs in `index.html` (that's the legacy cell-A pattern; the assembler owns the host div now). Also: do NOT include `<script src=".../gsap…">` or `<script src="hyper-shader-local.js">` in your `<template>` — the assembler emits both at root.
+6. **GSAP transform aliases only — `x` / `y` / `scale` / `scaleX` / `scaleY` / `rotation` / `opacity`. Never tween `width` / `height` / `top` / `left`.** The renderer's seek path can't sub-pixel-position those, and they double-overwrite any CSS-baked transform. To center-shift, compute `x: dx, y: dy` from bbox delta and pair with `transform-origin: 50% 50%`.
+7. **CSS `transform:` on an element + GSAP transform on the same element = mutual overwrite.** Pasted UI components often have `transform: rotate(var(--tilt))` baked in. The moment GSAP touches that element with `scale` / `rotation` / etc., GSAP overwrites the entire `style.transform` and the CSS tilt vanishes — the beat ships looking "straightened." Fix: if an element will be in a GSAP timeline, express its rotation/scale/translate in GSAP (`gsap.set(el, { rotation: -2, scale: 1 })`). CSS transform is fine on decorative leaves that never get animated.
 
 ## Step 1: Read and understand
 
@@ -172,6 +174,27 @@ Verified in cell-A raycast beat-6 (with a `system-ui` fallback). Sub-agents some
 
 You think you remember them from the orchestrator's prompt. You don't — not the exact hex values, not the specific brand font name, not the headline copy verbatim, not the beat duration. Re-read them now so your output matches.
 
+### 5. Only one `data-layout-role="primary"` at any moment in the beat
+
+Camera pan, zoom, or push does NOT count as a handoff between primary subjects. If your beat has two distinct primary moments (e.g. a headline and a CTA both with hero treatment), they cannot overlap in time — exit the previous primary first (`tl.to(prev, { opacity: 0, scale: 0.95 }, t)`), then enter the new one (`tl.fromTo(next, ...)` at `t + handoff_duration`). Supporting content (captions, decoration, depth layers) can stay continuous; only primaries need exclusive temporal slots. Without this, the perception gate fires `primary-collision` on overlapping bboxes >5%.
+
+### 6. Don't include literal HTML opening tags inside HTML comments
+
+The linter and check-compositions scan with regex; a `<template>` or `<style>` or `<script>` substring inside a comment is treated as a real tag and false-positives the gate. Escape as `&lt;template&gt;` or rewrite as prose — never paste a literal opening tag into a comment block.
+
+```html
+<!-- ❌ BAD: lint regex sees this as a stray <template> -->
+<!-- example: <template id="foo"> wraps your beat -->
+
+<!-- ✅ GOOD: escaped or paraphrased -->
+<!-- example: &lt;template id="foo"&gt; wraps your beat -->
+<!-- or: the template wrapper for your beat -->
+```
+
+### 7. No per-beat exit tweens for sub-comp beats
+
+w2h does CSS crossfades between sub-comp beats at the orchestrator level (`assemble-index.mjs` wires them via `shader_transitions`). **Don't author per-beat exit animations** — hold the final frame steady, let the next beat's entrance carry the cut. Exit tweens inside a beat double-blend with the orchestrator's crossfade and produce the "scene dipping then re-entering" visual artifact. Exception: the closing beat (no `next_beat_handoff` in your dispatch packet) MAY fade out for the CTA-to-end transition.
+
 ---
 
 ## Layout annotations — opt-in markers for the perception gate
@@ -276,18 +299,38 @@ The test: if the storyboard says _"this beat is the product tour, viewer sees th
 
 If any are missing from the beat spec, the beat is under-defined. Don't fill the gap with "centered layout + breathing" — re-read the spec, and if it's genuinely missing, ask the main agent.
 
+**Macro-camera scale headroom** (push past `scale: 1.05` on a focused subject):
+
+Don't pick zoom-peak scale values by feel. After `await document.fonts.ready`, measure the target element's real bbox and compute the maximum safe scale so the subject still fits the canvas at the peak:
+
+```js
+const r = el.getBoundingClientRect();
+const maxScale = 0.88 * 1920 / r.width;     // 88% canvas width — leaves visual margin
+// Pair with a measured x/y offset to keep the subject centered in the frame:
+const dx = (1920 / 2) - (r.left + r.width / 2);
+const dy = (1080 / 2) - (r.top + r.height / 2);
+tl.fromTo(el, { scale: 1, x: 0, y: 0 }, { scale: maxScale, x: dx, y: dy, duration: 1.2, ease: "power3.inOut" });
+```
+
+Round-number scales (1.5, 2.0) consistently clip large text at zoom peak. Asymmetric layouts amplify the error 3× — measure, don't hand-derive. For zooms that intentionally bleed past the canvas (e.g. ticker, parallax sweep), wrap them in `data-layout-allow-overflow="true"` so the perception gate pardons the bleed.
+
 ## Rules
 
 - SCRIPT PLACEMENT: scripts inside `<template>`, never after `</template>`. Scripts outside see no DOM.
 - GSAP FROM TRAP: never `gsap.from(el, {opacity:0})` with CSS `opacity:0`. It animates 0→0. Use `tl.fromTo()`.
 - STYLE: avoid CSS `opacity:0` on GSAP-animated elements. Use GSAP fromTo for initial states.
+- TRANSFORM PROPS: only `x` / `y` / `scale` / `scaleX` / `scaleY` / `rotation` / `opacity` in tweens. Never tween `width` / `height` / `top` / `left` — slow on seek, breaks CSS-baked transforms. Center-shift via `x: dx, y: dy` from bbox delta + `transform-origin: 50% 50%`.
+- CSS+GSAP TRANSFORM: don't mix `transform: rotate/scale/translate(…)` in CSS with GSAP tweens on the same element — GSAP overwrites the entire `style.transform`, the CSS-baked tilt vanishes. If the element is GSAP-animated, express its tilt/scale in `gsap.set()`.
+- EXITS: don't author per-beat exit tweens (orchestrator owns sub-comp crossfades via `shader_transitions`). Hold final frame steady. Exception: the closing beat with no `next_beat_handoff` may fade out.
+- ONE PRIMARY: only one `data-layout-role="primary"` element at any moment. Hand off explicitly (exit prev → enter next), camera pan/zoom does not count as handoff.
+- COMMENTS: no literal `<template>` / `<style>` / `<script>` opening tags inside HTML comments — linter regex false-positives. Escape as `&lt;…&gt;` or paraphrase.
 - ASSET PATHS: project-root-relative. `capture/assets/file.png` ✅ `../capture/assets/file.png` ❌ (canonical rule: [step-5-build.md](./step-5-build.md) "ASSET PATHS" — single source of truth.)
 - SVG VIA IMG: `<img src="logo.svg">` can't inherit CSS color. Inline SVG or `filter: brightness(0) invert(1)`.
 - CSS CENTERING: no `transform: translate(-50%, -50%)` with GSAP transforms. Use flexbox or `xPercent/yPercent`.
 - QUERYSELECTOR: `document.getElementById("id")` with null guards. No method calls without null check.
 - CHARACTER SPANS: `display:inline-block` on spaces collapses them. Use `&nbsp;` or per-word spans.
 - COUNTERS: no `onUpdate` callbacks. Discrete `tl.set(el, {textContent: "42"}, 2.5)` at timestamps.
-- TIMELINE: `window.__timelines["beat-N-name"] = tl` synchronously. Key = `data-composition-id`.
+- TIMELINE: `window.__timelines["beat-N-name"] = tl` synchronously. Key = literal `data-composition-id`, NOT a variable — `check-compositions.mjs` regex doesn't follow indirection.
 - DETERMINISTIC: no `Math.random()`, `Date.now()`, `requestAnimationFrame`, `repeat:-1`.
 - Always `tl.fromTo()` not `tl.from()` for entrances.
 - Never stack two transform tweens on same element at same time.
@@ -362,6 +405,18 @@ HEADLINE_PX=$(grep -oE 'font-size:\s*[0-9]+px' "$F" | grep -oE '[0-9]+' | sort -
 if [ -n "$HEADLINE_PX" ] && [ "$HEADLINE_PX" -lt 80 ]; then
   echo "WARN: largest font-size is ${HEADLINE_PX}px — hero text floor is 80px. Skip this warning if beat hero is an image, not text."
 fi
+
+# 9. Tween-property whitelist — width/height/top/left in a GSAP tween are slow + break CSS-baked transforms
+grep -nE 'tl\.(to|from|fromTo|set)\([^)]*\{[^}]*(width|height|top|left)\s*:' "$F" \
+  && echo "FAIL: tween targets width/height/top/left above. Use only x/y/scale/scaleX/scaleY/rotation/opacity. Center-shift via x/y from bbox delta + transform-origin: 50% 50%."
+
+# 10. Literal HTML opening tags in comments — lint regex false-positives
+grep -nE '<!--[^>]*<(template|style|script)[ />]' "$F" \
+  && echo "FAIL: comment contains literal <template>/<style>/<script> — escape as &lt;...&gt; or rewrite as plain text."
+
+# 11. Timeline registration uses literal data-composition-id, not a variable
+grep -qE "window\.__timelines\[\s*[\"']${CID}[\"']\s*\]" "$F" \
+  || echo "FAIL: timeline key must be the literal string \"$CID\" — check-compositions.mjs regex doesn't follow variable indirection like __timelines[KEY]."
 
 # Structural evidence (must be ≥ 1 each)
 grep -c "data-composition-id=\"$CID\"" "$F"    # host contract
