@@ -66,7 +66,7 @@ Four hidden pitfalls account for most rework in a single beat run — scan them 
 Save to the path the main agent specified (usually `compositions/beat-N-<slug>.html`). Copy-paste this starter and fill in the named placeholders. Every attribute, ID, and timeline key shown is load-bearing — the assembler (final action of Step 5) hard-fails if `data-duration` drifts from your dispatch packet's `estimatedDuration_s` by more than 0.01s.
 
 ```html
-<template id="beat-N-name-template">
+<template id="beat-N-<slug>-template">
   <style>
     /* Scope every selector with a beat-prefix class (e.g. .bN-title) so styles
        can't leak into sibling beat compositions. */
@@ -78,9 +78,9 @@ Save to the path the main agent specified (usually `compositions/beat-N-<slug>.h
 
   <!-- Root sub-comp div. data-duration MUST equal estimatedDuration_s from your dispatch packet within 0.01s. -->
   <div
-    id="beat-N-name"
+    id="beat-N-<slug>"
     class="bN-root"
-    data-composition-id="beat-N-name"
+    data-composition-id="beat-N-<slug>"
     data-width="1920"
     data-height="1080"
     data-duration="5.5"
@@ -104,7 +104,7 @@ Save to the path the main agent specified (usually `compositions/beat-N-<slug>.h
       tl.fromTo(".bN-root", { scale: 1.0 }, { scale: 1.06, duration: BEAT, ease: "none" }, 0);
 
       // Register synchronously — the key MUST match data-composition-id above.
-      window.__timelines["beat-N-name"] = tl;
+      window.__timelines["beat-N-<slug>"] = tl;
     })();
   </script>
 </template>
@@ -330,7 +330,7 @@ Round-number scales (1.5, 2.0) consistently clip large text at zoom peak. Asymme
 - QUERYSELECTOR: `document.getElementById("id")` with null guards. No method calls without null check.
 - CHARACTER SPANS: `display:inline-block` on spaces collapses them. Use `&nbsp;` or per-word spans.
 - COUNTERS: no `onUpdate` callbacks. Discrete `tl.set(el, {textContent: "42"}, 2.5)` at timestamps.
-- TIMELINE: `window.__timelines["beat-N-name"] = tl` synchronously. Key = literal `data-composition-id`, NOT a variable — `check-compositions.mjs` regex doesn't follow indirection.
+- TIMELINE: `window.__timelines["beat-N-<slug>"] = tl` synchronously. Key = literal `data-composition-id`, NOT a variable — `check-compositions.mjs` regex doesn't follow indirection.
 - DETERMINISTIC: no `Math.random()`, `Date.now()`, `requestAnimationFrame`, `repeat:-1`.
 - Always `tl.fromTo()` not `tl.from()` for entrances.
 - Never stack two transform tweens on same element at same time.

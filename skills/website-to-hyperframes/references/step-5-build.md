@@ -205,7 +205,7 @@ In either case, use the template. Do not skip it and build from memory.
 Each sub-agent reads [beat-builder-guide.md](beat-builder-guide.md) — it has everything: rules, easing, file references, validation commands. **Do not try to paste all rules into the prompt yourself.** Instead, tell the sub-agent to read the guide file. You paste only the beat-specific context: the storyboard sections, brand values, and asset paths.
 
 ```
-Build the composition for Beat N. Save to compositions/beat-N-name.html.
+Build the composition for Beat N. Save to compositions/beat-N-<slug>.html.
 
 FIRST: Read skills/website-to-hyperframes/references/beat-builder-guide.md end to end.
 It has your full workflow, all rules, easing vocabulary, and file references.

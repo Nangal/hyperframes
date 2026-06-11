@@ -375,10 +375,10 @@ Every text element in this beat must name a specific effect from `skills/hyperfr
 
 Format (FORMAT EXAMPLES of structure, not prescriptions — pick based on brand/mood/context):
 
-- `[element — e.g. "main headline"]`: `[effect-id]` — `skills/hyperframes/assets/text-effects/effects/[id].json`
-- `[element — e.g. "eyebrow label"]`: `[effect-id]` — `skills/hyperframes/assets/text-effects/effects/[id].json`
+- `[element — e.g. "main headline"]`: `[effect-id]` — `skills/hyperframes/assets/text-effects/specs/[id].json`
+- `[element — e.g. "eyebrow label"]`: `[effect-id]` — `skills/hyperframes/assets/text-effects/specs/[id].json`
 
-The sub-agent reads the named JSON file and implements from `showcase.library_adapters.gsap`. No creative decisions at build time.
+The sub-agent reads the named JSON spec and implements from `showcase.library_adapters.gsap`. No creative decisions at build time. **Source lookup:** the 24 specs are bundled locally at `skills/hyperframes/assets/text-effects/specs/<id>.json` (resolve relative to the worktree root). If the upstream `pixel-point/animate-text` skill is loaded, equivalent specs are also at `.agents/skills/animate-text/assets/specs/<id>.json` — prefer whichever resolves first.
 
 ### Beat Timing
 
