@@ -219,9 +219,14 @@ for (let i = 0; i < playOrder.length; i++) {
   const sceneStyleAttr = useHyperShader && shaderTransitions.bg_color
     ? ` style="background-color: ${shaderTransitions.bg_color};"`
     : "";
+  // HyperShader resolves scenes via getElementById(sid) and requires that same
+  // element to carry class="scene" — so in shader mode the host div id must be
+  // the bare sid (not the el-<sid> prefix), or init() throws "scene ids not
+  // found in DOM". Non-shader mode keeps the el- prefix for host uniqueness.
+  const sceneHostId = useHyperShader ? sid : `el-${sid}`;
   body.push(
     `      <div`,
-    `        id="el-${sid}"${sceneClassAttr}`,
+    `        id="${sceneHostId}"${sceneClassAttr}`,
     `        data-composition-id="${sid}"`,
     `        data-composition-src="compositions/${sid}.html"`,
     `        data-start="${start}"`,
