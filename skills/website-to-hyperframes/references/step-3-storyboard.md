@@ -20,11 +20,15 @@ If any of those rows are blank, the storyboard cannot land. Go back to the brief
 
 **The single-sentence test:** _"What makes this video different from a generic [video type] for any [industry] brand?"_ If you can't answer it from the rows above, the concept isn't sharp enough. Sharpen it before writing pacing or beats.
 
-### Optional: name a story archetype as the structural spine
+**The per-beat product-moment test (for product / SaaS brands):** every beat must name a specific product interaction, interface element, or capability it demonstrates — not just a mood or visual material. "Beat 3: dark cinematic atmosphere with abstract beam" fails this test; "Beat 3: the user types an idea into the Video Agent prompt box, hits Generate, the player slides up with a finished video" passes. This rule applies _regardless of arc choice_ — Reveal/Vibe beats still need product moments. A real-AI-test recently shipped beats 1–2 strong (real captured Orb video as hook) but beats 3–5 flattened into mood/atmosphere because the storyboard never named a product moment for them; the middle had nothing specific to be about and regressed to generic motion-graphics tropes. If a beat's spec answers "what mood/material does this beat carry?" but not "what product moment does it demonstrate?", the spec is half-finished. Sharpen each beat's product-moment before writing technique.
+
+### Story archetype as the structural spine
 
 The Arc field above (Problem→Solution / Reveal / Demonstration / Vibe / Comparison) is the **primary frame** for w2h. It works for any video type — social ads, brand reels, tours, launches, demos.
 
-If the user explicitly wants a **launch-style** or **persuasion-heavy** reel — a product launch trailer, a category-creation announcement, a transformation story — the five named archetypes below give the storyboard a more specific structural spine. They are optional and SECONDARY to the Arc field. Pick one only when the user's brief reads as persuasion-led, not when it's a general brand piece.
+**For product / SaaS brands (the typical w2h source URL), a named archetype below is strongly recommended — not optional.** The per-beat product-moment test above asks every beat to name a specific product interaction; the named archetypes (PAS, BAB, Future-Pacing, Demo-Loop, Feature-Benefit-Cascade) all generate per-beat product moments by construction. Without one, mood/atmosphere beats fill the gap and the middle of the video flattens (real-AI-test failure mode: a Reveal arc's mood thesis front-loads wow on beats 1–2 but leaves beats 3–5 with no specific subject to be about).
+
+If the user explicitly wants a **launch-style** or **persuasion-heavy** reel — a product launch trailer, a category-creation announcement, a transformation story — the five named archetypes below give the storyboard a more specific structural spine. SECONDARY to the Arc field in name but, in practice, the load-bearing structural choice for product reels.
 
 Every entry below is equal-weight — none is preferred. Pick the one whose structural shape matches the brief.
 
@@ -36,7 +40,7 @@ Every entry below is equal-weight — none is preferred. Pick the one whose stru
 
 If you pick an archetype, **write it on the same line as the Arc field** so the worker reads both: `**Arc:** Demonstration / Demo-Loop — three workflow loops, each ending in a "ship" moment.`
 
-Skip the archetype entirely for general brand reels, social ads without a sales motion, atmospheric pieces, and "show what it is" videos. The Arc field alone is enough.
+Skip the archetype only for general brand reels (NOT product/SaaS demos), social ads without a sales motion, pure atmospheric pieces, and "show what it is" mood-led videos where the brand is selling _feeling_ rather than capability. The Arc field alone is enough for those. For everything else — and that's most w2h source URLs — pick a named archetype, even when the source URL only loosely fits one. The per-beat product moments it forces will improve the middle of the reel materially.
 
 ---
 
@@ -404,7 +408,17 @@ Use the pacing you decided at the top of this step. The beat count, duration, an
 
 **Frame-filling rule:** When describing visuals per beat, specify sizes as FRAME FILL PERCENTAGES, not pixels. "Product screenshot fills 80% of frame" not "600px wide card."
 
-**Pick what serves each beat: compose from divs/CSS/SVG/Canvas, use the captured asset, or — most often — layer both.** Pure composition or pure capture rarely produces the strongest beat; they tend to correlate. Some beats lean composed (a kanban built from divs with the brand's real colors, real project names, animated entrances no screenshot can deliver). Some beats lean captured (a hero illustration push-in, a product photo with parallax depth, a brand diagram drawing in via stroke-dashoffset, a captured video clip as the bed). Most beats layer both (composed UI with captured brand marks stamped in; captured hero photo with kinetic type on top; a 46-SVG partner-logo grid composed as one component using the actual captured logos; a captured screenshot in a 3D MacBook mockup with composed glow). The agent decides per beat what THIS concept needs — none of the three is the "default." **The wrong move is doing the same pattern across every beat.** Vary it across the video: different framings, different motion patterns, different content-source proportions. Keep one stylistic spine (the brand's colors, fonts, tonal register from DESIGN.md — it's one story across the reel) but **vary the technique per beat** so the viewer keeps watching. The video should feel **alive in every frame** — motion that's continuous and tangible, **like things exist in a physical world**.
+**Three beat content types — pick what serves each beat:**
+
+1. **Captured asset** — drop in a real file from the capture: hero illustration push-in, product photo with parallax, brand diagram stroke-drawing, the brand's captured hero video as the bed (use `capture-video` to fetch the mp4). These cost the least invention and the brand fidelity is automatic.
+2. **Composed visual** — divs/CSS/SVG/Canvas/GSAP atmospheric and motion-graphics: kinetic type, particle effects, shader transitions, abstract gradients, geometric reveals.
+3. **Designed product moment** — a believable product interface that demonstrates a real product capability. NOT a screenshot of the source site; INVENTED to show what the product does. Examples: a "type your idea → hit Generate → watch a video render" Video Agent UI; a language switcher that re-translates a subtitle live (`🇺🇸 English → 🇪🇸 Español`); a kanban card sliding across columns with the brand's actual product copy. This is the type product/SaaS brands lean on for the middle beats — every feature becomes a designed product moment, and the variety is automatic because each interface is different.
+
+Layer them whenever it helps (captured logo stamped on a designed UI moment; composed glow behind a captured screenshot). The decision is per-beat — none is the "default." **The wrong move is doing the same pattern across every beat.** Vary it across the video: different framings, different motion patterns, different content-source proportions. Keep one stylistic spine (the brand's colors, fonts, tonal register from DESIGN.md — it's one story across the reel) but **vary the technique per beat** so the viewer keeps watching.
+
+**Failure mode this rule names** (observed on heygen-showcase): the agent's beat-1 + beat-2 sat on real captured video (the Orb, the Avatar) which made them strong cheaply, but beats 3–5 had no captured anchor and reached for type 2 — composed atmosphere — when type 3 (designed product moments) would have been the right answer. Result: a great hook that decayed into a competent template. The fix per beat: if a beat doesn't have a captured-asset anchor, ask "what product moment could I design here?" BEFORE reaching for abstract atmosphere.
+
+The video should feel **alive in every frame** — motion that's continuous and tangible, **like things exist in a physical world**.
 
 **Asset use isn't spamming when the concept needs it.** A 46-SVG grid of partner-company logos is one beat's primary content, not spam. Two captured assets layered in a beat (logo + hero photo) is normal. Multiple icons composed into a feature grid using the brand's real captured SVGs is normal. The spam rule applies to assets that DON'T serve any beat's meaning — those don't appear. The "use it / compose it / combine both" decision is per-beat judgment; trust the agent to read the beat's concept and pick what makes that beat awesome.
 
