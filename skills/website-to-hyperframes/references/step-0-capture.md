@@ -60,22 +60,27 @@ Read every file below. After each one, **write a 3-4 sentence summary** of what 
 
 10. **`capture/extracted/shaders.json`** — If present, this contains the actual GLSL shader code that powers the site's WebGL visual effects (gradient waves, particle systems, noise fields). Read the fragment shaders to extract: color values used in gradients, noise algorithms, blend functions. You are able to recreate similar effects in your compositions using Canvas 2D, Three.js, HTML-in-canvas or by embedding the shader patterns with a `<canvas>` + WebGL context. Absolutely read the patterns in `techniques.md`!!
 
-### Captured asset filenames — when to trust, when to verify
+### Captured asset filenames — content-hash names + asset-descriptions.md
 
-As of June 2026, captures emit content-addressable filenames in the shape `<role>-<slug>-<hash8>.<ext>` — e.g. `partner-logo-amazon-2TeU5qiM.svg`, `header-logo-airbnb-EfGh5678.svg`, `hero-product-shot-i9j0k1l2.png`. The `slug` portion comes from explicit DOM signals (alt text → aria-label → enclosing `<a href>` → URL path), NOT from heading proximity. The 8-char `hash` is a SHA-256 of the bytes — same SVG bytes always produce the same filename across captures.
+As of June 2026, captures emit content-addressable filenames for SVGs:
 
-**Trust levels:**
+- **`logo-<hash>.svg`** — DOM-marked logos (the SVG sits inside `<header>`, `<nav>`, `[role="banner"]`, a brand-home `<a href="/">`, an aria-label matching the page title, OR a class containing "logo"/"brand"). The `logo-` prefix is the primary signal that this is a brand mark.
+- **`svg-<hash>.svg`** — everything else (icons, decorative marks, non-logo inline SVGs).
 
-- **HIGH trust** — filename has the `<role>-<word>-<hash>` shape where `<word>` is a real brand word (`amazon`, `figma`, `stripe-logo`, `hero-dashboard`). The slug came from alt/aria/href, so the brand attribution is the site's own self-declaration. You can grep these for partner walls (`partner-logo-*`), brand mark (`header-logo-*`), nav (`nav-icon-*`), heroes (`hero-*`).
-- **MODERATE trust** — filename is `<role>-<idx>-<hash>` (e.g. `icon-27-aB12CdEf.svg`, `logo-10-x4mcSXGJ.svg`). No semantic signal was available, but the file is still content-identified by the hash. Same hash across runs = same bytes.
-- **LOW trust — verify before using as brand-critical** — legacy captures without the `-hash` suffix, UUID-named assets, anything where the slug looks like a stale class name (e.g. `flex-N.svg`, `sx-1fwcy2r.svg` if you see them — older captures, or assets the new path missed).
+The 8-char `<hash>` is a SHA-256 of the bytes — same SVG bytes always produce the same filename across captures. The brand name is NOT in the filename — it lives in `capture/extracted/asset-descriptions.md` (one line per file, with Gemini Vision descriptions when `GEMINI_API_KEY` is set, or DOM-derived signals when not). Downloaded raster images keep human-readable catalog-derived slugs (e.g. `hero-dashboard.png`, `og-image.png`); the content-hash naming applies to SVGs only.
+
+**How to find the right logo:**
+
+1. **Grep `capture/extracted/asset-descriptions.md` for the brand name** (e.g. `HeyGen`, `huly`, `Stripe`). The line will pair the filename to a Gemini Vision description like `svg-54ea56cd.svg — wordmark reading "HeyGen" next to a four-lobed diamond-shaped icon`. Lines tagged `LOGO` (with or without a Gemini caption) are the brand-mark candidates.
+2. **Also try `ls capture/assets/ | grep logo-`** — the `logo-<hash>.svg` prefix catches DOM-marked logos directly by filename. There may be 1–3 candidates (header logo, footer logo, mobile variant).
+3. **Open the candidate(s) to confirm** before referencing in a brand-critical beat — even with a clean Gemini caption + `logo-` prefix, brand fidelity is high-stakes enough that the eye check is cheap insurance.
 
 **Operational rules:**
 
-- For non-critical assets (decorative SVGs, secondary illustrations): trust the filename pattern, pick by inspecting contact-sheet thumbnails. Don't open every file.
-- For brand-critical assets (header logo, primary hero illustration that the closer/opener depends on): even at HIGH trust, OPEN the file individually and confirm — the cost of shipping the wrong brand mark is high. This is still the one carve-out from the on-demand rule below.
-- Verify each chosen path EXISTS in the directory listing (`ls capture/assets/svgs/`, etc.) before writing it into a composition. The directory listing is the ground truth — not the filename grep, not the Gemini caption.
-- **Historical pitfall (still possible on legacy captures):** 8 of 12 multi-URL runs in 2026-04→05 hit mislabeled SVGs (`heygen-logo.svg` rendering Google, `nvidia-logo.svg` rendering Autodesk, etc.) because the old pipeline derived slugs from `nearestHeading`. That signal was demoted to lowest-priority in 2026-06; new captures don't have this failure mode. If a capture predates 2026-06 you may still see it.
+- For non-critical assets (decorative SVGs, secondary illustrations): pick by inspecting contact-sheet thumbnails. Don't open every file.
+- For brand-critical assets (header logo, primary hero illustration that the closer/opener depends on): always open + verify, then reference the exact hashed filename in the composition.
+- Verify each chosen path EXISTS in the directory listing (`ls capture/assets/`, `ls capture/assets/svgs/`) before writing it into a composition. The directory listing is the ground truth — not the filename grep, not the Gemini caption.
+- **Historical pitfall (legacy captures only):** captures predating June 2026 derived SVG slugs from `nearestHeading`, which mislabeled them (`heygen-logo.svg` actually rendered Google, `nvidia-logo.svg` rendered Autodesk, etc.). The June 2026 pipeline moved to content-hash naming and removed this failure mode entirely. Captures from older runs may still show it; re-capture if in doubt.
 - Captured SVGs may have malformed path data that fails `hyperframes validate` (e.g. fused command-letter tokens like `8.48848C68.2079`). If a captured logo's `d=` attribute is unrenderable, REPLACE the gnarly path with a clean hand-authored shape — do not try to repair the captured `d` token-by-token.
 
 ### Required On-demand (only when actually needed in Step 5)

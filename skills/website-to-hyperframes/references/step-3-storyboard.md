@@ -558,13 +558,15 @@ Scan the beats you wrote. Is every beat's primary visual the same TYPE (all capt
 
 List every captured asset that appears in your beats:
 
-| Asset                          | Type     | Where (beat #)  | Role                                                                            |
-| ------------------------------ | -------- | --------------- | ------------------------------------------------------------------------------- |
-| stripe-logo.svg                | SVG      | Beat 1 + Beat N | Primary opener (stroke-draw), closer (hold)                                     |
-| hero-illustration.png          | Image    | Beat 2          | Primary (push-in dolly, parallax y-drift)                                       |
-| partner-logos/*.svg (46 files) | SVG grid | Beat 4          | Primary grid component — all 46 captured logos animated in 0.04s stagger       |
-| wave-fallback-desktop.png      | Gradient | Beat 3 bg layer | Layer behind composed dashboard (ambient depth wash)                            |
-| datavizstatic3x.png            | Data viz | Beat 5          | Layer with composed counter overlay animating real numbers                      |
+| Asset                                       | Type     | Where (beat #)  | Role                                                                            |
+| ------------------------------------------- | -------- | --------------- | ------------------------------------------------------------------------------- |
+| capture/assets/logo-5fce3a91.svg            | SVG      | Beat 1 + Beat N | Primary opener (stroke-draw), closer (hold) — real Stripe wordmark              |
+| capture/assets/hero-illustration.png        | Image    | Beat 2          | Primary (push-in dolly, parallax y-drift)                                       |
+| capture/assets/svgs/svg-* (46 files)        | SVG grid | Beat 4          | Primary grid component — all 46 captured partner logos animated in 0.04s stagger |
+| capture/assets/wave-fallback-desktop.png    | Gradient | Beat 3 bg layer | Layer behind composed dashboard (ambient depth wash)                            |
+| capture/assets/datavizstatic3x.png          | Data viz | Beat 5          | Layer with composed counter overlay animating real numbers                      |
+
+SVG paths use the content-hash filenames the capture pipeline produces (`logo-<hash>.svg` for DOM-marked logos, `svg-<hash>.svg` for the rest — see [step-0-capture.md](step-0-capture.md) "Captured asset filenames"). The brand name lives in `capture/extracted/asset-descriptions.md`, not in the filename — resolve which hash is the real logo by grepping the brand name there BEFORE writing it into a beat.
 
 One row per asset used. Assets that didn't fit any beat's meaning simply don't appear in the table — no "SKIP" rows needed. The question isn't "use or skip every captured asset"; it's "which assets serve the beats I wrote, and where do they appear." If a beat would benefit from an asset you haven't placed, add it; if a beat doesn't need one, leave it composed.
 
