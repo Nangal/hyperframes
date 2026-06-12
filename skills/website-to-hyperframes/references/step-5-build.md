@@ -280,12 +280,23 @@ Key component styles:
   [paste relevant lines from DESIGN.md]
 
 ═══ CAPTURED ASSETS FOR THIS BEAT ═══
-[Paste ACTUAL file paths + descriptions from asset-descriptions.md:
+[Paste ACTUAL file paths + descriptions from asset-descriptions.md.
+
+SVG filenames are content-hash slugs (`svg-<8char>.svg`), NOT human-
+readable. The brand name lives in the DESCRIPTION, not the filename.
+Before pasting, search asset-descriptions.md for the brand name (e.g.
+`HeyGen`, `huly`, `Stripe`) to find which `svg-<hash>.svg` is the real
+logo:
 
 - capture/assets/hero-dashboard.png — full-bleed product dashboard, dark theme
-- capture/assets/logo.svg — brand wordmark, white on transparent
+- capture/assets/svg-54ea56cd.svg — wordmark "HeyGen" + four-lobed diamond icon (the real header logo)
 
-Do NOT say "see asset-descriptions.md". Paste the paths here.]
+If the beat needs a logo and you DIDN'T resolve a captured SVG here, the
+worker will compose a fake one — which ships as off-brand in the final
+video. Resolve the captured logo path explicitly in the dispatch packet,
+not as a "see asset-descriptions.md" pointer.
+
+Do NOT say "see asset-descriptions.md". Paste the resolved paths here.]
 ```
 
 The storyboard beat already contains everything — the concept, the visual choreography with exact timings, the CSS values, the SFX cues. The sub-agent's job is to translate that description into working HTML/CSS/GSAP, not to re-invent the creative direction. If you want, you can also paste any other relative and useful context to subagents if think it's good, why not.

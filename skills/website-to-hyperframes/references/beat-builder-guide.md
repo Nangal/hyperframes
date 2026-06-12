@@ -56,10 +56,40 @@ Four hidden pitfalls account for most rework in a single beat run — scan them 
 **Always open the captured assets folder before designing the beat:**
 
 - `capture/assets/svgs/` — brand logos, icons, decorative marks. SVGs are infinitely scalable and stroke-animatable (path drawing, dash offset). A logo SVG drawing itself onto frame can carry an entire beat.
-- `capture/assets/` — hero illustrations, screenshots, product art, gradients, photography. These are first-class beat subjects, not background decoration. A breathing hero illustration with a single line of kinetic type is a complete shot.
+- `capture/assets/` — hero illustrations, screenshots, product art, gradients, photography, AND the SVGs that came from inline DOM extraction (header logo, wordmarks). These are first-class beat subjects, not background decoration. A breathing hero illustration with a single line of kinetic type is a complete shot.
+- `capture/assets/videos/previews/` — every `<video>` on the source site got a preview PNG and a manifest entry. See the "Captured videos" rule below for how to fetch the actual mp4 when you need it.
 - VIEW every image before placing text on it. Check safe zones, contrast, actual content, where the focal point sits.
 
 **If your beat spec names a captured asset, USE it.** Don't substitute a CSS recreation. The user captured these from the real brand site precisely so the video carries the brand's actual visual identity.
+
+### Logo discovery — search `asset-descriptions.md` BEFORE composing one
+
+**This is a hard rule.** SVG filenames are content-hash slugs (`svg-54ea56cd.svg`, `svg-ec034b11.svg`) — the brand name is NOT in the filename. The real logo IS in the capture, just hash-named. So:
+
+1. **First** open `capture/extracted/asset-descriptions.md` and `Grep`/`search` for the brand name (e.g. `HeyGen`, `huly`, `Stripe`). The descriptions identify wordmarks and logos by what they actually show — e.g. `svg-54ea56cd.svg — wordmark reading "HeyGen" next to a four-lobed diamond-shaped icon`. That's how you find which `svg-<hash>.svg` is the real logo.
+2. **Second** open the matching SVG to verify and to see its colors / glyph paths.
+3. **Then** reference it from the beat as `<img src="capture/assets/svg-XXXXXXXX.svg" ... />`.
+
+**Composing a logo (CSS shapes, fake wordmark) when a captured one exists is a brand-fidelity violation** — it ships in the final video and reads as off-brand. It IS valid to RECOLOR or extract specific paths from a captured monochrome SVG to match the site's accent palette (the agent that ran heygen.com correctly extracted the diamond facets and recolored them with the aurora gradient). The line is: **start from the captured geometry**, never from scratch.
+
+If `asset-descriptions.md` has no Gemini Vision descriptions (the heading says "no Gemini key set" or descriptions are just filename slugs), fall back to opening each candidate SVG in a previewer or via `sharp` to render it. Cost: a few extra reads. Worth it for brand fidelity.
+
+### Captured videos — they're in the manifest, not on disk
+
+The capture pipeline writes `capture/extracted/video-manifest.json` listing every `<video>` element on the source page (URL, dimensions, heading, caption, preview PNG). It does **not** download the actual mp4s — that would balloon the capture size on sites with many videos.
+
+When a beat genuinely needs the hero video (e.g. heygen.com's "Orb" — a 3D-rendered animation that's hard to approximate in CSS), fetch just that one:
+
+```bash
+# Find the entry in capture/extracted/video-manifest.json — note its `url`.
+# Then download it to assets/videos/:
+mkdir -p assets/videos
+curl -sL "<url-from-manifest>" -o assets/videos/<filename-from-manifest>
+```
+
+Embed as a `<video>` element with `data-start` / `data-duration` like any other clip. See the `/hyperframes` skill's video-composition reference for the contract.
+
+Don't bulk-download every video in the manifest — most aren't relevant to your beat. Pick the one the beat actually needs.
 
 ## Step 2: Build the composition
 
