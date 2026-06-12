@@ -70,7 +70,7 @@ All times in the analysis are **clip-relative** (0 = the clip's own start), _not
 
 1. **Trim dead air first.** A catalog clip can carry silence padding — a "5s riser" may be 2s silence + 5s rise + 1s silence — and if you place the raw file it fires late and wastes its tail. Set `data-media-start = onset` and `data-duration = tail − onset` so only the real content plays. (`sfx add`/`inspect` print this as a ready `trim` line.) After trimming, the audible sound begins **exactly at `data-start`**.
 2. **Anchor to the beat.** A **hit** (click, impact, whoosh) aligns by its attack — now at the start — so `data-start = beat`. A **build** (riser) aligns by its peak, which sits `peak − onset` into the trimmed clip, so `data-start = beat − (peak − onset)`. Example: a riser with onset 2.0s, peak 6.0s landing on a beat at 10.0s → `data-media-start="2.0"`, `data-start="6.0"` (= 10.0 − 4.0); fire the drop at 10.0s. They overlap — that's the chain.
-3. **Level** — the catalog is loudness-normalized, so the volume hierarchy is your baseline; you usually don't touch it. Use measured LUFS only to _nudge_: if two layered clips clash, drop `data-volume` on the one with the higher (louder, less-negative) LUFS.
+3. **Level** — the catalog is loudness-normalized at the file level, so the default is to omit `data-volume` and let the clip play natural. Only nudge when measured LUFS shows a real mismatch — if two layered clips clash, drop `data-volume` on the one with the higher (louder, less-negative) LUFS.
 4. **Shape** — the sparkline spans the whole clip; block `i` sits at `t ≈ (i + 0.5) / length × duration`. Read it for _where_ the energy builds, drops, or breaks — then place your trigger there.
 
 (There's no need to _cut_ the audio into a new file — `data-media-start` + `data-duration` trim at render time, losslessly and reversibly. Only mid-clip gaps, which a single window can't remove, would call for a different clip.)
@@ -103,7 +103,10 @@ hyperframes sfx inspect <id>
 Search hits return `name`, `description`, `duration`, and `score`. Use the **duration to tell the mode apart** — a 0.5s result is a hit, a 10s result is a bed. Always `add` (download) and embed the **local file**; never embed the search result's `audio_url` (it's a presigned URL that expires before render):
 
 ```html
-<audio src="assets/sfx/<id>.mp3" data-start="3.2" data-duration="1.5" data-volume="0.3"></audio>
+<!-- Default: omit data-volume — clip plays at natural catalog-normalized level.
+     data-media-start trims dead air at the head (set to the analysis `onsetSec`)
+     so the audible attack lines up with data-start. -->
+<audio src="assets/sfx/<id>.mp3" data-start="3.2" data-duration="1.5" data-media-start="0.12"></audio>
 ```
 
 ### Access (free, but needs a key)
@@ -129,23 +132,25 @@ SFX are plain audio clips — no special engine handling. The mixer reads exactl
 
 - **`data-start`** — when the clip fires (seconds): the trigger frame (or the scene start, for a bed).
 - **`data-duration`** — how long it plays; use the catalog duration. (`data-end` also works; duration is end minus start.)
-- **`data-volume`** — 0 to 1. This is the **only** knob that sets level under voiceover. There is **no pan** — volume and timing are the only audio controls.
-- **`data-media-start`** — trim into the source file (skip the first N seconds), for clips with a slow attack.
+- **`data-media-start`** — trim into the source file (skip the first N seconds), for clips with a slow attack. Set from `sfx add`'s `onsetSec` so the audible attack lines up with `data-start`.
+- **`data-volume`** — 0 to 1. **Optional.** Omit to play at natural catalog level (= 1.0). Use only as a per-clip nudge, not as a default duck.
 
-`data-track-index` does **not** affect audio mixing — every clip mixes together regardless of its index. It only organizes the visual timeline. So `data-volume`, not the track index, is what keeps SFX under the VO.
+`data-track-index` does **not** affect audio mixing — every clip mixes together regardless of its index. It only organizes the visual timeline.
 
-## Volume hierarchy
+## Volume — default is natural, no auto-duck
 
-Layer levels so nothing fights the voice:
+**SFX play at their natural catalog-normalized level.** The catalog is loudness-normalized at the file level, so embedding a clip without `data-volume` lets it ring at the level the catalog committed to. Multiple SFX can overlap, and SFX can stack on top of voiceover — the engine never auto-ducks, by design. If the natural mix sounds wrong, fix it by trimming dead air, shifting timing, or swapping clips, not by reflexively scaling volume down.
 
-| Layer                | data-volume |
-| -------------------- | ----------- |
-| Narration / VO       | 1.0         |
-| Background music     | 0.4 – 0.6   |
-| Sound effects (hits) | 0.2 – 0.35  |
-| Ambient bed          | 0.08 – 0.2  |
+The columns below are **reference nudge ranges** for the rare per-clip override (a single clip measurably louder than its neighbors, a bed designed to be felt-not-heard). They are NOT defaults the agent applies on every clip.
 
-A bed sits at the very bottom — it should be _felt_, not heard. A whoosh at 1.0 over narration is jarring; at 0.3 it punctuates without masking the words. When two SFX should match in level, compare their measured LUFS (from `sfx add`/`inspect`) rather than assuming equal `data-volume` sounds equal.
+| Layer                          | nudge range (only if needed) |
+| ------------------------------ | ---------------------------- |
+| Narration / VO                 | 1.0 (always)                 |
+| Background music under VO      | 0.4 – 0.6                    |
+| Sound effects (hits) — nudge   | 0.7 – 1.0 (default = natural)|
+| Ambient bed — felt-not-heard   | 0.08 – 0.2                   |
+
+When two SFX should match in perceived level, compare their measured LUFS (from `sfx add` / `sfx inspect`) — that's more reliable than guessing-and-tweaking `data-volume`.
 
 ## Timing wisdom
 
@@ -172,9 +177,9 @@ A bed sits at the very bottom — it should be _felt_, not heard. A whoosh at 1.
 
 **An atmospheric scene** — a tense product teaser over a dark background:
 
-- Lay **one bed** (a low tension drone, ~10s) under the whole scene at `data-volume="0.12"`. No beat needed — it sets mood.
-- Punctuate only the real beats on top: a riser into the product reveal, one impact on the reveal frame.
-- Result: a continuous floor + two punctuation sounds.
+- Lay **one bed** (a low tension drone, ~10s) under the whole scene. A "felt, not heard" bed is one of the few cases where setting `data-volume="0.12"` is right — it's the exception that proves the natural-level rule.
+- Punctuate only the real beats on top — at natural volume: a riser into the product reveal, one impact on the reveal frame. Don't reflexively scale them down.
+- Result: a continuous floor + two punctuation sounds, ringing as the catalog committed to.
 
 ## Constraints
 

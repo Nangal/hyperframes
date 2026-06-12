@@ -287,16 +287,16 @@ When planning beats, decide which ones deserve an HTML-in-Canvas treatment vs. a
 
 SFX come from HeyGen's global catalog via the `hyperframes sfx` CLI — **not** a bundled file set. The full model (when to use them, the five families, the volume hierarchy, the trim/anchor recipe) lives in [`../../hyperframes/references/sound-effects.md`](../../hyperframes/references/sound-effects.md); read it. This step only decides _which moments get sound and what kind_ — Step 5 searches the catalog and wires the clips.
 
-**Browse first, then assign by function — not by filename.** Run `hyperframes sfx list` to see what families exist (impacts, whooshes, risers, memes, stingers, ambiences, …). For each beat that earns a sound, specify it by _what it does + how it feels_ (the catalog is searched by meaning), the moment, and a volume:
+**Browse first, then assign by function — not by filename.** Run `hyperframes sfx list` to see what families exist (impacts, whooshes, risers, memes, stingers, ambiences, …). For each beat that earns a sound, specify it by _what it does + how it feels_ (the catalog is searched by meaning) and the moment:
 
-- a punchy transition whoosh at `0.2s`, volume `0.3` — on the hero image snapping in
-- a soft success chime at `3.8s`, volume `0.5` — on the logo appearing
+- a punchy transition whoosh at `0.2s` — on the hero image snapping in
+- a soft success chime at `3.8s` — on the logo appearing
 
 **Less is more.** Most beats need zero SFX; one per beat is typical (see the global doc's "count beats, not animations"). Never place SFX on shader transitions — they're already an audio-visual event.
 
-**Placement, trimming, and chains are all in the global doc — don't restate per-file timing here.** Step 5 follows it: `sfx add` measures each clip (peak, onset/tail, loudness), then trims dead air and anchors hits/risers precisely. (This replaces the old "peak at start/end, never trim" rules — catalog clips aren't a fixed hand-tuned set, so trimming to the _measured_ onset/tail is how you avoid late or cut-off sounds.)
+**Placement, trimming, and chains are all in the global doc — don't restate per-file timing here.** Step 5 follows it: `sfx add` measures each clip (peak, onset/tail, loudness), then trims dead air via `data-media-start` (= `onsetSec`) and anchors hits/risers precisely against `data-start`. The trim is what aligns the audible attack to the beat frame — that timing precision matters even more now that volume defaults to natural.
 
-**Volume under narration:** HyperFrames has no auto-ducking — keep SFX at 0.2–0.3 under VO. Note the intended volume per entry so Step 5 wires it.
+**Volume — default natural.** Don't pre-prescribe per-clip volumes here. SFX play at the catalog's loudness-normalized level (no `data-volume` emitted). The engine has no auto-ducking — that's by design. Multiple SFX may overlap, and SFX may stack on top of VO; if a specific clip measurably overpowers its neighbors, Step 5 can nudge that one clip's `data-volume`, but it's the exception, not the default. The "felt, not heard" ambient bed is the one common case for an explicit lower volume (~0.1).
 
 **Access:** the catalog is free but needs a HeyGen API key. If it isn't set when Step 5 runs `sfx`, ask the user for one (free at https://app.heygen.com/developers/api) or build without SFX — never silently drop them.
 

@@ -354,9 +354,14 @@ sfx.forEach((cue, i) => {
     );
     return;
   }
-  const vol = cue.volume != null ? cue.volume : 0.35;
+  // SFX default: play at natural catalog-normalized level. The catalog is
+  // loudness-normalized at the file level, so emitting no `data-volume`
+  // attribute (= 1.0) lets clips ring as-recorded. Agents can still set
+  // `cue.volume` explicitly to nudge a specific clip — that override is
+  // honored. Even when multiple SFX overlap or stack with VO, the resulting
+  // mix is the catalog's natural sum (no auto-duck, by design).
   if (sfxEmitted === 0) body.push(`      <!-- SFX -->`);
-  body.push(
+  const lines = [
     `      <audio`,
     `        id="el-sfx-${i}"`,
     `        class="clip"`,
@@ -364,9 +369,14 @@ sfx.forEach((cue, i) => {
     `        data-start="${cue.t}"`,
     `        data-duration="${cue.duration}"`,
     `        data-track-index="${20 + i}"`,
-    `        data-volume="${vol}"`,
-    `      ></audio>`,
-  );
+  ];
+  // `cue.media_start` lets a clip skip dead air at the head (set from the
+  // `sfx add` analysis's `onsetSec`). Aligning audible-onset to `data-start`
+  // is the timing-alignment knob the volume change preserves.
+  if (cue.media_start != null) lines.push(`        data-media-start="${cue.media_start}"`);
+  if (cue.volume != null) lines.push(`        data-volume="${cue.volume}"`);
+  lines.push(`      ></audio>`);
+  body.push(...lines);
   sfxEmitted++;
 });
 
