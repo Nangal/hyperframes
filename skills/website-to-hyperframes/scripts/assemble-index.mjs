@@ -183,11 +183,18 @@ const hasGlobalVoice =
   existsSync(join(hyperframesDir, globalVoicePath));
 
 // ---------- BGM volume: duck under narration if any voice is present ----------
+// Values track references/background-music.md: under-VO sits at 0.4–0.6 (the
+// example storyboard line uses ~0.45 — see background-music.md:90), pure-music
+// videos sit near full at 0.7–0.9 to clear the encoder noise floor (line 31).
+// 0.5 is the mid of the simplest under-VO hold-low band; 0.9 is the top of the
+// pure-music band. Agents wanting per-section ducking embed the same id twice
+// at different volumes (pattern 2 in background-music.md) — the assembler's
+// single-bed BGM emit is the floor, not the ceiling.
 const hasPerSceneVoice = playOrder.some(
   ({ scene }) => scene.voicePath && existsSync(join(hyperframesDir, scene.voicePath)),
 );
 const hasAnyVoice = hasGlobalVoice || (voiceMode === "per-scene" && hasPerSceneVoice);
-const BGM_VOLUME = hasAnyVoice ? "0.8" : "0.9";
+const BGM_VOLUME = hasAnyVoice ? "0.5" : "0.9";
 
 // ---------- build <body> elements in track order ----------
 const body = [];
