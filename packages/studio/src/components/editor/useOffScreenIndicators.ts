@@ -5,13 +5,20 @@
 import { useRef, useState, type RefObject } from "react";
 import { useMountEffect } from "../../hooks/useMountEffect";
 
+export type IndicatorEdge = "top" | "bottom" | "left" | "right";
+
 export interface OffScreenIndicator {
   key: string;
   elementId: string;
+  name: string;
   left: number;
   top: number;
   width: number;
   height: number;
+  edge: IndicatorEdge;
+  edgeX: number;
+  edgeY: number;
+  arrow: string;
 }
 
 interface CompRect {
@@ -72,10 +79,9 @@ function indicatorsEqual(a: OffScreenIndicator[], b: OffScreenIndicator[]): bool
     const bi = b[i]!;
     if (
       ai.key !== bi.key ||
-      Math.abs(ai.left - bi.left) > 0.5 ||
-      Math.abs(ai.top - bi.top) > 0.5 ||
-      Math.abs(ai.width - bi.width) > 0.5 ||
-      Math.abs(ai.height - bi.height) > 0.5
+      ai.edge !== bi.edge ||
+      Math.abs(ai.edgeX - bi.edgeX) > 0.5 ||
+      Math.abs(ai.edgeY - bi.edgeY) > 0.5
     )
       return false;
   }
@@ -168,18 +174,59 @@ export function useOffScreenIndicators({
           continue;
         }
 
-        // Only elements with a real id attribute can be selected via getElementById
         if (!el.id) continue;
+        const name = el.getAttribute("data-name") || el.id;
         const count = keyCounts.get(el.id) ?? 0;
         keyCounts.set(el.id, count + 1);
         const key = count > 0 ? `${el.id}:${count}` : el.id;
+
+        const centerX = elLeft + elW / 2;
+        const centerY = elTop + elH / 2;
+        const compCenterX = (compLeft + compRight) / 2;
+        const compCenterY = (compTop + compBottom) / 2;
+        const dx = centerX - compCenterX;
+        const dy = centerY - compCenterY;
+
+        let edge: IndicatorEdge;
+        let arrow: string;
+        if (Math.abs(dx) / cr.width > Math.abs(dy) / cr.height) {
+          edge = dx > 0 ? "right" : "left";
+          arrow = dx > 0 ? "→" : "←";
+        } else {
+          edge = dy > 0 ? "bottom" : "top";
+          arrow = dy > 0 ? "↓" : "↑";
+        }
+
+        let edgeX: number;
+        let edgeY: number;
+        const clampX = Math.max(compLeft + 4, Math.min(compRight - 80, centerX));
+        const clampY = Math.max(compTop + 4, Math.min(compBottom - 24, centerY));
+        if (edge === "top") {
+          edgeX = clampX;
+          edgeY = compTop;
+        } else if (edge === "bottom") {
+          edgeX = clampX;
+          edgeY = compBottom - 24;
+        } else if (edge === "left") {
+          edgeX = compLeft;
+          edgeY = clampY;
+        } else {
+          edgeX = compRight - 80;
+          edgeY = clampY;
+        }
+
         next.push({
           key,
           elementId: el.id,
+          name,
           left: elLeft,
           top: elTop,
           width: elW,
           height: elH,
+          edge,
+          edgeX,
+          edgeY,
+          arrow,
         });
       }
 

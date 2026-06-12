@@ -525,19 +525,23 @@ export const DomEditOverlay = memo(function DomEditOverlay({
         compRect.width > 0 &&
         offScreenIndicators.map((ind) => {
           const isSelected = selection?.id === ind.elementId;
+          const isVerticalEdge = ind.edge === "left" || ind.edge === "right";
           return (
             <div
               key={`offscreen-${ind.key}`}
-              className={`absolute rounded-sm ${isSelected ? "pointer-events-none" : "cursor-grab"}`}
+              className={`absolute flex items-center justify-center transition-opacity duration-150 ${
+                isSelected
+                  ? "pointer-events-none opacity-20"
+                  : "cursor-grab opacity-40 hover:opacity-90 group"
+              }`}
               style={{
-                left: ind.left,
-                top: ind.top,
-                width: ind.width,
-                height: ind.height,
-                border: `1.5px dashed var(--panel-accent, #34d399)`,
-                opacity: isSelected ? 0.3 : 0.5,
-                zIndex: isSelected ? 1 : 5,
+                left: ind.edgeX,
+                top: ind.edgeY,
+                width: isVerticalEdge ? 16 : 28,
+                height: isVerticalEdge ? 28 : 16,
+                zIndex: isSelected ? 1 : 10,
               }}
+              title={ind.name}
               onPointerDown={
                 isSelected
                   ? undefined
@@ -575,8 +579,27 @@ export const DomEditOverlay = memo(function DomEditOverlay({
                       el.addEventListener("pointerup", onUp);
                     }
               }
-              title={isSelected ? undefined : `Drag #${ind.elementId}`}
-            />
+            >
+              <svg
+                width={isVerticalEdge ? 8 : 12}
+                height={isVerticalEdge ? 12 : 8}
+                viewBox={isVerticalEdge ? "0 0 8 12" : "0 0 12 8"}
+                className="text-emerald-400"
+              >
+                {ind.edge === "left" && (
+                  <path d="M7 1L2 6L7 11" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                )}
+                {ind.edge === "right" && (
+                  <path d="M1 1L6 6L1 11" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                )}
+                {ind.edge === "top" && (
+                  <path d="M1 7L6 2L11 7" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                )}
+                {ind.edge === "bottom" && (
+                  <path d="M1 1L6 6L11 1" stroke="currentColor" strokeWidth="1.5" fill="none" />
+                )}
+              </svg>
+            </div>
           );
         })}
       <GridOverlay
