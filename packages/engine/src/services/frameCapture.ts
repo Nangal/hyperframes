@@ -36,7 +36,11 @@ import {
   resolveDrawElementCaptureMode,
   instrumentAcceleratedCanvases,
 } from "./drawElementService.js";
-import { initThreeDProjection, detectStackedFadeRisk } from "./threeDProjection.js";
+import {
+  initThreeDProjection,
+  detectStackedFadeRisk,
+  detectCssEffectRisk,
+} from "./threeDProjection.js";
 import { DEFAULT_CONFIG, type EngineConfig } from "../config.js";
 import type {
   CaptureOptions,
@@ -438,6 +442,22 @@ async function initDrawElementOrTransparentBackground(
         );
         await routeToFallback();
         return;
+      }
+      // CSS-effect gate: backdrop-filter samples the compositor backdrop and
+      // filter:blur/drop-shadow render differently through the paint-record
+      // path — drawElementImage can't reproduce either, producing 18–49 dB
+      // damaged frames (community eval). Fall back to the platform baseline.
+      // HF_FAST_CAPTURE_CSSFX=true bypasses for R&D.
+      if (process.env.HF_FAST_CAPTURE_CSSFX !== "true") {
+        const cssFx = await detectCssEffectRisk(page);
+        if (cssFx) {
+          console.log(
+            `[engine] fast capture: falling back to ${session.launchCaptureMode} capture — ` +
+              `${cssFx} detected (drawElementImage cannot reproduce it; see fast-capture-limitations.md)`,
+          );
+          await routeToFallback();
+          return;
+        }
       }
       // Rewrite CSS 3D contexts into WebGL-projected canvases BEFORE the
       // layoutsubtree canvas goes in (rects are measured in normal layout).

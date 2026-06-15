@@ -959,3 +959,58 @@ export async function detectStackedFadeRisk(page: Page): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Detect CSS effects that drawElementImage cannot reproduce faithfully, so the
+ * comp can fall back to screenshot capture instead of rendering damaged frames.
+ *
+ *  - `backdrop-filter` (blur/etc.) samples the pixels BEHIND the element from
+ *    the compositor backdrop. drawElementImage captures the element subtree in
+ *    isolation with no backdrop, so the filtered region is wrong (measured
+ *    18–49 dB across the community eval). Fundamental single-element-capture
+ *    limit, not a tunable bug.
+ *  - `filter: blur()` / `filter: drop-shadow()` render differently through the
+ *    paint-record path than the full compositor (Chromium inconsistency,
+ *    drop-shadow-on-SVG especially; ~29 dB).
+ *  - A WebGL context (custom GLSL shader, animated via GSAP uniforms with no
+ *    rAF) freezes under seek-based capture: the accel-canvas drawImage
+ *    composite captures whatever the GL last drew, which never advances per
+ *    seek (~19 dB). The composite reliably handles 2d canvases (sentinel-paint
+ *    refresh) but not GL that only redraws on its own loop — so any WebGL
+ *    context is treated as a fallback signal here.
+ *
+ * Scans computed styles under the composition root + the accel-canvas registry.
+ * Returns the first matched effect name (for logging) or null.
+ */
+export async function detectCssEffectRisk(page: Page): Promise<string | null> {
+  try {
+    return await page.evaluate(() => {
+      const root = document.querySelector("[data-composition-id]");
+      if (!root) return null;
+      const els = [root, ...Array.from(root.querySelectorAll("*"))];
+      for (const el of els) {
+        const cs = getComputedStyle(el as Element) as CSSStyleDeclaration & {
+          backdropFilter?: string;
+          webkitBackdropFilter?: string;
+        };
+        const bf = cs.backdropFilter || cs.webkitBackdropFilter || "";
+        if (bf && bf !== "none") return "backdrop-filter";
+        const f = cs.filter || "";
+        if (f && f !== "none") {
+          if (f.indexOf("blur(") !== -1) return "filter:blur";
+          if (f.indexOf("drop-shadow(") !== -1) return "filter:drop-shadow";
+        }
+      }
+      // WebGL contexts inside the composition root: instrumentAcceleratedCanvases
+      // records every webgl/webgl2/webgpu canvas in __hf_accel_canvases. (3D
+      // projection injects its own webgl canvases, but runs AFTER this gate, so
+      // only the comp's own contexts are present here.)
+      const aw = window as Window & { __hf_accel_canvases?: HTMLCanvasElement[] };
+      const accel = (aw.__hf_accel_canvases ?? []).filter((c) => root.contains(c));
+      if (accel.length > 0) return "webgl-context";
+      return null;
+    });
+  } catch {
+    return null;
+  }
+}
