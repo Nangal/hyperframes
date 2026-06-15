@@ -509,6 +509,10 @@ function selectorMatchesId(selector: string, id: HfId): boolean {
   );
 }
 
+// v1 limitation: uses bare-id matching across the whole script, so a selector targeting
+// "hf-leaf" will cascade-remove animations for both "hf-parent/hf-leaf" and any other
+// element whose scoped or bare id matches "hf-leaf". Acceptable for typical single-comp
+// use; sub-composition authors with leaf-id collisions should use fully-qualified selectors.
 function cascadeRemoveAnimations(script: string, id: HfId): string {
   const parsedGsap = parseGsapScriptAcornForWrite(script);
   if (!parsedGsap) return script;
