@@ -996,10 +996,12 @@ export async function detectCssEffectRisk(page: Page): Promise<string | null> {
         const bf = cs.backdropFilter || cs.webkitBackdropFilter || "";
         if (bf && bf !== "none") return "backdrop-filter";
         const f = cs.filter || "";
-        if (f && f !== "none") {
-          if (f.indexOf("blur(") !== -1) return "filter:blur";
-          if (f.indexOf("drop-shadow(") !== -1) return "filter:drop-shadow";
-        }
+        // Only `blur()` is gated. `drop-shadow()` was measured to render fine
+        // through drawElement on div/text (53-58 dB across the eval); gating it
+        // only over-gated healthy comps and caught no damage that backdrop /
+        // blur don't already catch. (drop-shadow ON SVG can still differ — a
+        // narrower SVG-scoped check is a follow-up if that surfaces.)
+        if (f && f !== "none" && f.indexOf("blur(") !== -1) return "filter:blur";
       }
       // WebGL contexts inside the composition root: instrumentAcceleratedCanvases
       // records every webgl/webgl2/webgpu canvas in __hf_accel_canvases. (3D
