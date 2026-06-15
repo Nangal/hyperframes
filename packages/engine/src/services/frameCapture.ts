@@ -109,12 +109,11 @@ export interface CaptureSession {
    */
   workerEncodeEnabled?: boolean;
   /**
-   * Clip-cut boundary frame indices (±1) computed from the clip schedule at
-   * init. drawElement blacks out hard clip-cut boundary frames (the outgoing
-   * clip is dropped a frame before the incoming clip's paint record is ready);
-   * these frames are captured via screenshot instead. See
-   * docs/fast-capture-limitations.md Lim 6. Empty/undefined disables the
-   * fallback (`HF_FAST_CAPTURE_BOUNDARY_SS=false`).
+   * Frame indices that must be captured via screenshot rather than drawElement.
+   * Populated at init by the clip-cut boundary predictor (Lim 6): frames where
+   * the outgoing clip is dropped a frame before the incoming clip's paint record
+   * is ready → black frame. Controlled by `HF_FAST_CAPTURE_BOUNDARY_SS=false`.
+   * Empty/undefined when the predictor produces no frames.
    */
   clipBoundaryFrames?: Set<number>;
 }
@@ -477,6 +476,30 @@ async function initDrawElementOrTransparentBackground(
           return;
         }
       }
+      // Lim 7: timeline-interval at-risk predictor. Walk window.__timelines and
+      // find tweens animating compositor-incompatible props (opacity, filter,
+      // blend-mode, 3D transform, clip-path, mask). If >40% of frames are
+      // at-risk, the whole comp falls back (pervasive damage). Must run BEFORE
+      // canvas injection so a whole-comp fallback doesn't leave the drawElement
+      // canvas wrapping the composition root in the DOM.
+      // Disable with HF_FAST_CAPTURE_INTERVAL_SS=false.
+      if (process.env.HF_FAST_CAPTURE_INTERVAL_SS !== "false") {
+        const fps = fpsToNumber(session.options.fps);
+        const { frames: atRisk, totalFrames } = await computeTimelineAtRiskFrames(page, fps);
+        const atRiskFraction = atRisk.size / totalFrames;
+        logInitPhase(
+          `timeline at-risk predictor: ${atRisk.size}/${totalFrames} frames (${Math.round(atRiskFraction * 100)}%)`,
+        );
+        if (atRiskFraction > 0.4) {
+          console.log(
+            `[engine] fast capture: falling back to ${session.launchCaptureMode} capture — ` +
+              `at-risk interval fraction ${Math.round(atRiskFraction * 100)}% exceeds threshold ` +
+              `(pervasive compositor-incompatible tweens; see fast-capture-limitations.md Lim 7)`,
+          );
+          await routeToFallback();
+          return;
+        }
+      }
       // Rewrite CSS 3D contexts into WebGL-projected canvases BEFORE the
       // layoutsubtree canvas goes in (rects are measured in normal layout).
       // drawElementImage cannot paint 3D rendering contexts — see
@@ -503,14 +526,13 @@ async function initDrawElementOrTransparentBackground(
       session.captureMode = "drawelement";
       session.drawElementReady = true;
       logInitPhase("drawElement canvas injected");
-      // Lim 6: drawElement blacks out hard clip-cut boundary frames (outgoing clip
-      // dropped a frame before the incoming clip's paint record is ready). Capture
-      // those frames via screenshot instead. Computed once from the clip schedule.
+      // Lim 6: clip-cut boundary frames — screenshot these instead of drawElement.
       if (process.env.HF_FAST_CAPTURE_BOUNDARY_SS !== "false") {
-        const boundaries = await computeClipBoundaryFrames(page, fpsToNumber(session.options.fps));
-        if (boundaries.size > 0) {
-          session.clipBoundaryFrames = boundaries;
-          logInitPhase(`clip-boundary screenshot fallback: ${boundaries.size} frame(s)`);
+        const fps = fpsToNumber(session.options.fps);
+        const boundaryFrames = await computeClipBoundaryFrames(page, fps);
+        if (boundaryFrames.size > 0) {
+          session.clipBoundaryFrames = boundaryFrames;
+          logInitPhase(`screenshot fallback: ${boundaryFrames.size} clip-boundary frame(s)`);
         }
       }
       // Worker-encode pipeline: macOS hardware GPU path only (syncToPaintEvent=true,
@@ -1595,6 +1617,95 @@ async function computeClipBoundaryFrames(page: Page, fps: number): Promise<Set<n
 }
 
 /**
+ * Walk window.__timelines and collect frame intervals where GSAP tweens animate
+ * compositor-incompatible properties (opacity, filter, blend-mode, 3D transforms,
+ * clip-path, mask). drawElement cannot reproduce these effects mid-tween → capture
+ * those frames via screenshot instead. See docs/fast-capture-limitations.md Lim 7.
+ *
+ * Returns the union of at-risk frame indices (±1 margin around each tween interval)
+ * and totalFrames (for fraction computation by the caller).
+ */
+async function computeTimelineAtRiskFrames(
+  page: Page,
+  fps: number,
+): Promise<{ frames: Set<number>; totalFrames: number }> {
+  const result = await page.evaluate(() => {
+    const AT_RISK_PROPS = new Set([
+      "opacity",
+      "autoAlpha",
+      "filter",
+      "webkitFilter",
+      "backdropFilter",
+      "backdrop-filter",
+      "mixBlendMode",
+      "mix-blend-mode",
+      "rotationX",
+      "rotationY",
+      "rotateX",
+      "rotateY",
+      "z",
+      "translateZ",
+      "clipPath",
+      "clip-path",
+      "maskImage",
+      "mask",
+    ]);
+
+    type AnyTween = {
+      startTime(): number;
+      duration(): number;
+      vars?: Record<string, unknown>;
+      getChildren?(nested: boolean, tweens: boolean, timelines: boolean): AnyTween[];
+    };
+
+    function walkTimeline(tl: AnyTween, offset: number, out: Array<{ start: number; end: number }>): void {
+      if (typeof tl.getChildren !== "function") return;
+      for (const child of tl.getChildren(false, true, true)) {
+        const childStart = offset + (typeof child.startTime === "function" ? child.startTime() : 0);
+        const childDur = typeof child.duration === "function" ? child.duration() : 0;
+        if (typeof child.getChildren === "function") {
+          walkTimeline(child, childStart, out);
+        } else {
+          const vars = child.vars || {};
+          if (Object.keys(vars).some((k) => AT_RISK_PROPS.has(k))) {
+            out.push({ start: childStart, end: childStart + childDur });
+          }
+        }
+      }
+    }
+
+    const w = window as unknown as {
+      __timelines?: Record<string, AnyTween>;
+      __hf?: { duration?: number };
+    };
+    const timelines = w.__timelines || {};
+    const intervals: Array<{ start: number; end: number }> = [];
+    for (const tl of Object.values(timelines)) {
+      if (tl && typeof tl.getChildren === "function") {
+        walkTimeline(tl, 0, intervals);
+      }
+    }
+    const duration = w.__hf?.duration ?? 0;
+    return { intervals, duration };
+  });
+
+  const { intervals, duration } = result as {
+    intervals: Array<{ start: number; end: number }>;
+    duration: number;
+  };
+  const frames = new Set<number>();
+  for (const { start, end } of intervals) {
+    const lo = Math.floor(start * fps) - 1;
+    const hi = Math.ceil(end * fps) + 1;
+    for (let f = Math.max(0, lo); f <= hi; f++) {
+      frames.add(f);
+    }
+  }
+  const totalFrames = Math.max(1, Math.ceil(duration * fps));
+  return { frames, totalFrames };
+}
+
+/**
  * True for the drawElement `InvalidStateError: No cached paint record for element`
  * thrown when a subtree element has no paint record for the current frame (display
  * toggled / detached / freshly-shown at a clip-cut boundary). Per-frame, not
@@ -1774,9 +1885,7 @@ export async function captureFrameToBufferPipelined(
     );
     void quantizedTime;
 
-    // Lim 6: clip-cut boundary frame — drawElement may render it black. Capture
-    // via screenshot and return a resolved encodeResult so the pipeline writes it
-    // like any other frame. See docs/fast-capture-limitations.md.
+    // Lim 6: clip-cut boundary frame — capture via screenshot.
     if (session.clipBoundaryFrames?.has(frameIndex)) {
       const buffer = await pageScreenshotCapture(page, options);
       session.capturePerf.frames += 1;
