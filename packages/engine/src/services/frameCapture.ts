@@ -116,6 +116,18 @@ export interface CaptureSession {
    * Empty/undefined when the predictor produces no frames.
    */
   clipBoundaryFrames?: Set<number>;
+  /**
+   * Task B (macOS static-frame dedup, opt-in `HF_STATIC_DEDUP=true`): frame indices
+   * identical to their predecessor (no GSAP tween active in either, comp has no media
+   * or non-GSAP animation). These reuse `lastFrameBuffer` instead of seeking +
+   * capturing. Populated at init by `computeStaticFrameSet`; undefined when disabled
+   * or the comp is ineligible.
+   */
+  staticFrames?: Set<number>;
+  /** Last non-deduped frame buffer, reused for `staticFrames` (Task B dedup). */
+  lastFrameBuffer?: Buffer;
+  /** Count of frames served from `lastFrameBuffer` (Task B dedup telemetry). */
+  staticDedupCount?: number;
 }
 
 // Circular buffer for browser console messages dumped on render failure diagnostics.
@@ -366,6 +378,26 @@ async function initDrawElementOrTransparentBackground(
   page: Page,
   logInitPhase: (phase: string) => void,
 ): Promise<void> {
+  // Task B: macOS static-frame dedup (opt-in HF_STATIC_DEDUP=true, default off). The
+  // page is ready here. Compute the frames identical to their predecessor — no GSAP
+  // tween active in either AND not a clip-cut boundary — then reuse the prior buffer
+  // for them in captureFrameCore instead of seeking + capturing. Whole-comp
+  // disqualified on any media (video/canvas/webgl) or init-detectable non-GSAP
+  // animation (CSS/WAAPI). Under-detection = a frozen frame, so the gate is
+  // conservative and this stays opt-in. See docs/fast-capture-limitations.md Task B.
+  if (process.env.HF_STATIC_DEDUP === "true") {
+    const fps = fpsToNumber(session.options.fps);
+    const stats = await computeStaticFrameSet(page, fps);
+    if (stats.eligible && stats.staticFrameSet.size > 0) {
+      session.staticFrames = stats.staticFrameSet;
+      logInitPhase(
+        `static-frame dedup: ${stats.staticFrameSet.size}/${stats.totalFrames} frame(s) reusable ` +
+          `(${Math.round((stats.staticFrameSet.size / stats.totalFrames) * 100)}%)`,
+      );
+    } else {
+      logInitPhase(`static-frame dedup: disabled (${stats.reason})`);
+    }
+  }
   const supersampling = (session.options.deviceScaleFactor ?? 1) > 1;
   // forceScreenshot is an explicit routing decision made upstream (render-mode
   // compat hints like raw requestAnimationFrame, alpha formats, low-memory) —
@@ -1706,6 +1738,143 @@ async function computeTimelineAtRiskFrames(
 }
 
 /**
+ * Task B: compute the set of dedupable (static) frames for macOS static-frame dedup,
+ * via window.__timelines introspection. A frame f (f>0) is dedupable iff NEITHER f
+ * NOR f-1 is inside any GSAP tween interval — i.e. content didn't change from f-1 to
+ * f, so f can reuse f-1's buffer. Requiring BOTH neighbours static under-claims by a
+ * frame at each tween edge (the SAFE direction: skip only when certainly identical).
+ *
+ * The whole comp is disqualified (eligible=false, empty set) on any signal the
+ * tween-walker can't see: video / canvas / webgl (redraw without a tween), zero GSAP
+ * tweens (animation is non-GSAP), or a running CSS/WAAPI animation (getAnimations()).
+ * Under-detection = a frozen frame (silent wrong output), so bias hard to conservative.
+ * See docs/fast-capture-limitations.md "Task B".
+ */
+async function computeStaticFrameSet(
+  page: Page,
+  fps: number,
+): Promise<{
+  totalFrames: number;
+  staticFrameSet: Set<number>;
+  animatedFrames: number;
+  staticFraction: number;
+  hasVideo: boolean;
+  hasCanvas: boolean;
+  hasNonGsapAnim: boolean;
+  tweenCount: number;
+  eligible: boolean;
+  reason: string;
+}> {
+  const result = await page.evaluate(() => {
+    type AnyTween = {
+      startTime(): number;
+      duration(): number;
+      totalDuration?(): number;
+      getChildren?(nested: boolean, tweens: boolean, timelines: boolean): AnyTween[];
+    };
+    const intervals: Array<{ start: number; end: number }> = [];
+    let tweenCount = 0;
+    // Use totalDuration() (NOT duration()): for a repeat/yoyo tween, duration() is one
+    // iteration but the later iterations still animate — missing them freezes those
+    // frames. For a repeating *timeline*, recursing its children once would likewise
+    // miss the repeats, so mark its whole span animated (conservative). Plain
+    // timelines recurse for finer-grained static-gap detection.
+    function walk(tl: AnyTween, offset: number): void {
+      if (typeof tl.getChildren !== "function") return;
+      for (const child of tl.getChildren(false, true, true)) {
+        const start = offset + (typeof child.startTime === "function" ? child.startTime() : 0);
+        const single = typeof child.duration === "function" ? child.duration() : 0;
+        const total = typeof child.totalDuration === "function" ? child.totalDuration() : single;
+        if (typeof child.getChildren === "function") {
+          if (total > single + 1e-6) {
+            intervals.push({ start, end: start + total }); // repeating timeline → opaque
+          } else {
+            walk(child, start);
+          }
+        } else {
+          tweenCount++;
+          intervals.push({ start, end: start + total });
+        }
+      }
+    }
+    const w = window as unknown as {
+      __timelines?: Record<string, AnyTween>;
+      __hf?: { duration?: number };
+    };
+    for (const tl of Object.values(w.__timelines || {})) {
+      if (tl && typeof tl.getChildren === "function") walk(tl, 0);
+    }
+    const hasVideo = !!document.querySelector("video");
+    let hasCanvas = !!document.querySelector("canvas");
+    if (!hasCanvas) {
+      const accel = (window as unknown as { __hf_accel_canvases?: unknown[] }).__hf_accel_canvases;
+      if (Array.isArray(accel) && accel.length > 0) hasCanvas = true;
+    }
+    // Non-GSAP animation the tween-walker can't see: CSS @keyframes / transitions /
+    // WAAPI all surface via getAnimations(). Any with a nonzero active duration → the
+    // comp can change between frames without a GSAP tween → unsafe to dedup.
+    let hasNonGsapAnim = false;
+    try {
+      const docAnims = (document as unknown as { getAnimations?: () => Animation[] }).getAnimations;
+      if (typeof docAnims === "function") {
+        hasNonGsapAnim = docAnims.call(document).some((a) => {
+          const t = a as Animation & { playState?: string };
+          return t.playState === "running" || t.playState === "paused";
+        });
+      }
+    } catch {
+      hasNonGsapAnim = true; // can't tell → assume unsafe
+    }
+    return { intervals, tweenCount, duration: w.__hf?.duration ?? 0, hasVideo, hasCanvas, hasNonGsapAnim };
+  });
+
+  const { intervals, tweenCount, duration, hasVideo, hasCanvas, hasNonGsapAnim } = result as {
+    intervals: Array<{ start: number; end: number }>;
+    tweenCount: number;
+    duration: number;
+    hasVideo: boolean;
+    hasCanvas: boolean;
+    hasNonGsapAnim: boolean;
+  };
+  const totalFrames = Math.max(1, Math.ceil(duration * fps));
+  const animated = new Set<number>();
+  for (const { start, end } of intervals) {
+    const lo = Math.max(0, Math.floor(start * fps));
+    const hi = Math.min(totalFrames - 1, Math.ceil(end * fps));
+    for (let f = lo; f <= hi; f++) animated.add(f);
+  }
+  // Clip cuts change content with NO tween (hard scene swap at data-start). The
+  // frames between a cut and the scene's first tween would otherwise look static and
+  // freeze to the previous scene. Treat clip-boundary frames as animated so the
+  // post-cut frame is captured and later static frames reuse the correct scene.
+  for (const f of await computeClipBoundaryFrames(page, fps)) animated.add(f);
+  const reasons: string[] = [];
+  if (hasVideo) reasons.push("video");
+  if (hasCanvas) reasons.push("canvas/webgl");
+  if (tweenCount === 0) reasons.push("no GSAP tweens (non-GSAP animation)");
+  if (hasNonGsapAnim) reasons.push("running CSS/WAAPI animation");
+  const eligible = reasons.length === 0;
+  const staticFrameSet = new Set<number>();
+  if (eligible) {
+    for (let f = 1; f < totalFrames; f++) {
+      if (!animated.has(f) && !animated.has(f - 1)) staticFrameSet.add(f);
+    }
+  }
+  return {
+    totalFrames,
+    staticFrameSet,
+    animatedFrames: animated.size,
+    staticFraction: staticFrameSet.size / totalFrames,
+    hasVideo,
+    hasCanvas,
+    hasNonGsapAnim,
+    tweenCount,
+    eligible,
+    reason: eligible ? "eligible" : reasons.join("+"),
+  };
+}
+
+/**
  * True for the drawElement `InvalidStateError: No cached paint record for element`
  * thrown when a subtree element has no paint record for the current frame (display
  * toggled / detached / freshly-shown at a clip-cut boundary). Per-frame, not
@@ -1723,6 +1892,20 @@ async function captureFrameCore(
 ): Promise<{ buffer: Buffer; quantizedTime: number; captureTimeMs: number }> {
   const { page, options } = session;
   const startTime = Date.now();
+
+  // Task B: static-frame dedup. This frame is identical to its predecessor (no GSAP
+  // tween active in either; comp has no media / non-GSAP animation) → reuse the prior
+  // buffer and skip the seek + capture entirely. quantizedTime is pure arithmetic,
+  // so the result still carries the correct frame time.
+  if (session.staticFrames?.has(frameIndex) && session.lastFrameBuffer) {
+    session.staticDedupCount = (session.staticDedupCount ?? 0) + 1;
+    session.capturePerf.frames += 1;
+    return {
+      buffer: session.lastFrameBuffer,
+      quantizedTime: quantizeTimeToFrame(time, fpsToNumber(options.fps)),
+      captureTimeMs: Date.now() - startTime,
+    };
+  }
 
   try {
     const { quantizedTime, seekMs, beforeCaptureMs } = await prepareFrameForCapture(
@@ -1805,6 +1988,10 @@ async function captureFrameCore(
     session.capturePerf.beforeCaptureMs += beforeCaptureMs;
     session.capturePerf.screenshotMs += screenshotMs;
     session.capturePerf.totalMs += captureTimeMs;
+
+    // Task B: retain this freshly-captured frame so a following static frame can
+    // reuse it. Only meaningful when dedup is armed; cheap reference copy otherwise.
+    if (session.staticFrames) session.lastFrameBuffer = screenshotBuffer;
 
     return { buffer: screenshotBuffer, quantizedTime, captureTimeMs };
   } catch (captureError) {
