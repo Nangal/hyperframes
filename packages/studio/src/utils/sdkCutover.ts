@@ -5,6 +5,7 @@ import type { EditHistoryKind } from "./editHistory";
 import type { PatchOperation } from "./sourcePatcher";
 import { STUDIO_SDK_CUTOVER_ENABLED } from "../components/editor/manualEditingAvailability";
 import { trackStudioEvent } from "./studioTelemetry";
+import { markSelfWrite } from "../hooks/sdkSelfWriteRegistry";
 
 const CUTOVER_OP_TYPES = new Set<PatchOperation["type"]>([
   "inline-style",
@@ -90,6 +91,42 @@ export interface CutoverDeps {
    * — otherwise we'd write the full active-comp serialization into that file.
    */
   compositionPath?: string | null;
+  /**
+   * Optional per-key task serializer (the same `gsap-file:${file}` serializer the
+   * legacy `commitMutation` uses). When provided, every GSAP-op persist routes its
+   * read-serialize → dispatch → serialize → write through it so two concurrent
+   * same-file flushes can't interleave their read-modify-write and lose an edit.
+   * Absent (e.g. in unit tests) → ops run unserialized as before.
+   */
+  serialize?: <T>(key: string, task: () => Promise<T>) => Promise<T>;
+  /**
+   * Optional reader for the on-disk content of targetPath. Timing/GSAP persists
+   * use it to capture the EXACT prior bytes as the undo-history `before`, so undo
+   * restores the file verbatim instead of a normalized SDK re-emit (which would
+   * reformat the whole file). The style/delete paths already thread originalContent
+   * in explicitly; this gives timing/GSAP parity without touching every call site.
+   * Absent → falls back to the SDK's pre-edit serialize() (the prior behavior).
+   */
+  readProjectFile?: (path: string) => Promise<string>;
+}
+
+/**
+ * Capture the undo-history `before` baseline for timing/GSAP persists: the exact
+ * on-disk bytes when a reader is available (so undo restores them verbatim),
+ * falling back to the SDK's pre-edit serialization when it isn't. Never throws —
+ * a failed read degrades to the serialized fallback rather than aborting the edit.
+ */
+async function captureOnDiskBefore(
+  deps: CutoverDeps,
+  targetPath: string,
+  serializedFallback: string,
+): Promise<string> {
+  if (!deps.readProjectFile) return serializedFallback;
+  try {
+    return await deps.readProjectFile(targetPath);
+  } catch {
+    return serializedFallback;
+  }
 }
 
 /** True when targetPath isn't the composition the SDK session models. */
@@ -115,6 +152,11 @@ async function persistSdkSerialize(
   options?: CutoverOptions,
 ): Promise<void> {
   deps.domEditSaveTimestampRef.current = Date.now();
+  // Tag this write with the exact content (by hash) so the file-change
+  // reload-suppression can recognize its own echo by IDENTITY, not just a 2 s
+  // clock — an undo write (different bytes, not registered here) then always
+  // reloads instead of being swallowed by the time window.
+  markSelfWrite(targetPath, after);
   await deps.writeProjectFile(targetPath, after);
   await deps.editHistory.recordEdit({
     label: options?.label ?? "Edit layer",
@@ -171,14 +213,22 @@ export async function sdkTimingPersist(
   deps: CutoverDeps,
   options?: CutoverOptions,
 ): Promise<boolean> {
+  // Dark-launch gate: without this, timing cutover runs whenever an SDK session
+  // exists (it always does, for shadow/selection) — flipping the flag OFF would
+  // NOT disable it. Gate here so flag-off routes back to the legacy server path.
+  if (!STUDIO_SDK_CUTOVER_ENABLED) return false;
   if (!sdkSession || !sdkSession.getElement(hfId)) return false;
   if (wrongCompositionFile(deps, targetPath)) return false;
   try {
-    const before = sdkSession.serialize();
+    const serializedBefore = sdkSession.serialize();
     sdkSession.batch(() => sdkSession.setTiming(hfId, timingUpdate));
     const after = sdkSession.serialize();
-    if (after === before) return false;
-    await persistSdkSerialize(after, targetPath, before, deps, options);
+    if (after === serializedBefore) return false;
+    // Undo baseline = exact on-disk bytes (matching the style/delete paths), so
+    // undoing a timing edit restores the file verbatim instead of a normalized
+    // full-DOM re-emit. Falls back to serializedBefore when no reader is wired.
+    const undoBefore = await captureOnDiskBefore(deps, targetPath, serializedBefore);
+    await persistSdkSerialize(after, targetPath, undoBefore, deps, options);
     trackStudioEvent("sdk_cutover_success", { hfId, opCount: 1 });
     return true;
   } catch (err) {
@@ -199,6 +249,9 @@ export function sdkGsapTweenPersist(
   deps: CutoverDeps,
   options?: CutoverOptions,
 ): Promise<boolean> {
+  // Leading dark-launch gate so flag-off does no SDK touch (getElement) at all —
+  // matches the other three chokepoints' discipline.
+  if (!STUDIO_SDK_CUTOVER_ENABLED) return Promise.resolve(false);
   if (op.kind === "add" && sdkSession && !sdkSession.getElement(op.target))
     return Promise.resolve(false);
   // dispatchGsapOpAndPersist returns false on before===after — that catches stale
@@ -224,20 +277,35 @@ async function dispatchGsapOpAndPersist(
   options: CutoverOptions | undefined,
   dispatch: (s: Composition) => void,
 ): Promise<boolean> {
+  // Dark-launch gate (shared chokepoint for every GSAP-op cutover persist):
+  // flag OFF → return false → caller falls back to the legacy server path.
+  if (!STUDIO_SDK_CUTOVER_ENABLED) return false;
   if (!sdkSession) return false;
   if (wrongCompositionFile(deps, targetPath)) return false;
-  try {
-    const before = sdkSession.serialize();
-    dispatch(sdkSession);
-    const after = sdkSession.serialize();
-    if (after === before) return false;
-    await persistSdkSerialize(after, targetPath, before, deps, options);
-    trackStudioEvent("sdk_cutover_success", { opCount: 1 });
-    return true;
-  } catch (err) {
-    trackStudioEvent("sdk_cutover_fallback", { error: String(err) });
-    return false;
-  }
+  const session = sdkSession;
+  // Route the whole read-serialize → dispatch → serialize → write through the
+  // per-file serializer (when provided) so overlapping same-file flushes can't
+  // interleave their read-modify-write and drop an edit, matching the legacy
+  // commitMutation path's `gsap-file:${file}` serialization.
+  const run = async (): Promise<boolean> => {
+    try {
+      const serializedBefore = session.serialize();
+      dispatch(session);
+      const after = session.serialize();
+      if (after === serializedBefore) return false;
+      // Undo baseline = exact on-disk bytes (matching the style/delete paths), so
+      // undoing a GSAP edit restores the file verbatim instead of a normalized
+      // full-DOM re-emit. Falls back to serializedBefore when no reader is wired.
+      const undoBefore = await captureOnDiskBefore(deps, targetPath, serializedBefore);
+      await persistSdkSerialize(after, targetPath, undoBefore, deps, options);
+      trackStudioEvent("sdk_cutover_success", { opCount: 1 });
+      return true;
+    } catch (err) {
+      trackStudioEvent("sdk_cutover_fallback", { error: String(err) });
+      return false;
+    }
+  };
+  return deps.serialize ? deps.serialize(`gsap-file:${targetPath}`, run) : run();
 }
 
 export function sdkGsapKeyframePersist(
@@ -325,6 +393,8 @@ export async function sdkDeletePersist(
   sdkSession: Composition | null | undefined,
   deps: CutoverDeps,
 ): Promise<boolean> {
+  // Dark-launch gate: flag OFF → legacy server delete path.
+  if (!STUDIO_SDK_CUTOVER_ENABLED) return false;
   if (!sdkSession || !sdkSession.getElement(hfId)) return false;
   if (wrongCompositionFile(deps, targetPath)) return false;
   try {
