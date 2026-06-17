@@ -48,7 +48,8 @@ import {
   writeFileSync,
 } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { dirname, join, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 
 import { scratchPath } from "./lib/scratch-dir.mjs";
 
@@ -85,6 +86,13 @@ const bgmSeedSeconds =
   isFinite(bgmSeedSecondsRaw) && bgmSeedSecondsRaw > 0
     ? Math.min(Math.max(bgmSeedSecondsRaw, 10), 30)
     : 28;
+// BGM is owned by media-use (heygen-preferred -> Lyria -> MusicGen). Locate the skill relative
+// to this file by default; override with --media-use or $MEDIA_USE_DIR.
+const mediaUseDir = resolve(
+  typeof flag("media-use") === "string"
+    ? flag("media-use")
+    : process.env.MEDIA_USE_DIR || join(dirname(fileURLToPath(import.meta.url)), "..", "..", "media-use"),
+);
 
 // ---------- load .env ----------
 // Mirrors the CLI's loadEnvFile (packages/cli/src/capture/scaffolding.ts):
@@ -312,7 +320,8 @@ const BGM_PY_DEPS = ["transformers", "torch", "soundfile", "numpy"];
 const BGM_PY_PROBE =
   "import transformers, soundfile, torch, numpy; from transformers import MusicgenForConditionalGeneration";
 let bgmDepsInstallPromise = null;
-if (!noBgm && !(lyriaKey() && lyriaRecipe && existsSync(lyriaRecipe))) {
+// BGM is media-use's job now (it installs its own deps on demand) — host pre-install disabled.
+if (false && !noBgm && !(lyriaKey() && lyriaRecipe && existsSync(lyriaRecipe))) {
   const probe = spawnSync("python3", ["-c", BGM_PY_PROBE], { stdio: "ignore" });
   if (probe.status !== 0) {
     console.log(
@@ -627,13 +636,48 @@ if (Object.keys(scenesMap).length === 0) {
 
 const bgmTargetDurationS = Math.max(1, totalDuration);
 
-// ---------- Step 5b: spawn BGM (after TTS — deps install may now be done) ----------
+// ---------- Step 5b: BGM via media-use (owns BGM: heygen-preferred -> Lyria -> MusicGen) ----------
+// media-use freezes assets/bgm.wav into this project + registers it in .media/, returning the
+// bgm_* fields. heygen is synchronous (ready now); Lyria/MusicGen are detached (bgm_pending ->
+// wait-bgm.mjs gates assemble). The legacy in-host BGM branches below are now unreachable.
+{
+  const bgmCli = join(mediaUseDir, "scripts", "audio", "bgm.mjs");
+  if (!existsSync(bgmCli)) {
+    bgmReason = `media-use not found at ${mediaUseDir} (set --media-use or $MEDIA_USE_DIR) — BGM skipped`;
+  } else {
+    const muArgs = [bgmCli, "--project", hyperframesDir, "--narrator-scripts", narratorPath,
+      "--target-seconds", String(bgmTargetDurationS), "--bgm-seed-seconds", String(bgmSeedSeconds), "--register"];
+    if (noBgm) muArgs.push("--no-bgm");
+    if (userBgmPrompt) muArgs.push("--bgm-prompt", userBgmPrompt);
+    if (lyriaRecipe) muArgs.push("--lyria-recipe", lyriaRecipe);
+    const muRes = spawnSync("node", muArgs, { encoding: "utf8", maxBuffer: 16 * 1024 * 1024 });
+    try {
+      const o = JSON.parse((muRes.stdout || "").trim());
+      bgmEnabled = !!o.bgm_enabled;
+      bgmReason = o.bgm_reason || "";
+      bgmPid = o.bgm_pid || null;
+      bgmMeta = bgmEnabled
+        ? { provider: o.bgm_provider, mode: o.bgm_mode, pid: o.bgm_pid, log: o.bgm_log,
+            target_duration_s: o.bgm_target_duration_s, seed_duration_s: o.bgm_seed_duration_s, loop_count: o.bgm_loop_count }
+        : null;
+      if (bgmEnabled) console.log(`BGM: media-use → ${o.bgm_provider}${o.bgm_pending ? " (pending, detached)" : " (ready)"} → ${bgmRelPath}`);
+      else console.log(`BGM: media-use → none (${bgmReason})`);
+    } catch (e) {
+      bgmReason = `media-use bgm.mjs failed: ${(muRes.stderr || e.message || "").toString().slice(0, 160)}`;
+      console.log(`BGM: ${bgmReason}`);
+    }
+  }
+}
+
+// ---------- legacy in-host BGM below is UNREACHABLE (media-use owns BGM now; Phase-5 removes it) ----------
 if (bgmDepsInstallPromise) {
   console.log("BGM: waiting for deps install to finish…");
   await bgmDepsInstallPromise;
 }
 
-if (noBgm) {
+if (true) {
+  // BGM handled by media-use above (Step 5b); the legacy in-host branches below are unreachable.
+} else if (noBgm) {
   bgmReason = "disabled by --no-bgm";
 } else if (lyriaKey() && lyriaRecipe && existsSync(lyriaRecipe)) {
   // Path A: Lyria (cloud)
@@ -834,11 +878,7 @@ const transcribed = Object.values(scenesMap).filter((s) => s.wordsPath).length;
 console.log(`  scenes transcribed: ${transcribed}/${Object.keys(scenesMap).length}`);
 console.log(`  total voice duration: ${audioMeta.total_duration_s}s`);
 if (bgmEnabled) {
-  const bgmBackend =
-    lyriaKey() && lyriaRecipe && existsSync(lyriaRecipe)
-      ? "Lyria"
-      : `MusicGen via transformers (local, ${bgmMeta?.seed_duration_s || "?"}s seed ${bgmMeta?.mode === "detached-seed-loop" ? `→ crossfade-loop ×${bgmMeta?.loop_count || "?"}` : "→ trim"})`;
-  console.log(`  bgm: launched via ${bgmBackend} pid=${bgmPid} (detached, → ${bgmRelPath})`);
+  console.log(`  bgm: ${bgmMeta?.provider || "?"} → ${bgmRelPath}${audioMeta.bgm_pending ? ` (pid=${bgmPid}, detached)` : " (ready)"}`);
   if (bgmMeta?.log) console.log(`       log: ${bgmMeta.log}`);
   if (audioMeta.bgm_pending) {
     console.log(`       bgm_pending=true; Phase 4c wait-bgm.mjs waits/checks before assemble`);
