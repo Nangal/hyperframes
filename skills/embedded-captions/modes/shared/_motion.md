@@ -193,3 +193,29 @@ Default is **fade** unless a template names another. **Every exit ends at `opaci
 - `hyperframes-gsap` — single paused timeline, transform aliases, ease list, the animated-property allowlist.
 - `_anatomy.md` — where these four hooks attach.
 - `hyperframes-animation/rules/asr-keyword-glow.md` — the verbatim active-word envelope for the flow.
+
+---
+
+## Authoring heuristics — tone → motion (restored from the merged motion-vocabulary)
+
+The catalog above is the _what_ (recipes); this is the _which + how much_. Pick the clip's tone, read the row — data, not guesswork.
+
+| Tone           | Stagger / word            | Hold        | Entry move                    |
+| -------------- | ------------------------- | ----------- | ----------------------------- |
+| documentary    | 150ms                     | 600ms       | burn-in (70%) + fade-up (30%) |
+| conversational | 80ms                      | 400ms       | fade-up                       |
+| energetic      | 50ms                      | 300ms       | pop                           |
+| poetic         | 250ms                     | 1200ms      | blur-in / etch                |
+| broadcast      | 0 (burn-in)               | BBC timings | burn-in                       |
+| investigative  | 25ms/char                 | 500ms       | type / crosshair              |
+| keynote        | 0 per-word (phrase swipe) | 600ms       | swipe-reveal (per-phrase)     |
+
+**Three moves the recipe catalog above doesn't cover:**
+
+- **cascade** — each word enters from an alternating side (L, R, L, R): `translateX: ±40→0`, ease-out ~300ms. A **rhythm-break** — use sparingly (≤ once / 30s).
+- **burn-in** — **zero animation**: the word is simply present (1-frame `opacity:0→1`, no transform). Interview / documentary register; use on every 6–8th phrase for variety. Seek-safe by construction.
+- **breathing-hold** — a held climax that stays "alive": over its ≥1s dwell, a gentle `scale 1.00↔1.008` sine. Express as a **seek-safe** GSAP yoyo bounded to the dwell window — never `repeat:-1` (the determinism rule).
+
+**Per-word vs per-phrase** (orthogonal to the move): per-word = each word enters at its `w.start` (tight speech sync, the default); per-phrase = the whole group enters at `g.in` (swipe-reveal, burn-in, title/chapter cards — moments that step _outside_ the speech flow).
+
+**Stagger by context** (fine-tune within a tone): documentary dialog 150ms · documentary punchline 250ms · vlog opener 50ms · vlog narration 70ms · poem/lyric 250–400ms + 500–1000ms phrase gaps · keynote hero per-phrase (N/A) · interview name-card 0 (static).
