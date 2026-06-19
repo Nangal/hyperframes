@@ -193,7 +193,7 @@ function buildPresentPage(projectName: string, islandJson: string): string {
   </head>
   <body>
     <hyperframes-slideshow tabindex="0" sound>
-      <hyperframes-player src="/composition/index.html"></hyperframes-player>
+      <hyperframes-player interactive src="/composition/index.html"></hyperframes-player>
       <script type="application/hyperframes-slideshow+json">
 ${islandJson}
       </script>
@@ -241,10 +241,16 @@ ${islandJson}
 
         // Mute state is owned by <hyperframes-slideshow sound>; mirror it.
         var muted = false;
+        function setClipsMuted(nextMuted) {
+          Object.keys(clips).forEach(function (name) {
+            clips[name].muted = nextMuted;
+          });
+        }
         var ss = document.querySelector("hyperframes-slideshow");
         if (ss) {
           ss.addEventListener("hf-sound", function (e) {
             muted = e.detail && e.detail.muted === true;
+            setClipsMuted(muted);
           });
         }
 

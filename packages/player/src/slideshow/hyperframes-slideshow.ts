@@ -36,6 +36,8 @@ type PlayerElement = HTMLElement & {
   seek(t: number): void;
   play(): void;
   pause(): void;
+  stopMedia?(): void;
+  muted?: boolean;
   readonly currentTime: number;
   readonly ready: boolean;
 };
@@ -277,6 +279,10 @@ export class HyperframesSlideshow extends HTMLElement {
         seek: (t) => playerEl.seek(t),
         play: () => playerEl.play(),
         pause: () => playerEl.pause(),
+        stopMedia: () => {
+          playerEl.stopMedia?.();
+          this.stopDocumentMedia();
+        },
         get currentTime() {
           return playerEl.currentTime;
         },
@@ -572,6 +578,7 @@ export class HyperframesSlideshow extends HTMLElement {
     } else {
       this.removeAttribute("data-hf-muted");
     }
+    this.applyGlobalMute(this._muted);
     this.dispatchEvent(
       new CustomEvent("hf-sound", {
         detail: { muted: this._muted },
@@ -581,6 +588,32 @@ export class HyperframesSlideshow extends HTMLElement {
     );
     // Re-render to flip the glyph.
     this.render();
+  }
+
+  private applyGlobalMute(muted: boolean): void {
+    for (const player of this.querySelectorAll("hyperframes-player")) {
+      if (!(player instanceof HTMLElement)) continue;
+      const playerEl = player as Partial<PlayerElement> & HTMLElement;
+      if ("muted" in playerEl) {
+        playerEl.muted = muted;
+      } else if (muted) {
+        playerEl.setAttribute("muted", "");
+      } else {
+        playerEl.removeAttribute("muted");
+      }
+    }
+
+    const doc = this.ownerDocument;
+    for (const el of doc.querySelectorAll("video, audio")) {
+      if (el instanceof HTMLMediaElement) el.muted = muted || el.defaultMuted;
+    }
+  }
+
+  private stopDocumentMedia(): void {
+    const doc = this.ownerDocument;
+    for (const el of doc.querySelectorAll("video, audio")) {
+      if (el instanceof HTMLMediaElement) el.pause();
+    }
   }
 
   private renderPresenter(): void {
