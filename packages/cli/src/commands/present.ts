@@ -220,6 +220,73 @@ ${islandJson}
         });
       })();
     </script>
+    <script>
+      // Sound effects play HERE, in the parent document. The composition runs in the
+      // player's iframe, which is autoplay-blocked without its own user gesture; the
+      // slideshow posts { type: "hf-sfx", name } to the parent on nav, and we play the
+      // matching clip from the deck's sfx/ folder (served under /composition/sfx/).
+      // Runs in both presenter and audience windows. Missing clips fail silently.
+      (function () {
+        var clips = {
+          advance: new Audio("/composition/sfx/advance.mp3"),
+          fragment: new Audio("/composition/sfx/fragment.mp3"),
+          "branch-enter": new Audio("/composition/sfx/branch-enter.mp3"),
+          back: new Audio("/composition/sfx/back.mp3"),
+        };
+        clips.advance.volume = 0.45;
+        clips.fragment.volume = 0.4;
+        clips["branch-enter"].volume = 0.4;
+        clips.back.volume = 0.4;
+        for (var k in clips) clips[k].preload = "auto";
+
+        // Mute state is owned by <hyperframes-slideshow sound>; mirror it.
+        var muted = false;
+        var ss = document.querySelector("hyperframes-slideshow");
+        if (ss) {
+          ss.addEventListener("hf-sound", function (e) {
+            muted = e.detail && e.detail.muted === true;
+          });
+        }
+
+        // Autoplay needs a user gesture — prime each clip (play muted, reset) on the
+        // first interaction so later plays are instant and allowed.
+        var unlocked = false;
+        function unlock() {
+          if (unlocked) return;
+          unlocked = true;
+          Object.keys(clips).forEach(function (name) {
+            var el = clips[name];
+            var v = el.volume;
+            el.volume = 0;
+            el.play()
+              .then(function () {
+                el.pause();
+                el.currentTime = 0;
+                el.volume = v;
+              })
+              .catch(function () {
+                el.volume = v;
+              });
+          });
+        }
+        window.addEventListener("keydown", unlock, true);
+        window.addEventListener("pointerdown", unlock, true);
+        window.addEventListener("click", unlock, true);
+
+        window.addEventListener("message", function (e) {
+          var d = e.data;
+          if (!d || d.type !== "hf-sfx" || muted) return;
+          var el = clips[d.name];
+          if (!el || !unlocked) return;
+          try {
+            el.currentTime = 0;
+            el.play().catch(function () {});
+          } catch (err) {
+            /* ignore */
+          }
+        });
+      })();
+    </script>
   </body>
 </html>`;
 }
