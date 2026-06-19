@@ -47,9 +47,9 @@ const SHOW: ResolvedSlideshow = {
 function showAtFrag1() {
   const p = fakePlayer();
   const c = new SlideshowController(p, SHOW);
-  p.emit(2); // fragmentIndex=0
+  p.emit(2.2); // fragmentIndex=0
   c.next(); // target=4
-  p.emit(4); // fragmentIndex=1
+  p.emit(4.2); // fragmentIndex=1
   return { p, c };
 }
 
@@ -66,10 +66,12 @@ function showAtSlide1InDeep() {
 }
 
 describe("SlideshowController linear nav", () => {
-  it("enters the first slide on construction: seek to start + play", () => {
+  it("enters the first slide on construction: jumps to the first hold (no auto-play)", () => {
     const p = fakePlayer();
     new SlideshowController(p, SHOW);
-    expect(p.seek).toHaveBeenCalledWith(0);
+    // No auto-play: seeks (jumps) to the first hold, fragments[0]=2;
+    // playTo then plays a brief forward render-nudge and pauses there.
+    expect(p.seek).toHaveBeenCalledWith(2);
     expect(p.play).toHaveBeenCalled();
   });
 
@@ -84,7 +86,7 @@ describe("SlideshowController linear nav", () => {
   it("next stops at the first fragment, not the next slide", () => {
     const p = fakePlayer();
     const c = new SlideshowController(p, SHOW);
-    p.emit(2); // play reaches fragment 0, controller pauses
+    p.emit(2.2); // play reaches fragment 0, controller pauses
     expect(p.pause).toHaveBeenCalled();
     expect(c.position.slideIndex).toBe(0);
     expect(c.position.fragmentIndex).toBe(0);
@@ -94,12 +96,12 @@ describe("SlideshowController linear nav", () => {
     const p = fakePlayer();
     const c = new SlideshowController(p, SHOW);
     c.next(); // -> fragment 1 target (2)
-    p.emit(2);
+    p.emit(2.2);
     c.next(); // -> fragment 2 target (4)
-    p.emit(4);
+    p.emit(4.2);
     c.next(); // no more fragments — advance to slide b immediately
     expect(c.position.slideIndex).toBe(1);
-    expect(p.seek).toHaveBeenLastCalledWith(5);
+    expect(p.seek).toHaveBeenLastCalledWith(7.5); // slide b midpoint
   });
 
   it("next() on a slide with NO fragments advances to the next slide immediately", () => {
@@ -123,7 +125,7 @@ describe("SlideshowController linear nav", () => {
     // slide 0 has no fragments; one next() should advance immediately to slide 1
     c2.next();
     expect(c2.position.slideIndex).toBe(1);
-    expect(p2.seek).toHaveBeenLastCalledWith(5);
+    expect(p2.seek).toHaveBeenLastCalledWith(7.5); // slide b midpoint
   });
 
   it("next() on the last slide is a no-op", () => {
@@ -145,11 +147,11 @@ describe("SlideshowController linear nav", () => {
   it("auto-pauses at a fragment, then next advances to the FOLLOWING fragment (not the end)", () => {
     const p = fakePlayer();
     const c = new SlideshowController(p, SHOW);
-    p.emit(2); // auto-pause at fragments[0]=2
+    p.emit(2.2); // auto-pause at fragments[0]=2
     expect(c.position.fragmentIndex).toBe(0);
     p.pause.mockClear(); // clear the pause from the auto-stop above
     c.next(); // should target fragments[1]=4, NOT slide.end=5
-    p.emit(4);
+    p.emit(4.2);
     expect(p.pause).toHaveBeenCalled(); // must pause at 4, not skip to 5
     expect(c.position.fragmentIndex).toBe(1);
   });
@@ -186,7 +188,7 @@ describe("SlideshowController branching", () => {
     c.enterBranch("deep");
     expect(c.position.sequenceId).toBe("deep");
     expect(c.currentSlide?.sceneId).toBe("c");
-    expect(p.seek).toHaveBeenLastCalledWith(10);
+    expect(p.seek).toHaveBeenLastCalledWith(11.5); // slide c midpoint
   });
 
   it("counter is scoped to the current sequence", () => {
@@ -226,19 +228,19 @@ describe("SlideshowController Fix 8a — fragmentIndex advances via onTime not n
     c.next();
     expect(c.position.fragmentIndex).toBe(-1); // still -1 until onTime fires
     // Simulate playback reaching the hold point (fragments[0]=2)
-    p.emit(2);
+    p.emit(2.2);
     expect(c.position.fragmentIndex).toBe(0); // onTime advanced it
   });
 
   it("next() after auto-pause targets the FOLLOWING fragment without pre-increment (regression)", () => {
     const p = fakePlayer();
     const c = new SlideshowController(p, SHOW);
-    p.emit(2); // auto-pause at fragments[0]=2; fragmentIndex=0
+    p.emit(2.2); // auto-pause at fragments[0]=2; fragmentIndex=0
     expect(c.position.fragmentIndex).toBe(0);
     p.pause.mockClear();
     c.next(); // should target fragments[1]=4 — fragmentIndex stays 0 until emit
     expect(c.position.fragmentIndex).toBe(0); // NOT yet 1
-    p.emit(4);
+    p.emit(4.2);
     expect(p.pause).toHaveBeenCalled();
     expect(c.position.fragmentIndex).toBe(1); // onTime advanced it
   });
@@ -262,12 +264,24 @@ describe("SlideshowController Fix 8b — back() restores parent fragmentIndex", 
   it("back() when parent fragmentIndex=-1 seeks to slide start", () => {
     const p = fakePlayer();
     const c = new SlideshowController(p, SHOW);
-    // Enter branch immediately (fragmentIndex is still -1)
+    // Enter branch immediately (slide a HAS fragments; fragmentIndex is still -1,
+    // i.e. before the first reveal → resume to slide.start).
     c.enterBranch("deep");
     c.back();
     expect(c.position.fragmentIndex).toBe(-1);
-    // seek should have been called with slide.start=0 (no fragment yet)
     expect(p.seek).toHaveBeenLastCalledWith(0);
+  });
+
+  it("back() to a NO-fragment parent slide resumes at its midpoint, not frame 0", () => {
+    const p = fakePlayer();
+    const c = new SlideshowController(p, SHOW);
+    c.goToSlide(1); // slide b: [5,10], no fragments
+    c.enterBranch("deep");
+    c.back();
+    expect(c.position.slideIndex).toBe(1);
+    // Mirrors enterSlide's no-fragment rest frame (midpoint) so the slide is
+    // visible at rest instead of frozen at its pre-entrance frame-0.
+    expect(p.seek).toHaveBeenLastCalledWith(7.5); // slide b midpoint (5 + 5*0.5)
   });
 });
 
@@ -305,8 +319,8 @@ describe("SlideshowController unknown-sequence degradation", () => {
 // ---------------------------------------------------------------------------
 // Bug fix tests: #5-ctrl — enterSlide clears holdAt on empty-slide early return
 // ---------------------------------------------------------------------------
-describe("SlideshowController Fix #5-ctrl — enterSlide clears holdAt on empty branch", () => {
-  it("enterSlide into an empty sequence clears holdAt so no spurious pause fires later", () => {
+describe("SlideshowController Fix #5-ctrl — enterBranch ignores empty branch", () => {
+  it("enterBranch into an empty sequence is a no-op (does not enter the branch)", () => {
     // Build a show where "empty" sequence has no slides
     const show: ResolvedSlideshow = {
       slides: [{ sceneId: "a", start: 0, end: 5, fragments: [2], hotspots: [] }],
@@ -319,13 +333,10 @@ describe("SlideshowController Fix #5-ctrl — enterSlide clears holdAt on empty 
 
     // Advance to a holdAt state by calling next() (sets holdAt to fragment 2)
     c.next();
-    // Now enter a branch that has no slides — enterSlide should clear holdAt
+    // Entering a branch that has no slides must be ignored — nav state unchanged.
     c.enterBranch("empty");
-
-    // Simulate time advancing — must NOT call pause (stale holdAt would trigger it)
-    p.pause.mockClear();
-    p.emit(2);
-    expect(p.pause).not.toHaveBeenCalled();
+    expect(c.position.sequenceId).toBe("main");
+    expect(c.position.slideIndex).toBe(0);
   });
 
   it("enterSlide(0) on an empty main sequence does not throw", () => {
@@ -570,5 +581,68 @@ describe("SlideshowController canPrev / canNext", () => {
     c.goToSlide(1); // last slide in branch
     expect(c.canPrev).toBe(true);
     expect(c.canNext).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// next() reveals remaining fragments even when playback is already at slide end
+// (the atEnd gate was removed so a no-animation jump to slide end still steps
+// through pending fragments rather than skipping straight to the next slide).
+// ---------------------------------------------------------------------------
+describe("SlideshowController next() — reveals remaining fragments at slide end", () => {
+  it("reveals the next fragment even when currentTime is already at slide end", () => {
+    const p = fakePlayer();
+    const c = new SlideshowController(p, SHOW);
+    // Simulate a static jump to slide end without having stepped through fragments.
+    p.currentTime = 5; // slide a end, fragmentIndex still -1
+    c.next();
+    // Should target the first fragment (2) rather than advancing to slide b.
+    expect(c.position.slideIndex).toBe(0);
+    expect(p.play).toHaveBeenCalled();
+    expect(p.seek).not.toHaveBeenLastCalledWith(5); // not advanced to slide b start
+  });
+});
+
+// ---------------------------------------------------------------------------
+// syncTo — absolute, animation-free position mirroring for the audience window.
+// ---------------------------------------------------------------------------
+describe("SlideshowController syncTo", () => {
+  it("re-roots to a branch sequence and restores slide+fragment statically", () => {
+    const p = fakePlayer();
+    const c = new SlideshowController(p, SHOW);
+    c.syncTo("deep", 0, -1);
+    expect(c.position.sequenceId).toBe("deep");
+    expect(c.position.slideIndex).toBe(0);
+    // Slide c has no fragments, so resumeSlide lands at its midpoint (restFrame) —
+    // the same visible-at-rest position enterSlide uses — not slide start. It then
+    // plays a render-nudge so the composition repaints; onTime pauses at the hold.
+    expect(p.seek).toHaveBeenLastCalledWith(11.5); // slide c midpoint (10 + 3*0.5)
+    expect(p.play).toHaveBeenCalled();
+    p.emit(50); // player passes the render-nudge hold
+    expect(p.pause).toHaveBeenCalled();
+  });
+
+  it("syncs a main-line slide+fragment position without animating", () => {
+    const p = fakePlayer();
+    const c = new SlideshowController(p, SHOW);
+    c.syncTo("main", 0, 1); // slide a, fragmentIndex 1 → fragments[1]=4
+    expect(c.position.sequenceId).toBe("main");
+    expect(c.position.slideIndex).toBe(0);
+    expect(c.position.fragmentIndex).toBe(1);
+    expect(p.seek).toHaveBeenLastCalledWith(4); // fragments[1] = 4
+  });
+
+  it("ignores an unknown sequence target", () => {
+    const p = fakePlayer();
+    const c = new SlideshowController(p, SHOW);
+    c.syncTo("nope", 0, -1);
+    expect(c.position.sequenceId).toBe("main");
+  });
+
+  it("ignores an out-of-range slide index", () => {
+    const p = fakePlayer();
+    const c = new SlideshowController(p, SHOW);
+    c.syncTo("main", 99, -1);
+    expect(c.position.slideIndex).toBe(0);
   });
 });

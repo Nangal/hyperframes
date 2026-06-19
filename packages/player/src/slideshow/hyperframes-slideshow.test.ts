@@ -63,25 +63,35 @@ describe("<hyperframes-slideshow>", () => {
     el.remove();
   });
 
-  it("advances on Space key dispatched on window", () => {
+  it("advances on Space key only when the deck is focused (does not hijack the host page)", () => {
     let nextCalled = false;
     const el = makeEl({
       onNext: () => {
         nextCalled = true;
       },
     });
+    // Unfocused: Space must NOT navigate (the host page owns scroll).
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
+    expect(nextCalled).toBe(false);
+    // Focused: Space navigates.
+    el.focus();
     window.dispatchEvent(new KeyboardEvent("keydown", { key: " " }));
     expect(nextCalled).toBe(true);
     el.remove();
   });
 
-  it("goes back on Backspace key dispatched on window", () => {
+  it("goes back on Backspace key only when the deck is focused (does not hijack history)", () => {
     let prevCalled = false;
     const el = makeEl({
       onPrev: () => {
         prevCalled = true;
       },
     });
+    // Unfocused: Backspace must NOT navigate (the host page owns history nav).
+    window.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
+    expect(prevCalled).toBe(false);
+    // Focused: Backspace navigates.
+    el.focus();
     window.dispatchEvent(new KeyboardEvent("keydown", { key: "Backspace" }));
     expect(prevCalled).toBe(true);
     el.remove();
@@ -459,19 +469,21 @@ describe("<hyperframes-slideshow> presenter mode", () => {
   const MAIN_POS = { sequenceId: "main", slideIndex: 0, fragmentIndex: -1 };
 
   /**
-   * Creates a slideshow element with a stub controller whose goToSlide records
-   * the last called index. Appends to body; caller must call el.remove().
+   * Creates a slideshow element with a stub controller whose syncTo records
+   * the last called (sequenceId, slideIndex, fragmentIndex). Appends to body;
+   * caller must call el.remove().
    */
   function makeAudienceEl() {
     const el = document.createElement("hyperframes-slideshow") as any;
     el.setAttribute("mode", "audience");
     document.body.appendChild(el);
-    let gotoIndex: number | null = null;
+    let lastSync: { sequenceId: string; slideIndex: number; fragmentIndex: number } | null = null;
     el.__setControllerForTest({
       next: () => {},
       prev: () => {},
-      goToSlide: (i: number) => {
-        gotoIndex = i;
+      goToSlide: () => {},
+      syncTo: (sequenceId: string, slideIndex: number, fragmentIndex: number) => {
+        lastSync = { sequenceId, slideIndex, fragmentIndex };
       },
       onChange: () => () => {},
       counter: { index: 1, total: 3 },
@@ -479,7 +491,7 @@ describe("<hyperframes-slideshow> presenter mode", () => {
       currentSlide: { hotspots: [] },
       nextSlide: null,
     });
-    return { el, getGotoIndex: () => gotoIndex };
+    return { el, getLastSync: () => lastSync };
   }
 
   /**
@@ -511,9 +523,9 @@ describe("<hyperframes-slideshow> presenter mode", () => {
 
   const tick = () => new Promise<void>((r) => setTimeout(r, 0));
 
-  it("audience mode: applies a goto message from the BroadcastChannel", async () => {
+  it("audience mode: mirrors full position (sequence + slide + fragment) via syncTo", async () => {
     const presenterChannel = new BroadcastChannel("hf-slideshow");
-    const { el, getGotoIndex } = makeAudienceEl();
+    const { el, getLastSync } = makeAudienceEl();
 
     await tick();
     presenterChannel.postMessage({
@@ -524,29 +536,29 @@ describe("<hyperframes-slideshow> presenter mode", () => {
     });
     await tick();
 
-    expect(getGotoIndex()).toBe(2);
+    expect(getLastSync()).toEqual({ sequenceId: "main", slideIndex: 2, fragmentIndex: 0 });
     presenterChannel.close();
     el.remove();
   });
 
-  it("audience mode: ignores goto for unknown sequenceId (no crash)", async () => {
+  it("audience mode: mirrors a branch position too (full sequenceId forwarded to syncTo)", async () => {
     const presenterChannel = new BroadcastChannel("hf-slideshow");
-    const { el, getGotoIndex } = makeAudienceEl();
+    const { el, getLastSync } = makeAudienceEl();
 
     await tick();
 
-    // V1: non-main sequenceId must not crash and must not navigate
+    // A non-main sequenceId is now forwarded to syncTo (controller decides validity).
     expect(() => {
       presenterChannel.postMessage({
         type: "goto",
         sequenceId: "branch-a",
         slideIndex: 1,
-        fragmentIndex: 0,
+        fragmentIndex: 2,
       });
     }).not.toThrow();
 
     await tick();
-    expect(getGotoIndex()).toBeNull();
+    expect(getLastSync()).toEqual({ sequenceId: "branch-a", slideIndex: 1, fragmentIndex: 2 });
 
     presenterChannel.close();
     el.remove();

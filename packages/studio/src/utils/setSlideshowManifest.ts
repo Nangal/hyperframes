@@ -17,24 +17,30 @@
  */
 
 import type { SlideshowManifest } from "@hyperframes/core/slideshow";
+import {
+  SLIDESHOW_ISLAND_TYPE,
+  SLIDESHOW_MANIFEST_VERSION,
+  slideshowIslandRegex,
+} from "@hyperframes/core/slideshow";
 import type { Composition } from "@hyperframes/sdk";
 import type { CutoverDeps } from "./sdkCutover";
 import { persistSdkSerialize } from "./sdkCutover";
 
-const ISLAND_TYPE = "application/hyperframes-slideshow+json";
-
 // Matches ALL <script type="application/hyperframes-slideshow+json"> ... </script>
 // blocks (global + case-insensitive) so we can strip every stale island in one pass.
-const ISLAND_RE = new RegExp(
-  `<script[^>]*type=["']${ISLAND_TYPE.replace(/[.+]/g, "\\$&")}["'][^>]*>[\\s\\S]*?<\\/script>`,
-  "gi",
-);
+const ISLAND_RE = slideshowIslandRegex("gi");
 
 export function buildSlideshowIslandHtml(manifest: SlideshowManifest): string {
+  // Stamp the schema version (preserve an existing one) so future schema
+  // changes can detect and migrate older islands.
+  const versioned: SlideshowManifest = {
+    version: manifest.version ?? SLIDESHOW_MANIFEST_VERSION,
+    ...manifest,
+  };
   // Escape `<` and `>` so that a manifest field containing `</script>` cannot
   // break out of the script tag. JSON.parse round-trips </> unchanged.
-  const json = JSON.stringify(manifest, null, 2).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
-  return `<script type="${ISLAND_TYPE}">\n${json}\n</script>`;
+  const json = JSON.stringify(versioned, null, 2).replace(/</g, "\\u003c").replace(/>/g, "\\u003e");
+  return `<script type="${SLIDESHOW_ISLAND_TYPE}">\n${json}\n</script>`;
 }
 
 export interface PersistSlideshowArgs {

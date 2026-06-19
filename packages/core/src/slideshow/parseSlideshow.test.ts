@@ -29,6 +29,20 @@ describe("parseSlideshowManifest", () => {
     expect(m?.slides.length).toBe(2);
     expect(m?.slideSequences?.[0].id).toBe("deep");
   });
+
+  it("throws when slideSequences is present but not an array", () => {
+    const html = `<script type="application/hyperframes-slideshow+json">
+      { "slides": [{ "sceneId": "a" }], "slideSequences": {} }
+    </script>`;
+    expect(() => parseSlideshowManifest(html)).toThrow();
+  });
+
+  it("throws when a slide entry is malformed (sceneId not a string)", () => {
+    const html = `<script type="application/hyperframes-slideshow+json">
+      { "slides": [{ "sceneId": 42 }] }
+    </script>`;
+    expect(() => parseSlideshowManifest(html)).toThrow();
+  });
 });
 
 describe("resolveSlideshow", () => {
@@ -128,6 +142,32 @@ describe("resolveSlideshow", () => {
     // Must mention the missing bound (startTime), not the misleading "unresolved sceneId"
     expect(errors.some((e) => e.includes("startTime"))).toBe(true);
     expect(errors.some((e) => e.includes("unresolved sceneId"))).toBe(false);
+  });
+
+  it("reports an error for an inverted explicit range (endTime <= startTime)", () => {
+    const m: import("./slideshow.types").SlideshowManifest = {
+      slides: [{ sceneId: "a", startTime: 5, endTime: 2 }],
+    };
+    const { errors } = resolveSlideshow(m, SCENES);
+    expect(errors.some((e) => e.includes("endTime") && e.includes("startTime"))).toBe(true);
+  });
+
+  it("de-duplicates fragments before resolving", () => {
+    const m: import("./slideshow.types").SlideshowManifest = {
+      slides: [{ sceneId: "a", fragments: [2, 1, 2, 1, 3] }],
+    };
+    const { resolved, errors } = resolveSlideshow(m, SCENES);
+    expect(errors).toEqual([]);
+    expect(resolved.slides[0].fragments).toEqual([1, 2, 3]);
+  });
+
+  it("reports an error for a hotspot targeting an empty sequence", () => {
+    const m: import("./slideshow.types").SlideshowManifest = {
+      slides: [{ sceneId: "a", hotspots: [{ id: "h", label: "x", target: "empty" }] }],
+      slideSequences: [{ id: "empty", label: "Empty", slides: [] }],
+    };
+    const { errors } = resolveSlideshow(m, SCENES);
+    expect(errors.some((e) => e.includes("empty sequence"))).toBe(true);
   });
 
   it("full override with no scene produces no error", () => {

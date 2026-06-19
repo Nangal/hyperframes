@@ -17,12 +17,21 @@ function isSceneLikeCompositionId(compositionId: string): boolean {
 
 function parseTiming(raw: string): { start: number; duration: number } | null {
   const startStr = readAttr(raw, "data-start");
-  const durationStr = readAttr(raw, "data-duration");
-  if (startStr === null || durationStr === null) return null;
+  if (startStr === null) return null;
   const start = Number(startStr);
-  const duration = Number(durationStr);
-  if (!Number.isFinite(start) || !Number.isFinite(duration)) return null;
-  return { start, duration };
+  if (!Number.isFinite(start)) return null;
+
+  const durationStr = readAttr(raw, "data-duration");
+  if (durationStr !== null) {
+    const duration = Number(durationStr);
+    if (Number.isFinite(duration)) return { start, duration };
+  }
+  const endStr = readAttr(raw, "data-end") ?? readAttr(raw, "data-hf-authored-end");
+  if (endStr !== null) {
+    const end = Number(endStr);
+    if (Number.isFinite(end) && end > start) return { start, duration: end - start };
+  }
+  return null;
 }
 
 function collectCompositionIdScenes(ctx: LintContext, seen: Set<string>, out: Scene[]): void {

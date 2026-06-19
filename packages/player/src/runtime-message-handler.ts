@@ -19,9 +19,13 @@ type SceneRecord = { id: string; start: number; duration: number };
 
 function extractScenes(raw: unknown): SceneRecord[] {
   if (!Array.isArray(raw)) return [];
-  return (raw as SceneRecord[]).filter(
-    (s) =>
-      typeof s.id === "string" && typeof s.start === "number" && typeof s.duration === "number",
+  return raw.filter(
+    (s): s is SceneRecord =>
+      typeof s === "object" &&
+      s !== null &&
+      typeof (s as Record<string, unknown>)["id"] === "string" &&
+      typeof (s as Record<string, unknown>)["start"] === "number" &&
+      typeof (s as Record<string, unknown>)["duration"] === "number",
   );
 }
 

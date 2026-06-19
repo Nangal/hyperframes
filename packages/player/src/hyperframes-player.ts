@@ -595,6 +595,7 @@ class HyperframesPlayer extends HTMLElement {
       onRuntimeReady: () => this._replayBridgeState(),
       setScenes: (scenes) => {
         this._scenes = scenes;
+        this.dispatchEvent(new CustomEvent("scenes", { detail: { scenes } }));
       },
       updateControlsTime: (t, d) => this.controlsApi?.updateTime(t, d),
       updateControlsPlaying: (p) => this.controlsApi?.updatePlaying(p),

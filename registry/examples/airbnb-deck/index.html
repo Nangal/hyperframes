@@ -1491,13 +1491,19 @@
           }
 
           if (activeScene && activeScene !== lastScene) {
-            // Determine if this is a branch transition or a regular advance
+            // Determine if this is a branch transition or a regular advance.
             if (inBranch && !wasInBranch) {
               playSfx('branch-enter');
             } else if (!inBranch && wasInBranch) {
               playSfx('back');
             } else {
-              playSfx('advance');
+              // Direction by scene order: going backward plays the reverse whoosh.
+              var ai = -1, li = -1;
+              for (var s = 0; s < scenes.length; s++) {
+                if (scenes[s].id === activeScene) ai = s;
+                if (scenes[s].id === lastScene) li = s;
+              }
+              playSfx(ai >= 0 && li >= 0 && ai < li ? 'back' : 'advance');
             }
             // Reset fragment sfx tracking on problem re-entry
             if (activeScene === 'scene-problem') {

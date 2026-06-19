@@ -17,6 +17,11 @@ describe("buildSlideshowIslandHtml", () => {
     expect(html).toContain('"sceneId": "a"');
   });
 
+  it("stamps version 1, preserving an existing version", () => {
+    expect(buildSlideshowIslandHtml({ slides: [] })).toContain('"version": 1');
+    expect(buildSlideshowIslandHtml({ version: 2, slides: [] })).toContain('"version": 2');
+  });
+
   it("round-trips through parseSlideshowManifest", () => {
     const html = `<html><body>${buildSlideshowIslandHtml({ slides: [{ sceneId: "x" }] })}</body></html>`;
     const parsed = parseSlideshowManifest(html);

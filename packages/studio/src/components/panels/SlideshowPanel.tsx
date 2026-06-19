@@ -175,6 +175,7 @@ export function SlideshowPanel({ scenes, onPersist, onPersistNotes }: SlideshowP
   });
 
   const [selectedSceneId, setSelectedSceneId] = useState<string | null>(null);
+  const [selectedSequenceId, setSelectedSequenceId] = useState<string | null>(null);
   const [expandedSections, setExpandedSections] = useState<Set<SectionKey>>(
     () => new Set<SectionKey>(["slides", "inspector"]),
   );
@@ -203,6 +204,7 @@ export function SlideshowPanel({ scenes, onPersist, onPersistNotes }: SlideshowP
     notesCtrlRef.current.flush();
     setManifest(parsed);
     manifestRef.current = parsed;
+    setSelectedSequenceId(null);
   }, [compHtml]);
 
   /** Discrete actions (toggle, reorder, add/delete, hotspot): persist immediately. */
@@ -255,8 +257,16 @@ export function SlideshowPanel({ scenes, onPersist, onPersistNotes }: SlideshowP
     });
   }, []);
 
-  const selectedSlide = manifest.slides.find((s) => s.sceneId === selectedSceneId);
+  const activeSlides = selectedSequenceId
+    ? ((manifest.slideSequences ?? []).find((s) => s.id === selectedSequenceId)?.slides ?? [])
+    : manifest.slides;
+  const selectedSlide = activeSlides.find((s) => s.sceneId === selectedSceneId);
   const sequences = manifest.slideSequences ?? [];
+
+  const handleSelectBranchSlide = useCallback((sequenceId: string, sceneId: string) => {
+    setSelectedSceneId(sceneId);
+    setSelectedSequenceId(sequenceId);
+  }, []);
 
   const handleToggleSlide = useCallback(
     (sceneId: string) => {
@@ -275,27 +285,38 @@ export function SlideshowPanel({ scenes, onPersist, onPersistNotes }: SlideshowP
   const handleSetNotes = useCallback(
     (notes: string) => {
       if (!selectedSceneId) return;
-      applyNotesManifest(setSlideNotes(manifestRef.current, selectedSceneId, notes));
+      applyNotesManifest(
+        setSlideNotes(manifestRef.current, selectedSceneId, notes, selectedSequenceId ?? undefined),
+      );
     },
-    [selectedSceneId, applyNotesManifest],
+    [selectedSceneId, selectedSequenceId, applyNotesManifest],
   );
 
   const handleMarkFragment = useCallback(() => {
     if (!selectedSceneId) return;
-    applyManifest(addFragment(manifestRef.current, selectedSceneId, currentTime)).catch(() => {});
-  }, [selectedSceneId, currentTime, applyManifest]);
+    applyManifest(
+      addFragment(
+        manifestRef.current,
+        selectedSceneId,
+        currentTime,
+        selectedSequenceId ?? undefined,
+      ),
+    ).catch(() => {});
+  }, [selectedSceneId, selectedSequenceId, currentTime, applyManifest]);
 
   const handleRemoveFragment = useCallback(
     (time: number) => {
       if (!selectedSceneId) return;
-      applyManifest(removeFragment(manifestRef.current, selectedSceneId, time)).catch(() => {});
+      applyManifest(
+        removeFragment(manifestRef.current, selectedSceneId, time, selectedSequenceId ?? undefined),
+      ).catch(() => {});
     },
-    [selectedSceneId, applyManifest],
+    [selectedSceneId, selectedSequenceId, applyManifest],
   );
 
   const handleCreateSequence = useCallback(
     (label: string) => {
-      const id = `seq-${Date.now()}`;
+      const id = `seq-${crypto.randomUUID()}`;
       applyManifest(createSequence(manifestRef.current, id, label)).catch(() => {});
     },
     [applyManifest],
@@ -326,16 +347,20 @@ export function SlideshowPanel({ scenes, onPersist, onPersistNotes }: SlideshowP
 
   const handleAddHotspot = useCallback(
     (sceneId: string, hotspot: SlideHotspot) => {
-      applyManifest(addHotspot(manifestRef.current, sceneId, hotspot)).catch(() => {});
+      applyManifest(
+        addHotspot(manifestRef.current, sceneId, hotspot, selectedSequenceId ?? undefined),
+      ).catch(() => {});
     },
-    [applyManifest],
+    [selectedSequenceId, applyManifest],
   );
 
   const handleRemoveHotspot = useCallback(
     (sceneId: string, hotspotId: string) => {
-      applyManifest(removeHotspot(manifestRef.current, sceneId, hotspotId)).catch(() => {});
+      applyManifest(
+        removeHotspot(manifestRef.current, sceneId, hotspotId, selectedSequenceId ?? undefined),
+      ).catch(() => {});
     },
-    [applyManifest],
+    [selectedSequenceId, applyManifest],
   );
 
   return (
@@ -352,7 +377,10 @@ export function SlideshowPanel({ scenes, onPersist, onPersistNotes }: SlideshowP
             scenes={scenes}
             slides={manifest.slides}
             selectedSceneId={selectedSceneId}
-            onSelect={setSelectedSceneId}
+            onSelect={(id) => {
+              setSelectedSceneId(id);
+              setSelectedSequenceId(null);
+            }}
             onToggle={handleToggleSlide}
             onReorder={handleReorder}
           />
@@ -398,6 +426,9 @@ export function SlideshowPanel({ scenes, onPersist, onPersistNotes }: SlideshowP
           onRenameSequence={handleRenameSequence}
           onDeleteSequence={handleDeleteSequence}
           onAssign={handleAssign}
+          selectedSceneId={selectedSceneId}
+          selectedSequenceId={selectedSequenceId}
+          onSelectBranchSlide={handleSelectBranchSlide}
         />
       )}
 

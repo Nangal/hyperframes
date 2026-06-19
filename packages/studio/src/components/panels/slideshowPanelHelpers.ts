@@ -48,17 +48,35 @@ export function reorderMainLineSlide(
   return { ...manifest, slides };
 }
 
+/** Apply fn to a branch's slide list (sequenceId) or the main line (undefined). */
+function mapSlidesIn(
+  manifest: SlideshowManifest,
+  sequenceId: string | undefined,
+  fn: (slides: SlideRef[]) => SlideRef[],
+): SlideshowManifest {
+  if (sequenceId === undefined) {
+    return { ...manifest, slides: fn(manifest.slides) };
+  }
+  return {
+    ...manifest,
+    slideSequences: (manifest.slideSequences ?? []).map((seq) =>
+      seq.id === sequenceId ? { ...seq, slides: fn(seq.slides) } : seq,
+    ),
+  };
+}
+
 /** Update notes on a main-line slide (adds slide entry if absent). */
 export function setSlideNotes(
   manifest: SlideshowManifest,
   sceneId: string,
   notes: string,
+  sequenceId?: string,
 ): SlideshowManifest {
-  const exists = manifest.slides.some((s) => s.sceneId === sceneId);
-  const slides: SlideRef[] = exists
-    ? manifest.slides.map((s) => (s.sceneId === sceneId ? { ...s, notes } : s))
-    : [...manifest.slides, { sceneId, notes }];
-  return { ...manifest, slides };
+  return mapSlidesIn(manifest, sequenceId, (slides) => {
+    const exists = slides.some((s) => s.sceneId === sceneId);
+    if (exists) return slides.map((s) => (s.sceneId === sceneId ? { ...s, notes } : s));
+    return sequenceId === undefined ? [...slides, { sceneId, notes }] : slides;
+  });
 }
 
 /** Push a fragment hold-point time onto a main-line slide. Deduplicates + sorts. */
@@ -66,16 +84,18 @@ export function addFragment(
   manifest: SlideshowManifest,
   sceneId: string,
   time: number,
+  sequenceId?: string,
 ): SlideshowManifest {
-  const exists = manifest.slides.some((s) => s.sceneId === sceneId);
-  const slides: SlideRef[] = exists
-    ? manifest.slides.map((s) => {
+  return mapSlidesIn(manifest, sequenceId, (slides) => {
+    const exists = slides.some((s) => s.sceneId === sceneId);
+    if (exists)
+      return slides.map((s) => {
         if (s.sceneId !== sceneId) return s;
         const frags = [...new Set([...(s.fragments ?? []), time])].sort((a, b) => a - b);
         return { ...s, fragments: frags };
-      })
-    : [...manifest.slides, { sceneId, fragments: [time] }];
-  return { ...manifest, slides };
+      });
+    return sequenceId === undefined ? [...slides, { sceneId, fragments: [time] }] : slides;
+  });
 }
 
 /** Remove a fragment hold-point by value from a main-line slide. */
@@ -83,14 +103,15 @@ export function removeFragment(
   manifest: SlideshowManifest,
   sceneId: string,
   time: number,
+  sequenceId?: string,
 ): SlideshowManifest {
-  return {
-    ...manifest,
-    slides: manifest.slides.map((s) => {
-      if (s.sceneId !== sceneId) return s;
-      return { ...s, fragments: (s.fragments ?? []).filter((f) => f !== time) };
-    }),
-  };
+  return mapSlidesIn(manifest, sequenceId, (slides) =>
+    slides.map((s) =>
+      s.sceneId === sceneId
+        ? { ...s, fragments: (s.fragments ?? []).filter((f) => f !== time) }
+        : s,
+    ),
+  );
 }
 
 /** Create a new branch sequence. Rejects duplicate ids. */
@@ -167,16 +188,16 @@ export function addHotspot(
   manifest: SlideshowManifest,
   sceneId: string,
   hotspot: SlideHotspot,
+  sequenceId?: string,
 ): SlideshowManifest {
-  return {
-    ...manifest,
-    slides: manifest.slides.map((s) => {
+  return mapSlidesIn(manifest, sequenceId, (slides) =>
+    slides.map((s) => {
       if (s.sceneId !== sceneId) return s;
       const existing = s.hotspots ?? [];
       if (existing.some((h) => h.id === hotspot.id)) return s;
       return { ...s, hotspots: [...existing, hotspot] };
     }),
-  };
+  );
 }
 
 /** Remove a hotspot by id from a main-line slide. */
@@ -184,12 +205,13 @@ export function removeHotspot(
   manifest: SlideshowManifest,
   sceneId: string,
   hotspotId: string,
+  sequenceId?: string,
 ): SlideshowManifest {
-  return {
-    ...manifest,
-    slides: manifest.slides.map((s) => {
-      if (s.sceneId !== sceneId) return s;
-      return { ...s, hotspots: (s.hotspots ?? []).filter((h) => h.id !== hotspotId) };
-    }),
-  };
+  return mapSlidesIn(manifest, sequenceId, (slides) =>
+    slides.map((s) =>
+      s.sceneId === sceneId
+        ? { ...s, hotspots: (s.hotspots ?? []).filter((h) => h.id !== hotspotId) }
+        : s,
+    ),
+  );
 }

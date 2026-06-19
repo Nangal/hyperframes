@@ -7,7 +7,21 @@ import type {
   ResolvedSlideSequence,
 } from "./slideshow.types";
 
-const ISLAND_TYPE = "application/hyperframes-slideshow+json";
+export const SLIDESHOW_ISLAND_TYPE = "application/hyperframes-slideshow+json";
+
+/**
+ * Builds the island <script> matcher. Capture group 1 = inner JSON.
+ *
+ * Factory (fresh RegExp per call) on purpose: a RegExp with the `g` flag carries
+ * a mutable `lastIndex`, so callers that need `g` must call this each time rather
+ * than caching a shared instance.
+ */
+export function slideshowIslandRegex(flags = "i"): RegExp {
+  // Escape ALL regex metacharacters in the constant (CodeQL flags the incomplete
+  // `\` escape). The constant has none today, but a complete escape is correct.
+  const escaped = SLIDESHOW_ISLAND_TYPE.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  return new RegExp(`<script[^>]*type=["']${escaped}["'][^>]*>([\\s\\S]*?)<\\/script>`, flags);
+}
 
 interface SceneRange {
   id: string;
@@ -18,10 +32,7 @@ interface SceneRange {
 /** Extract the JSON island from composition HTML. Returns null if absent. */
 export function parseSlideshowManifest(html: string): SlideshowManifest | null {
   // Match <script type="application/hyperframes-slideshow+json"> ... </script>
-  const re = new RegExp(
-    `<script[^>]*type=["']${ISLAND_TYPE.replace(/[.+]/g, "\\$&")}["'][^>]*>([\\s\\S]*?)<\\/script>`,
-    "i",
-  );
+  const re = slideshowIslandRegex("i");
   const match = re.exec(html);
   if (!match || match[1] === undefined) return null;
   const raw = match[1].trim();
@@ -33,10 +44,39 @@ export function parseSlideshowManifest(html: string): SlideshowManifest | null {
   return parsed;
 }
 
+function isSlideRef(v: unknown): v is SlideRef {
+  if (typeof v !== "object" || v === null) return false;
+  const r = v as Record<string, unknown>;
+  if (typeof r["sceneId"] !== "string") return false;
+  if (
+    r["fragments"] !== undefined &&
+    !(Array.isArray(r["fragments"]) && r["fragments"].every((n) => typeof n === "number"))
+  )
+    return false;
+  if (r["hotspots"] !== undefined && !Array.isArray(r["hotspots"])) return false;
+  return true;
+}
+
+function isSlideSequence(v: unknown): boolean {
+  if (typeof v !== "object" || v === null) return false;
+  const s = v as Record<string, unknown>;
+  return (
+    typeof s["id"] === "string" &&
+    typeof s["label"] === "string" &&
+    Array.isArray(s["slides"]) &&
+    s["slides"].every(isSlideRef)
+  );
+}
+
 function isManifest(v: unknown): v is SlideshowManifest {
   if (typeof v !== "object" || v === null) return false;
-  if (!("slides" in v)) return false;
-  return Array.isArray(v.slides);
+  const o = v as Record<string, unknown>;
+  if (!Array.isArray(o["slides"]) || !o["slides"].every(isSlideRef)) return false;
+  if (o["slideSequences"] !== undefined) {
+    if (!Array.isArray(o["slideSequences"]) || !o["slideSequences"].every(isSlideSequence))
+      return false;
+  }
+  return true;
 }
 
 function missingBoundError(sceneId: string, missing: "startTime" | "endTime"): string {
@@ -101,7 +141,10 @@ function resolveSlide(
 ): ResolvedSlide {
   const scene = sceneById.get(ref.sceneId);
   const { start, end } = resolveTimeRange(ref, scene, errors);
-  const fragments = [...(ref.fragments ?? [])].sort((a, b) => a - b);
+  if (ref.startTime !== undefined && ref.endTime !== undefined && end <= start) {
+    errors.push(`slide "${ref.sceneId}" has endTime (${end}) <= startTime (${start})`);
+  }
+  const fragments = [...new Set(ref.fragments ?? [])].sort((a, b) => a - b);
   validateFragments(ref.sceneId, fragments, start, end, errors);
   return { ...ref, start, end, fragments, hotspots: ref.hotspots ?? [] };
 }
@@ -128,8 +171,11 @@ export function resolveSlideshow(
   const allSlides = [...slides, ...Object.values(sequences).flatMap((s) => s.slides)];
   for (const slide of allSlides) {
     for (const h of slide.hotspots) {
-      if (!sequences[h.target]) {
+      const seq = sequences[h.target];
+      if (!seq) {
         errors.push(`hotspot "${h.id}" targets unknown sequence "${h.target}"`);
+      } else if (seq.slides.length === 0) {
+        errors.push(`hotspot "${h.id}" targets empty sequence "${h.target}"`);
       }
     }
   }

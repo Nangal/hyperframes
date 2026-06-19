@@ -81,6 +81,42 @@ describe("setSlideNotes", () => {
   });
 });
 
+// ── branch-scoped authoring (Finding #14) ──────────────────────────────────
+
+describe("branch-scoped editing (sequenceId)", () => {
+  const base: SlideshowManifest = {
+    slides: [{ sceneId: "a" }],
+    slideSequences: [{ id: "seq-1", label: "Branch", slides: [{ sceneId: "b" }] }],
+  };
+
+  it("setSlideNotes edits the branch slide, leaving the main line untouched", () => {
+    const m = setSlideNotes(base, "b", "branch note", "seq-1");
+    expect(m.slideSequences?.[0]?.slides[0]).toMatchObject({ sceneId: "b", notes: "branch note" });
+    expect(m.slides[0]).toEqual({ sceneId: "a" }); // main line unchanged
+  });
+
+  it("setSlideNotes does NOT auto-add a slide to a branch when the scene is not assigned", () => {
+    const m = setSlideNotes(base, "z", "nope", "seq-1");
+    expect(m.slideSequences?.[0]?.slides).toEqual([{ sceneId: "b" }]);
+    expect(m.slides).toEqual([{ sceneId: "a" }]);
+  });
+
+  it("addFragment edits the branch slide and does not auto-add when unassigned", () => {
+    const added = addFragment(base, "b", 1.5, "seq-1");
+    expect(added.slideSequences?.[0]?.slides[0]?.fragments).toEqual([1.5]);
+    const noAdd = addFragment(base, "z", 2.0, "seq-1");
+    expect(noAdd.slideSequences?.[0]?.slides).toEqual([{ sceneId: "b" }]);
+  });
+
+  it("addHotspot edits the branch slide and does not auto-add when unassigned", () => {
+    const hotspot = { id: "h1", label: "Why", target: "seq-2" };
+    const added = addHotspot(base, "b", hotspot, "seq-1");
+    expect(added.slideSequences?.[0]?.slides[0]?.hotspots).toEqual([hotspot]);
+    const noAdd = addHotspot(base, "z", hotspot, "seq-1");
+    expect(noAdd.slideSequences?.[0]?.slides).toEqual([{ sceneId: "b" }]);
+  });
+});
+
 // ── addFragment ───────────────────────────────────────────────────────────
 
 describe("addFragment", () => {

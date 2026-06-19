@@ -1,7 +1,13 @@
 // packages/core/src/slideshow/slideshow.types.ts
 
+/** Current manifest schema version. Stamped on persist so future schema
+ *  changes can detect and migrate older islands. */
+export const SLIDESHOW_MANIFEST_VERSION = 1;
+
 /** Raw author-facing shapes parsed from the JSON island. */
 export interface SlideshowManifest {
+  /** Schema version (absent on pre-versioning islands → treat as 1). */
+  version?: number;
   slides: SlideRef[];
   slideSequences?: SlideSequence[];
 }

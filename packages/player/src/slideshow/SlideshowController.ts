@@ -16,10 +16,18 @@ interface StackFrame {
 
 const MAIN = "main";
 const EPS = 0.001;
+// Seconds to play past a restored/mirrored position so the composition repaints
+// (a bare paused seek doesn't re-render some compositions; pausing on the first
+// timeupdate fires before a paint).
+const RENDER_NUDGE = 0.2;
 
 export class SlideshowController {
   private stack: StackFrame[] = [{ sequenceId: MAIN, slideIndex: 0, fragmentIndex: -1 }];
   private holdAt: number | null = null;
+  // The logical hold (a fragment time / slide point). playTo() plays a short way
+  // PAST it (to holdAt) so the composition repaints; holdTarget is what onTime
+  // matches against fragments to advance fragmentIndex.
+  private holdTarget: number | null = null;
   private changeCbs = new Set<() => void>();
   private unsub: () => void;
 
@@ -101,28 +109,44 @@ export class SlideshowController {
     this.holdAt = null;
     const slide = this.currentSlide;
     if (!slide) return;
-    this.player.seek(slide.start);
-    this.playTo(this.nextStop(slide, -1));
+    // Jump to the slide's first hold and stay there (no auto-progress). With
+    // fragments that's the first fragment; without, a settled frame INSIDE the
+    // slide (its midpoint) — NOT slide.end, which is the boundary where the next
+    // scene begins (else slide 1 would render slide 2's content).
+    const firstHold =
+      slide.fragments.length > 0 ? (slide.fragments[0] ?? slide.end) : this.restFrame(slide);
+    this.playTo(firstHold);
     this.emitChange();
+  }
+
+  /** A representative, non-boundary frame for a slide with no fragments. */
+  private restFrame(slide: ResolvedSlide): number {
+    return slide.start + (slide.end - slide.start) * 0.5;
   }
 
   /**
    * Resumes a slide at a saved fragmentIndex without resetting to slide start.
-   * Used by back() to restore the caller's exact position in the parent slide.
+   * Used by back()/backToMain()/syncTo() to restore an exact position.
    */
   private resumeSlide(index: number, fragmentIndex: number): void {
     this.frame.slideIndex = index;
     this.frame.fragmentIndex = fragmentIndex;
     const slide = this.currentSlide;
     if (!slide) return;
-    // Seek to the fragment's hold time (or slide start if before any fragment).
+    // Resume position, mirroring enterSlide so going back to a slide lands where
+    // entering it forward does:
+    //   - at a saved fragment   → that fragment's hold time
+    //   - fragmented, pre-first → slide.start (before the first reveal)
+    //   - no fragments          → restFrame (midpoint), NOT slide.start, so the
+    //     slide is visible at rest instead of frozen at its frame-0 (pre-entrance).
     const seekTime =
       fragmentIndex >= 0 && fragmentIndex < slide.fragments.length
         ? (slide.fragments[fragmentIndex] ?? slide.start)
-        : slide.start;
+        : slide.fragments.length > 0
+          ? slide.start
+          : this.restFrame(slide);
     this.holdAt = null;
-    this.player.seek(seekTime);
-    this.player.pause();
+    this.playTo(seekTime);
     this.emitChange();
   }
 
@@ -131,19 +155,34 @@ export class SlideshowController {
     return next ?? slide.end;
   }
 
+  /**
+   * Jump to hold time `t` and pause there — NO sustained playback, so slides
+   * never auto-progress. Seeks just before `t` and plays a short render-nudge
+   * ending at `t`: a bare paused seek doesn't repaint some compositions, and
+   * pausing on the first timeupdate fires before a paint. onTime() pauses at `t`
+   * and advances fragmentIndex when `t` is a fragment boundary.
+   */
   private playTo(t: number): void {
-    this.holdAt = t;
+    // Seek to the EXACT target so the first repainted frame is the correct one —
+    // seeking BEFORE it (as a backward render-nudge) flashes a pre-target frame
+    // / the previous scene. Then play a short way PAST it so the composition
+    // actually repaints (a bare paused seek doesn't), and onTime() pauses there.
+    const slide = this.currentSlide;
+    this.holdTarget = t;
+    this.holdAt = slide ? Math.min(t + RENDER_NUDGE, slide.end) : t + RENDER_NUDGE;
+    this.player.seek(t);
     this.player.play();
   }
 
-  private onTime(t: number): void {
-    if (this.holdAt !== null && t >= this.holdAt - EPS) {
-      const hold = this.holdAt;
+  private onTime(tt: number): void {
+    if (this.holdAt !== null && tt >= this.holdAt - EPS) {
+      const target = this.holdTarget;
       this.holdAt = null;
-      // Advance fragmentIndex if this hold is a fragment boundary.
+      this.holdTarget = null;
+      // Advance fragmentIndex if the logical target is a fragment boundary.
       const slide = this.currentSlide;
-      if (slide) {
-        const fragIdx = slide.fragments.indexOf(hold);
+      if (slide && target !== null) {
+        const fragIdx = slide.fragments.indexOf(target);
         if (fragIdx !== -1) {
           this.frame.fragmentIndex = fragIdx;
           this.emitChange();
@@ -157,9 +196,8 @@ export class SlideshowController {
     const slide = this.currentSlide;
     if (!slide) return;
     const hasMoreFragments = this.frame.fragmentIndex + 1 < slide.fragments.length;
-    const atEnd = this.player.currentTime >= slide.end - EPS;
-    if (hasMoreFragments && !atEnd) {
-      // Reveal the next fragment (play-to-hold). onTime() advances fragmentIndex at the hold.
+    if (hasMoreFragments) {
+      // Reveal the next fragment. onTime() advances fragmentIndex at the hold.
       const nextTarget = this.nextStop(slide, this.frame.fragmentIndex);
       this.playTo(nextTarget);
       this.emitChange();
@@ -193,7 +231,8 @@ export class SlideshowController {
   }
 
   enterBranch(sequenceId: string): void {
-    if (!this.show.sequences[sequenceId]) return;
+    const seq = this.show.sequences[sequenceId];
+    if (!seq || seq.slides.length === 0) return;
     this.stack.push({ sequenceId, slideIndex: 0, fragmentIndex: -1 });
     this.enterSlide(0);
   }
@@ -211,5 +250,26 @@ export class SlideshowController {
     if (this.stack.length <= 1) return;
     this.stack = [this.stack[0]];
     this.resumeSlide(this.frame.slideIndex, this.frame.fragmentIndex);
+  }
+
+  /**
+   * Jump to an absolute position without animation (audience mirroring).
+   * Re-roots the stack to the target sequence, then restores slide+fragment
+   * statically via resumeSlide.
+   */
+  syncTo(sequenceId: string, slideIndex: number, fragmentIndex: number): void {
+    const base = this.stack[0];
+    if (!base) return;
+    if (this.frame.sequenceId !== sequenceId) {
+      this.stack = [base];
+      if (sequenceId !== MAIN) {
+        const seq = this.show.sequences[sequenceId];
+        if (!seq || seq.slides.length === 0) return;
+        this.stack.push({ sequenceId, slideIndex: 0, fragmentIndex: -1 });
+      }
+    }
+    const slides = this.slidesOf(this.frame.sequenceId);
+    if (slideIndex < 0 || slideIndex >= slides.length) return;
+    this.resumeSlide(slideIndex, fragmentIndex);
   }
 }

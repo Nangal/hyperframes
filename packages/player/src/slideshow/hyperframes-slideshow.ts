@@ -25,6 +25,7 @@ interface ControllerLike {
   readonly canPrev?: boolean;
   readonly canNext?: boolean;
   goToSlide?(index: number): void;
+  syncTo?(sequenceId: string, slideIndex: number, fragmentIndex: number): void;
   enterBranch?(id: string): void;
   back?(): void;
   backToMain?(): void;
@@ -61,9 +62,25 @@ function injectKeyframesOnce(): void {
     @media (prefers-reduced-motion: reduce) {
       .hf-hotspot-pill { animation: none !important; }
     }
+    /* Nav-button hover (replaces inline onmouseover/onmouseout — CSP-safe).
+       !important beats the inline base color set on each button. */
+    [data-hf-nav-cluster] button:hover {
+      background: rgba(255,255,255,0.12) !important;
+      color: #fff !important;
+    }
+    /* When muted, the speaker button stays dimmed on hover so the mute-state
+       affordance isn't erased (higher specificity than the rule above). */
+    [data-hf-muted] [data-hf-mute]:hover {
+      color: rgba(255,255,255,0.6) !important;
+    }
   `;
   document.head.appendChild(style);
 }
+
+// Fullscreen glyphs (enter = expand corners, exit = collapse corners). Module-level
+// so onFsChange can swap just this glyph without re-rendering the whole chrome.
+const ENTER_FS_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3H5a2 2 0 0 0-2 2v3M21 8V5a2 2 0 0 0-2-2h-3M3 16v3a2 2 0 0 0 2 2h3M16 21h3a2 2 0 0 0 2-2v-3"/></svg>`;
+const EXIT_FS_SVG = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 3v3a2 2 0 0 1-2 2H3M21 8h-3a2 2 0 0 1-2-2V3M3 16h3a2 2 0 0 1 2 2v3M16 21v-3a2 2 0 0 1 2-2h3"/></svg>`;
 
 export class HyperframesSlideshow extends HTMLElement {
   private controller: ControllerLike | null = null;
@@ -85,6 +102,18 @@ export class HyperframesSlideshow extends HTMLElement {
     return this._muted;
   }
 
+  /** Mode resolves from the `mode` attribute, falling back to the URL query
+   *  (?mode=audience) so the audience window opened by present() is detected. */
+  private resolveMode(): string | null {
+    const attr = this.getAttribute("mode");
+    if (attr) return attr;
+    try {
+      return new URLSearchParams(location.search).get("mode");
+    } catch {
+      return null;
+    }
+  }
+
   connectedCallback(): void {
     this.disconnected = false;
     this.initInFlight = false;
@@ -97,6 +126,7 @@ export class HyperframesSlideshow extends HTMLElement {
     this.addEventListener("touchstart", this.onTouchStart, { passive: true });
     this.addEventListener("touchend", this.onTouchEnd);
     window.addEventListener("message", this.onMessage);
+    document.addEventListener("fullscreenchange", this.onFsChange);
     this.initChannel();
     // Defer player-dependent init to a macrotask so that child elements are
     // parsed before we query for <hyperframes-player>. This matters when the
@@ -123,6 +153,7 @@ export class HyperframesSlideshow extends HTMLElement {
     this.removeEventListener("touchstart", this.onTouchStart);
     this.removeEventListener("touchend", this.onTouchEnd);
     window.removeEventListener("message", this.onMessage);
+    document.removeEventListener("fullscreenchange", this.onFsChange);
     this.offChange?.();
     this.offChange = null;
     this.controller?.dispose?.();
@@ -151,18 +182,30 @@ export class HyperframesSlideshow extends HTMLElement {
     this.setAttribute("data-hf-presenting", "true");
     this.presenterStartMs = Date.now();
     if (this.presenterInterval === null) {
-      this.presenterInterval = setInterval(() => this.render(), 1000);
+      this.presenterInterval = setInterval(() => this.updateElapsed(), 1000);
     }
     this.render();
   }
 
+  /**
+   * Update only the elapsed readout. Re-rendering the whole chrome every second
+   * (the old behavior) rebuilt the nav buttons' DOM on each tick — they
+   * flickered and clicks landing mid-rebuild were dropped.
+   */
+  private updateElapsed(): void {
+    if (this.presenterStartMs === null) return;
+    const el = this.chrome?.querySelector("[data-hf-presenter-elapsed]");
+    if (el) {
+      el.textContent = formatElapsed(Math.floor((Date.now() - this.presenterStartMs) / 1000));
+    }
+  }
+
   private initChannel(): void {
-    const mode = this.getAttribute("mode");
+    const mode = this.resolveMode();
     if (mode === "audience") {
       this.channel = new SlideshowChannel("audience", (msg) => {
         if (!this.controller) return;
-        if (msg.sequenceId !== "main") return; // V1: non-main branch gracefully ignored
-        this.controller.goToSlide?.(msg.slideIndex);
+        this.controller.syncTo?.(msg.sequenceId, msg.slideIndex, msg.fragmentIndex);
       });
     } else {
       this.channel = new SlideshowChannel("presenter", () => {
@@ -210,6 +253,12 @@ export class HyperframesSlideshow extends HTMLElement {
         console.warn("[hyperframes-slideshow] manifest errors:", errors);
       }
       const cleaned = dropInvalidSlides(resolved);
+      if (cleaned.slides.length === 0 && manifest.slides.length > 0) {
+        console.error(
+          "[hyperframes-slideshow] no main-line slides resolved — the scene timeline may not have loaded in time, or sceneIds/timing are invalid:",
+          errors,
+        );
+      }
 
       const port: PlayerPort = {
         seek: (t) => playerEl.seek(t),
@@ -240,13 +289,13 @@ export class HyperframesSlideshow extends HTMLElement {
     this.controller = c;
     this.offChange = c.onChange(() => {
       // Presenter posts position to channel on every change
-      if (this.getAttribute("mode") !== "audience" && this.channel) {
+      if (this.resolveMode() !== "audience" && this.channel) {
         this.channel.postPosition(c.position);
       }
       this.render();
     });
     // Post initial position if presenter
-    if (this.getAttribute("mode") !== "audience" && this.channel) {
+    if (this.resolveMode() !== "audience" && this.channel) {
       this.channel.postPosition(c.position);
     }
     this.render();
@@ -264,11 +313,31 @@ export class HyperframesSlideshow extends HTMLElement {
     ) {
       return;
     }
-    if (e.key === "ArrowRight" || e.key === " ") {
+    const active = document.activeElement;
+    const focused = active === this || this.contains(active);
+    // Arrows act even when nothing is focused (active === body/null) so a freshly
+    // loaded deck responds without a click; Space/Backspace have strong page-level
+    // defaults (scroll / history) so they only act when the deck actually has focus.
+    const ambient = focused || active === document.body || active === null;
+    if (e.key === "ArrowRight") {
+      if (!ambient) return;
       this.controller.next();
       e.preventDefault();
-    } else if (e.key === "ArrowLeft" || e.key === "Backspace") {
+    } else if (e.key === "ArrowLeft") {
+      if (!ambient) return;
       this.controller.prev();
+      e.preventDefault();
+    } else if (e.key === " ") {
+      if (!focused) return;
+      this.controller.next();
+      e.preventDefault();
+    } else if (e.key === "Backspace") {
+      if (!focused) return;
+      this.controller.prev();
+      e.preventDefault();
+    } else if ((e.key === "f" || e.key === "F") && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      if (!focused) return;
+      this.toggleFullscreen();
       e.preventDefault();
     }
   };
@@ -276,7 +345,7 @@ export class HyperframesSlideshow extends HTMLElement {
   // fallow-ignore-next-line complexity
   private onMessage = (e: MessageEvent): void => {
     // Audience mode is driven by BroadcastChannel; ignore embed postMessage nav.
-    if (this.getAttribute("mode") === "audience") return;
+    if (this.resolveMode() === "audience") return;
     const data = e.data as { type?: unknown; slideIndex?: unknown } | null;
     if (!data || !this.controller) return;
     if (data.type === "next") {
@@ -318,6 +387,14 @@ export class HyperframesSlideshow extends HTMLElement {
   private render(): void {
     if (!this.controller) return;
 
+    if (this.resolveMode() === "audience") {
+      // Audience (viewer) window: no nav controls — but keep a fullscreen toggle
+      // so the presentation can fill the display.
+      const { counter } = this.controller;
+      this.paintChrome(this.buildNavCluster(counter, "28px", "fs-only"));
+      return;
+    }
+
     if (this.getAttribute("data-hf-presenting") === "true") {
       this.renderPresenter();
       return;
@@ -325,16 +402,6 @@ export class HyperframesSlideshow extends HTMLElement {
 
     const { counter, currentSlide } = this.controller;
     if (!currentSlide) return;
-
-    if (!this.chrome) {
-      this.chrome = document.createElement("div");
-      this.chrome.setAttribute("data-hf-chrome", "");
-      this.chrome.style.cssText = "position:absolute;inset:0;pointer-events:none;z-index:10;";
-      this.appendChild(this.chrome);
-    }
-
-    // Inject keyframes for hotspot pulse animation once per document.
-    injectKeyframesOnce();
 
     // Hotspot pills: compact floating buttons anchored to the region's top-left,
     // sized to content (not filling the region). The region x/y positions the pill;
@@ -356,18 +423,38 @@ export class HyperframesSlideshow extends HTMLElement {
       })
       .join("");
 
-    // Single cohesive nav cluster: [mute?] [prev |] counter [| next] — bottom-right capsule.
-    // Prev/next buttons are hidden when there is no destination in that direction:
-    //   - Main deck first slide → no prev (nothing before it)
-    //   - Main deck last slide  → no next (nothing after it)
-    //   - Inside a branch       → always both (branch-edge returns to parent)
-    // The mute toggle is shown only when the `sound` boolean attribute is present.
-    const showPrev = this.controller.canPrev !== false;
-    const showNext = this.controller.canNext !== false;
+    this.paintChrome(hotspotsHtml + this.buildNavCluster(counter, "28px"));
+  }
+
+  /** Ensure the overlay chrome layer exists, set its content, and wire its buttons. */
+  private paintChrome(html: string): void {
+    injectKeyframesOnce(); // nav-button :hover + hotspot keyframes (CSP-safe, once per doc)
+    if (!this.chrome) {
+      this.chrome = document.createElement("div");
+      this.chrome.setAttribute("data-hf-chrome", "");
+      this.appendChild(this.chrome);
+    }
+    this.chrome.style.cssText = "position:absolute;inset:0;pointer-events:none;z-index:10;";
+    this.chrome.innerHTML = html;
+    this.wireChromeButtons();
+  }
+
+  // Builds the nav cluster ([mute?] [prev] counter [next] | [fullscreen]) as a
+  // floating capsule. `bottomCss` positions it (normal view: "28px"; presenter
+  // view: above the notes panel). Reused by render() and renderPresenter().
+  // fallow-ignore-next-line complexity
+  private buildNavCluster(
+    counter: { index: number; total: number },
+    bottomCss: string,
+    variant: "full" | "fs-only" = "full",
+  ): string {
+    const c = this.controller;
+    if (!c) return "";
+    const showPrev = c.canPrev !== false;
+    const showNext = c.canNext !== false;
     const showSound = this.hasAttribute("sound");
     const btnStyle =
       "display:flex;align-items:center;justify-content:center;width:34px;height:34px;background:transparent;border:none;border-radius:999px;color:rgba(255,255,255,0.85);font-size:16px;cursor:pointer;transition:background 0.15s,color 0.15s;padding:0;";
-    // Inline SVG glyphs for speaker and speaker-muted (no emoji — consistent across platforms)
     const speakerSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>`;
     const speakerMutedSvg = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><line x1="23" y1="9" x2="17" y2="15"/><line x1="17" y1="9" x2="23" y2="15"/></svg>`;
     const muteBtnHtml = showSound
@@ -377,8 +464,6 @@ export class HyperframesSlideshow extends HTMLElement {
           aria-label="${this._muted ? "Unmute" : "Mute"}"
           aria-pressed="${this._muted ? "true" : "false"}"
           style="${btnStyle}${this._muted ? "color:rgba(255,255,255,0.45);" : ""}"
-          onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='${this._muted ? "rgba(255,255,255,0.6)" : "#fff"}';"
-          onmouseout="this.style.background='transparent';this.style.color='${this._muted ? "rgba(255,255,255,0.45)" : "rgba(255,255,255,0.85)"}';"
         >${this._muted ? speakerMutedSvg : speakerSvg}</button>`
       : "";
     const prevBtnHtml = showPrev
@@ -386,28 +471,36 @@ export class HyperframesSlideshow extends HTMLElement {
           data-hf-prev
           type="button"
           aria-label="Previous slide"
-          style="${btnStyle}"
-          onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff';"
-          onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,0.85)';"
-        >&#8249;</button>`
+          style="${btnStyle}"        >&#8249;</button>`
       : "";
     const nextBtnHtml = showNext
       ? `<button
           data-hf-next
           type="button"
           aria-label="Next slide"
-          style="${btnStyle}"
-          onmouseover="this.style.background='rgba(255,255,255,0.12)';this.style.color='#fff';"
-          onmouseout="this.style.background='transparent';this.style.color='rgba(255,255,255,0.85)';"
-        >&#8250;</button>`
+          style="${btnStyle}"        >&#8250;</button>`
       : "";
-    // Counter padding adjusts so the pill looks centered when one button is absent.
-    const counterPadLeft = showPrev ? "4px" : "10px";
-    const counterPadRight = showNext ? "4px" : "10px";
-    const navClusterHtml = `
+    const isFs = document.fullscreenElement === this;
+    const fsBtnHtml = `<button
+          data-hf-fullscreen
+          type="button"
+          aria-label="${isFs ? "Exit full screen" : "Full screen"}"
+          aria-pressed="${isFs ? "true" : "false"}"
+          style="${btnStyle}"        >${isFs ? EXIT_FS_SVG : ENTER_FS_SVG}</button>`;
+    // Audience/viewer: only the fullscreen control (no navigation).
+    if (variant === "fs-only") {
+      return `
       <div
         data-hf-nav-cluster
-        style="position:absolute;bottom:28px;right:32px;display:inline-flex;align-items:center;gap:2px;background:rgba(20,20,22,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.45);padding:4px;pointer-events:auto;"
+        style="position:absolute;bottom:${bottomCss};right:32px;display:inline-flex;align-items:center;background:rgba(20,20,22,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.45);padding:4px;pointer-events:auto;"
+      >${fsBtnHtml}</div>`;
+    }
+    const counterPadLeft = showPrev ? "4px" : "10px";
+    const counterPadRight = showNext ? "4px" : "10px";
+    return `
+      <div
+        data-hf-nav-cluster
+        style="position:absolute;bottom:${bottomCss};right:32px;display:inline-flex;align-items:center;gap:2px;background:rgba(20,20,22,0.55);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border:1px solid rgba(255,255,255,0.12);border-radius:999px;box-shadow:0 4px 24px rgba(0,0,0,0.45);padding:4px;pointer-events:auto;"
       >
         ${muteBtnHtml}
         ${showSound ? `<span aria-hidden="true" style="width:1px;height:20px;background:rgba(255,255,255,0.12);margin:0 2px;flex-shrink:0;"></span>` : ""}
@@ -418,23 +511,44 @@ export class HyperframesSlideshow extends HTMLElement {
           style="min-width:46px;text-align:center;color:rgba(255,255,255,0.9);font-size:13px;font-weight:500;font-variant-numeric:tabular-nums;letter-spacing:0.02em;padding:0 ${counterPadRight} 0 ${counterPadLeft};user-select:none;"
         >${counter.index}&thinsp;/&thinsp;${counter.total}</span>
         ${nextBtnHtml}
-      </div>
-    `;
+        <span aria-hidden="true" style="width:1px;height:20px;background:rgba(255,255,255,0.12);margin:0 2px;flex-shrink:0;"></span>
+        ${fsBtnHtml}
+      </div>`;
+  }
 
-    this.chrome.innerHTML = hotspotsHtml + navClusterHtml;
-
-    const muteBtn = this.chrome.querySelector("[data-hf-mute]");
-    const prevBtn = this.chrome.querySelector("[data-hf-prev]");
-    const nextBtn = this.chrome.querySelector("[data-hf-next]");
+  private wireChromeButtons(): void {
+    const chrome = this.chrome;
+    if (!chrome) return;
+    const muteBtn = chrome.querySelector("[data-hf-mute]");
+    const prevBtn = chrome.querySelector("[data-hf-prev]");
+    const nextBtn = chrome.querySelector("[data-hf-next]");
     if (muteBtn) muteBtn.addEventListener("click", () => this.toggleMute());
     if (prevBtn) prevBtn.addEventListener("click", () => this.controller?.prev());
     if (nextBtn) nextBtn.addEventListener("click", () => this.controller?.next());
-
-    // Wire hotspot clicks after innerHTML is set. Read target from data-hotspot-target
-    // so the handler does not close over stale loop state.
-    for (const btn of this.chrome.querySelectorAll("[data-hotspot-id]")) {
+    const fsBtn = chrome.querySelector("[data-hf-fullscreen]");
+    if (fsBtn) fsBtn.addEventListener("click", () => this.toggleFullscreen());
+    for (const btn of chrome.querySelectorAll("[data-hotspot-id]")) {
       const target = btn.getAttribute("data-hotspot-target") ?? "";
       btn.addEventListener("click", () => this.controller?.enterBranch?.(target));
+    }
+  }
+
+  private onFsChange = (): void => {
+    // Swap only the fullscreen glyph + label — re-rendering the whole chrome here
+    // would rebuild every nav button on each fullscreen toggle.
+    const btn = this.chrome?.querySelector("[data-hf-fullscreen]");
+    if (!btn) return;
+    const isFs = document.fullscreenElement === this;
+    btn.innerHTML = isFs ? EXIT_FS_SVG : ENTER_FS_SVG;
+    btn.setAttribute("aria-label", isFs ? "Exit full screen" : "Full screen");
+    btn.setAttribute("aria-pressed", isFs ? "true" : "false");
+  };
+
+  private toggleFullscreen(): void {
+    if (document.fullscreenElement === this) {
+      void document.exitFullscreen().catch(() => {});
+    } else {
+      void this.requestFullscreen().catch(() => {});
     }
   }
 
@@ -464,28 +578,29 @@ export class HyperframesSlideshow extends HTMLElement {
     const elapsedSec =
       this.presenterStartMs !== null ? Math.floor((Date.now() - this.presenterStartMs) / 1000) : 0;
 
-    if (!this.chrome) {
-      this.chrome = document.createElement("div");
-      this.chrome.setAttribute("data-hf-chrome", "");
-      this.chrome.style.cssText = "position:absolute;inset:0;z-index:10;";
-      this.appendChild(this.chrome);
+    // Pin the live slide to the TOP and reserve the bottom 32% for the notes
+    // panel. The player contains the composition, so the FULL slide stays visible
+    // (letterboxed) at any width — its bottom is never hidden behind the panel —
+    // and it re-fits to the top region on window resize.
+    const playerEl = this.querySelector("hyperframes-player");
+    if (playerEl instanceof HTMLElement) {
+      playerEl.style.top = "0";
+      playerEl.style.bottom = "32%";
+      playerEl.style.height = "auto";
     }
 
-    this.chrome.innerHTML = buildPresenterLayout({
-      // TODO: live next-slide thumbnail/preview deferred (needs a second seeked player) — V1 shows text
-      currentSlideHtml: currentPanelText(currentSlide),
-      nextSlideHtml: nextPanelText(nextSlide),
-      notes: currentSlide.notes ?? "",
-      counterText: `${counter.index} / ${counter.total}`,
-      elapsedText: formatElapsed(elapsedSec),
-    });
+    // Full-overlay chrome (pointer-events:none); the notes panel and nav cluster
+    // are the only interactive children.
+    this.paintChrome(
+      buildPresenterLayout({
+        notes: currentSlide.notes ?? "",
+        nextText: nextPanelText(nextSlide),
+        counterText: `${counter.index} / ${counter.total}`,
+        elapsedText: formatElapsed(elapsedSec),
+        hotspots: currentSlide.hotspots,
+      }) + this.buildNavCluster(counter, "calc(32% + 18px)"),
+    );
   }
-}
-
-function currentPanelText(slide: { notes?: string; sceneId?: string }): string {
-  if (slide.notes != null && slide.notes.length > 0) return escHtml(slide.notes);
-  if (slide.sceneId != null) return `Current: ${escHtml(slide.sceneId)}`;
-  return "";
 }
 
 function nextPanelText(slide: { sceneId: string; notes?: string } | null): string {
@@ -539,31 +654,40 @@ function waitForScenes(
   timeoutMs: number,
   isCancelled: () => boolean = () => false,
 ): Promise<{ id: string; start: number; duration: number }[]> {
-  const scenes = readScenes(player);
-  if (scenes.length > 0) return Promise.resolve(scenes);
+  const initial = readScenes(player);
+  if (initial.length > 0) return Promise.resolve(initial);
 
   const maxIterations = Math.ceil(timeoutMs / 100);
 
   return new Promise((resolve) => {
+    let done = false;
+    let timer: ReturnType<typeof setTimeout> | null = null;
     let iterations = 0;
-    const poll = (): void => {
-      if (isCancelled()) {
-        resolve([]);
-        return;
-      }
-      const current = readScenes(player);
-      if (current.length > 0) {
-        resolve(current);
-        return;
-      }
-      iterations += 1;
-      if (iterations >= maxIterations) {
-        resolve([]);
-        return;
-      }
-      setTimeout(poll, 100);
+
+    const finish = (val: { id: string; start: number; duration: number }[]): void => {
+      if (done) return;
+      done = true;
+      if (timer !== null) clearTimeout(timer);
+      player.removeEventListener("scenes", onScenes);
+      resolve(val);
     };
-    setTimeout(poll, 100);
+    const onScenes = (): void => {
+      if (isCancelled()) return finish([]);
+      const s = readScenes(player);
+      if (s.length > 0) finish(s);
+    };
+    const poll = (): void => {
+      if (done) return;
+      if (isCancelled()) return finish([]);
+      const cur = readScenes(player);
+      if (cur.length > 0) return finish(cur);
+      iterations += 1;
+      if (iterations >= maxIterations) return finish([]);
+      timer = setTimeout(poll, 100);
+    };
+
+    player.addEventListener("scenes", onScenes);
+    timer = setTimeout(poll, 100);
   });
 }
 

@@ -51,10 +51,17 @@ export function SlideList({
   onToggle,
   onReorder,
 }: SlideListProps) {
+  const slideIds = new Set(slides.map((s) => s.sceneId));
+  const sceneById = new Map(scenes.map((s) => [s.id, s]));
+  const orderedSlideScenes = slides
+    .map((sl) => sceneById.get(sl.sceneId))
+    .filter((s): s is SceneInfo => s !== undefined);
+  const nonSlideScenes = scenes.filter((sc) => !slideIds.has(sc.id));
+  const rows = [...orderedSlideScenes, ...nonSlideScenes];
   return (
     <div className="flex flex-col gap-px">
-      {scenes.map((scene) => {
-        const isSlide = slides.some((s) => s.sceneId === scene.id);
+      {rows.map((scene) => {
+        const isSlide = slideIds.has(scene.id);
         const isSelected = selectedSceneId === scene.id;
         return (
           <div
@@ -172,9 +179,9 @@ export function SlideInspector({
         </div>
         {fragments.length > 0 ? (
           <div className="flex flex-wrap gap-1">
-            {fragments.map((t) => (
+            {fragments.map((t, i) => (
               <span
-                key={t}
+                key={`frag-${i}`}
                 className="inline-flex items-center gap-1 bg-neutral-700 rounded px-1.5 py-0.5 text-[10px] text-neutral-200"
               >
                 {t.toFixed(2)}s
@@ -206,6 +213,9 @@ export interface BranchTreeProps {
   onRenameSequence: (id: string, label: string) => void;
   onDeleteSequence: (id: string) => void;
   onAssign: (sequenceId: string, sceneId: string, assign: boolean) => void;
+  selectedSceneId: string | null;
+  selectedSequenceId: string | null;
+  onSelectBranchSlide: (sequenceId: string, sceneId: string) => void;
 }
 
 export function BranchTree({
@@ -215,6 +225,9 @@ export function BranchTree({
   onRenameSequence,
   onDeleteSequence,
   onAssign,
+  selectedSceneId,
+  selectedSequenceId,
+  onSelectBranchSlide,
 }: BranchTreeProps) {
   const [newLabel, setNewLabel] = useState("");
   const inputId = useId();
@@ -262,6 +275,9 @@ export function BranchTree({
               onRename={onRenameSequence}
               onDelete={onDeleteSequence}
               onAssign={onAssign}
+              selectedSceneId={selectedSceneId}
+              selectedSequenceId={selectedSequenceId}
+              onSelectBranchSlide={onSelectBranchSlide}
             />
           ))}
         </div>
@@ -276,9 +292,21 @@ interface BranchItemProps {
   onRename: (id: string, label: string) => void;
   onDelete: (id: string) => void;
   onAssign: (sequenceId: string, sceneId: string, assign: boolean) => void;
+  selectedSceneId: string | null;
+  selectedSequenceId: string | null;
+  onSelectBranchSlide: (sequenceId: string, sceneId: string) => void;
 }
 
-function BranchItem({ seq, scenes, onRename, onDelete, onAssign }: BranchItemProps) {
+function BranchItem({
+  seq,
+  scenes,
+  onRename,
+  onDelete,
+  onAssign,
+  selectedSceneId,
+  selectedSequenceId,
+  onSelectBranchSlide,
+}: BranchItemProps) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState(seq.label);
 
@@ -330,19 +358,34 @@ function BranchItem({ seq, scenes, onRename, onDelete, onAssign }: BranchItemPro
       <div className="flex flex-col gap-px pl-2">
         {scenes.map((scene) => {
           const assigned = seq.slides.some((s) => s.sceneId === scene.id);
+          const isSelected = selectedSequenceId === seq.id && selectedSceneId === scene.id;
           return (
-            <label
+            <div
               key={scene.id}
-              className="flex items-center gap-1.5 py-0.5 cursor-pointer text-[11px] text-neutral-400 hover:text-neutral-200"
+              className="flex items-center gap-1.5 py-0.5 text-[11px] text-neutral-400"
             >
               <input
                 type="checkbox"
+                aria-label={`Assign ${scene.label || scene.id} to branch ${seq.label}`}
                 checked={assigned}
                 onChange={(e) => onAssign(seq.id, scene.id, e.target.checked)}
-                className="accent-studio-accent"
+                className="accent-studio-accent flex-shrink-0"
               />
-              <span className="truncate">{scene.label || scene.id}</span>
-            </label>
+              {assigned ? (
+                <button
+                  type="button"
+                  aria-pressed={isSelected}
+                  className={`flex-1 text-left truncate transition-colors hover:text-neutral-200 ${
+                    isSelected ? "text-white" : "text-neutral-400"
+                  }`}
+                  onClick={() => onSelectBranchSlide(seq.id, scene.id)}
+                >
+                  {scene.label || scene.id}
+                </button>
+              ) : (
+                <span className="flex-1 truncate">{scene.label || scene.id}</span>
+              )}
+            </div>
           );
         })}
         {scenes.length === 0 && <p className="text-[10px] text-neutral-600 italic">No scenes</p>}
@@ -382,7 +425,7 @@ export function HotspotTool({
   // fallow-ignore-next-line complexity
   const handleMakeHotspot = useCallback(() => {
     if (!selectedSceneId || !targetSequenceId || !elementKey) return;
-    const id = `hotspot-${elementKey}-${Date.now()}`;
+    const id = `hotspot-${elementKey}-${crypto.randomUUID()}`;
     const label = hotspotLabel.trim() || elementKey;
     onAddHotspot(selectedSceneId, { id, label, target: targetSequenceId });
     setHotspotLabel("");
