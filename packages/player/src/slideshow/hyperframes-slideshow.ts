@@ -68,6 +68,11 @@ function injectKeyframesOnce(): void {
       background: rgba(255,255,255,0.12) !important;
       color: #fff !important;
     }
+    /* When muted, the speaker button stays dimmed on hover so the mute-state
+       affordance isn't erased (higher specificity than the rule above). */
+    [data-hf-muted] [data-hf-mute]:hover {
+      color: rgba(255,255,255,0.6) !important;
+    }
   `;
   document.head.appendChild(style);
 }

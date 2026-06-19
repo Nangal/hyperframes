@@ -73,7 +73,9 @@ const ASSET_CONTENT_TYPES: Record<string, string> = {
 
 export function assetContentType(filePath: string): string {
   const ext = filePath.split(".").pop() ?? "";
-  return ASSET_CONTENT_TYPES[ext] ?? "application/octet-stream";
+  // Own-property check so an ext like "__proto__" can't resolve to Object.prototype.
+  const type = Object.hasOwn(ASSET_CONTENT_TYPES, ext) ? ASSET_CONTENT_TYPES[ext] : undefined;
+  return type ?? "application/octet-stream";
 }
 
 /**

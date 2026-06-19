@@ -274,8 +274,13 @@ ${islandJson}
         window.addEventListener("click", unlock, true);
 
         window.addEventListener("message", function (e) {
+          // Only accept cues from this origin (the composition iframe is same-origin).
+          if (e.origin !== location.origin) return;
           var d = e.data;
           if (!d || d.type !== "hf-sfx" || muted) return;
+          // Own-property guard: a malicious name like "__proto__" must not resolve to
+          // a prototype object (which would be truthy and then get mutated below).
+          if (!Object.prototype.hasOwnProperty.call(clips, d.name)) return;
           var el = clips[d.name];
           if (!el || !unlocked) return;
           try {
