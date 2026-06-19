@@ -1,0 +1,399 @@
+{
+  "width": 1280,
+  "height": 720,
+  "fps": 24,
+  "grid": {
+    "cols": 48,
+    "rows": 27
+  },
+  "coverage": 36.3,
+  "subject": {
+    "colMinPct": 4.2,
+    "colMaxPct": 100,
+    "clearerSide": "left"
+  },
+  "zones": {
+    "largest": {
+      "xPct": 0,
+      "yPct": 48.1,
+      "wPct": 33.3,
+      "hPct": 51.9,
+      "areaPct": 17.3,
+      "px": {
+        "x": 0,
+        "y": 347,
+        "w": 427,
+        "h": 373
+      },
+      "meanLuma": 58,
+      "bright": false
+    },
+    "left": {
+      "xPct": 0,
+      "yPct": 48.1,
+      "wPct": 33.3,
+      "hPct": 51.9,
+      "areaPct": 17.3,
+      "px": {
+        "x": 0,
+        "y": 347,
+        "w": 427,
+        "h": 373
+      },
+      "meanLuma": 58,
+      "bright": false
+    },
+    "right": {
+      "xPct": 50,
+      "yPct": 0,
+      "wPct": 12.5,
+      "hPct": 51.9,
+      "areaPct": 6.5,
+      "px": {
+        "x": 640,
+        "y": 0,
+        "w": 160,
+        "h": 373
+      },
+      "meanLuma": 172,
+      "bright": false
+    },
+    "top": {
+      "xPct": 39.6,
+      "yPct": 0,
+      "wPct": 22.9,
+      "hPct": 37,
+      "areaPct": 8.5,
+      "px": {
+        "x": 507,
+        "y": 0,
+        "w": 293,
+        "h": 267
+      },
+      "meanLuma": 181,
+      "bright": true
+    },
+    "hugLeft": null,
+    "hugRight": null
+  },
+  "heroAnchor": {
+    "centerXPct": 52.1,
+    "plane": {
+      "xPct": 6,
+      "yPct": 19,
+      "wPct": 92,
+      "align": "center"
+    },
+    "bandLuma": 188,
+    "washoutRisk": true,
+    "note": "Place the ONE big hero here (centered on the subject); the head/torso occludes its middle (~30-55%) — that is the embed. Do NOT put the hero in a clean zone. ⚠ BAND IS BRIGHT (luma 188): cream/screen text will wash out — lower the hero onto the darker subject body, or use a template/mode with opaque text."
+  },
+  "heroBands": {
+    "feasible": true,
+    "best": {
+      "topPct": 59.3,
+      "occPct": 40.3,
+      "bgLuma": 59
+    },
+    "profile": [
+      {
+        "topPct": 0,
+        "occPct": 6.3,
+        "bgLuma": 173
+      },
+      {
+        "topPct": 3.7,
+        "occPct": 14.2,
+        "bgLuma": 168
+      },
+      {
+        "topPct": 7.4,
+        "occPct": 24.4,
+        "bgLuma": 160
+      },
+      {
+        "topPct": 11.1,
+        "occPct": 34.7,
+        "bgLuma": 152
+      },
+      {
+        "topPct": 14.8,
+        "occPct": 41.5,
+        "bgLuma": 143
+      },
+      {
+        "topPct": 18.5,
+        "occPct": 45.5,
+        "bgLuma": 139
+      },
+      {
+        "topPct": 22.2,
+        "occPct": 47.2,
+        "bgLuma": 139
+      },
+      {
+        "topPct": 25.9,
+        "occPct": 43.8,
+        "bgLuma": 144
+      },
+      {
+        "topPct": 29.6,
+        "occPct": 38.6,
+        "bgLuma": 148
+      },
+      {
+        "topPct": 33.3,
+        "occPct": 32.4,
+        "bgLuma": 147
+      },
+      {
+        "topPct": 37,
+        "occPct": 26.7,
+        "bgLuma": 132
+      },
+      {
+        "topPct": 40.7,
+        "occPct": 25.6,
+        "bgLuma": 110
+      },
+      {
+        "topPct": 44.4,
+        "occPct": 27.8,
+        "bgLuma": 88
+      },
+      {
+        "topPct": 48.1,
+        "occPct": 30.7,
+        "bgLuma": 70
+      },
+      {
+        "topPct": 51.9,
+        "occPct": 34.7,
+        "bgLuma": 65
+      },
+      {
+        "topPct": 55.6,
+        "occPct": 37.5,
+        "bgLuma": 62
+      },
+      {
+        "topPct": 59.3,
+        "occPct": 40.3,
+        "bgLuma": 59
+      },
+      {
+        "topPct": 63,
+        "occPct": 43.8,
+        "bgLuma": 59
+      },
+      {
+        "topPct": 66.7,
+        "occPct": 47.2,
+        "bgLuma": 58
+      },
+      {
+        "topPct": 70.4,
+        "occPct": 51.7,
+        "bgLuma": 63
+      },
+      {
+        "topPct": 74.1,
+        "occPct": 56.8,
+        "bgLuma": 67
+      },
+      {
+        "topPct": 77.8,
+        "occPct": 61.4,
+        "bgLuma": 72
+      },
+      {
+        "topPct": 81.5,
+        "occPct": 64.8,
+        "bgLuma": 79
+      },
+      {
+        "topPct": 85.2,
+        "occPct": 67,
+        "bgLuma": 79
+      }
+    ]
+  },
+  "recommendation": "embed",
+  "palette": {
+    "dominant": [
+      {
+        "hex": "#111210",
+        "sharePct": 11.5
+      },
+      {
+        "hex": "#97b0c4",
+        "sharePct": 9.7
+      },
+      {
+        "hex": "#4d5050",
+        "sharePct": 8.8
+      }
+    ],
+    "accentSuggestion": "#66a0cc",
+    "temperature": "cool"
+  },
+  "optics": {
+    "bgSharpness": 47.38,
+    "subjSharpness": 67,
+    "sharpnessRatio": 0.707,
+    "suggestedTextBlurPx": 0.5
+  },
+  "lighting": {
+    "lightFrom": "above",
+    "shadow": {
+      "dx": -1,
+      "dy": 6
+    }
+  },
+  "windows": [
+    {
+      "in": 0.23,
+      "out": 2.22,
+      "text": "The stars were only limited by the pixel size.",
+      "coverage": 33.1,
+      "recommendation": "embed",
+      "clearerSide": "left",
+      "zones": {
+        "largest": {
+          "xPct": 0,
+          "yPct": 44.4,
+          "wPct": 41.7,
+          "hPct": 48.1,
+          "areaPct": 20.1,
+          "px": {
+            "x": 0,
+            "y": 320,
+            "w": 533,
+            "h": 347
+          },
+          "meanLuma": 57,
+          "bright": false
+        },
+        "left": {
+          "xPct": 0,
+          "yPct": 44.4,
+          "wPct": 41.7,
+          "hPct": 48.1,
+          "areaPct": 20.1,
+          "px": {
+            "x": 0,
+            "y": 320,
+            "w": 533,
+            "h": 347
+          },
+          "meanLuma": 57,
+          "bright": false
+        },
+        "right": {
+          "xPct": 50,
+          "yPct": 0,
+          "wPct": 10.4,
+          "hPct": 63,
+          "areaPct": 6.6,
+          "px": {
+            "x": 640,
+            "y": 0,
+            "w": 133,
+            "h": 453
+          },
+          "meanLuma": 154,
+          "bright": false
+        },
+        "top": {
+          "xPct": 39.6,
+          "yPct": 0,
+          "wPct": 22.9,
+          "hPct": 37,
+          "areaPct": 8.5,
+          "px": {
+            "x": 507,
+            "y": 0,
+            "w": 293,
+            "h": 267
+          },
+          "meanLuma": 181,
+          "bright": true
+        },
+        "hugLeft": null,
+        "hugRight": null
+      }
+    },
+    {
+      "in": 3.54,
+      "out": 5.81,
+      "text": "It's remarkable what you can actually recover fr",
+      "coverage": 36.1,
+      "recommendation": "embed",
+      "clearerSide": "left",
+      "zones": {
+        "largest": {
+          "xPct": 0,
+          "yPct": 48.1,
+          "wPct": 33.3,
+          "hPct": 51.9,
+          "areaPct": 17.3,
+          "px": {
+            "x": 0,
+            "y": 347,
+            "w": 427,
+            "h": 373
+          },
+          "meanLuma": 58,
+          "bright": false
+        },
+        "left": {
+          "xPct": 0,
+          "yPct": 48.1,
+          "wPct": 33.3,
+          "hPct": 51.9,
+          "areaPct": 17.3,
+          "px": {
+            "x": 0,
+            "y": 347,
+            "w": 427,
+            "h": 373
+          },
+          "meanLuma": 58,
+          "bright": false
+        },
+        "right": {
+          "xPct": 50,
+          "yPct": 0,
+          "wPct": 12.5,
+          "hPct": 51.9,
+          "areaPct": 6.5,
+          "px": {
+            "x": 640,
+            "y": 0,
+            "w": 160,
+            "h": 373
+          },
+          "meanLuma": 172,
+          "bright": false
+        },
+        "top": {
+          "xPct": 39.6,
+          "yPct": 0,
+          "wPct": 22.9,
+          "hPct": 37,
+          "areaPct": 8.5,
+          "px": {
+            "x": 507,
+            "y": 0,
+            "w": 293,
+            "h": 267
+          },
+          "meanLuma": 181,
+          "bright": true
+        },
+        "hugLeft": null,
+        "hugRight": null
+      }
+    }
+  ]
+}
