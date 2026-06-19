@@ -324,7 +324,7 @@ Hard rules:
 - **Readable first.** Every letter should be fully on-screen, with at most a few-px crop on the first/last letter.
 - **If max legible size doesn't meet ratio target**, raise impact via _other_ signals (weight 900, all-caps, bg head-cross, multi-line composition with setup word above), not via illegible bleed.
 - **Never bleed body/narrator captions.** Only the crown/climax is allowed any edge crop at all.
-- `OCCLUSION_SKIP=1` is an escape hatch for iterating; the shipped plan should pass `check-occlusion-v2.py --strict` (pixel-perfect via headless Chromium DOM).
+- `OCCLUSION_SKIP=1` is an escape hatch for iterating; the shipped plan should pass `scripts/check-occlusion.cjs --strict` (pixel-perfect via headless Chromium DOM).
 
 ### Edge breathing + climax-crosses-head (bg showcase)
 

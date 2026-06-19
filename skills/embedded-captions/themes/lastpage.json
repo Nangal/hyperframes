@@ -26,8 +26,7 @@
   },
   "fx": {},
   "plate": {
-    "pushIn": 0.012,
-    "grain": 6
+    "pushIn": 0.012
   },
-  "linkages": ["field-is-the-apex"]
+  "linkages": []
 }

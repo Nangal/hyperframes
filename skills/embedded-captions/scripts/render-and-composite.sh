@@ -336,7 +336,7 @@ elif [[ -f "$PROJECT/rail.html" ]]; then
   link_assets "$PROJECT" "$RAIL_SHADOW"
   cp "$PROJECT/rail.html" "$RAIL_SHADOW/index.html"
   RAIL_WEBM="$PROJECT/rail.webm"
-  echo "[render] standard base + rail — launching both passes in parallel"
+  echo "[render] theme base + rail — launching both passes in parallel"
   hf_render_dir "$BG" "bg_plus_caps" "$BASE_SHADOW" &
   BASE_PID=$!
   hf_render_dir "$RAIL_WEBM" "rail" "$RAIL_SHADOW" "webm" &

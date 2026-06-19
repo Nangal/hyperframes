@@ -36,7 +36,6 @@
   },
   "hero": {
     "setpiece": "centerfold",
-    "layer": "bg",
     "fontPx": 120,
     "params": { "segs": 3, "segStagger": 0.07, "scrim": 0.42 }
   },

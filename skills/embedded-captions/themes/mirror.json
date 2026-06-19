@@ -30,7 +30,6 @@
   },
   "hero": {
     "setpiece": "mirrormerge",
-    "layer": "bg",
     "fontPx": 110,
     "maxHold": 2.2,
     "params": {

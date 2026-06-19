@@ -108,14 +108,12 @@ function isVfr(src) {
   return r > 0 && avg > 0 && Math.abs(r - avg) / avg > 0.05;
 }
 
-function extractFrames(src, dst, fps, extra = []) {
+function extractFrames(src, dst, fps) {
   fs.mkdirSync(dst, { recursive: true });
   if (fs.readdirSync(dst).some((f) => f.endsWith(".png"))) return false;
-  cp.execFileSync(
-    "ffmpeg",
-    ["-y", "-i", src, "-vf", `fps=${fps}`, ...extra, path.join(dst, "f_%04d.png")],
-    { stdio: "ignore" },
-  );
+  cp.execFileSync("ffmpeg", ["-y", "-i", src, "-vf", `fps=${fps}`, path.join(dst, "f_%04d.png")], {
+    stdio: "ignore",
+  });
   return true;
 }
 

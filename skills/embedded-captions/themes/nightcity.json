@@ -31,7 +31,6 @@
   },
   "hero": {
     "setpiece": "coverword",
-    "layer": "bg",
     "fontPx": 150,
     "params": {
       "seed": 77
@@ -49,8 +48,7 @@
     "shakeHz": 12,
     "shakeDecay": 7,
     "shakeWindow": 0.5,
-    "rgbashift": 4,
-    "grain": 6
+    "rgbashift": 4
   },
   "linkages": []
 }

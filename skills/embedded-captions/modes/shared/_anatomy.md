@@ -1,6 +1,6 @@
 ---
 name: caption-template-anatomy
-description: The shared, reproducible scene engine every caption template is built on — a matted talking-head with a flowing verbatim foreground caption and a single climax word, driven by one paused GSAP timeline. Read it ONCE per session (it is identical for all 54 templates); each per-template file in templates/ only overrides the style tokens + the named climax entrance/exit.
+description: The shared, reproducible scene engine every caption template is built on — a matted talking-head with a flowing verbatim foreground caption and a single climax word, driven by one paused GSAP timeline. Read it ONCE per session (the engine is identical across every identity); each DNA/theme only swaps the style tokens + the named climax entrance/exit.
 metadata:
   tags: caption, talking-head, matte, occlusion, verbatim, climax, gsap, hyperframes
 ---
@@ -11,7 +11,7 @@ A **caption template** = one complete, reproducible HyperFrames scene:
 
 > **the person (always in frame)** + a **flowing foreground caption** (verbatim, word-by-word, with appear **and** disappear) + a **climax word** (big, behind the speaker, with a designed entrance **and** exit) + a coherent **font / colour / motion** design.
 
-Every file in `templates/` is the SAME engine described here with three things swapped: (1) the **style tokens** (font, fills, accent, optional gradient/stroke), (2) the named **climax entrance** + **exit** (see `_motion.md`), (3) the **copy** (flow lines + climax word) and **scene/person**. So read this once; each template file is short.
+Every identity is the SAME engine described here with three things swapped: (1) the **style tokens** (font, fills, accent, optional gradient/stroke), (2) the named **climax entrance** + **exit** (see `_motion.md`), (3) the **copy** (flow lines + climax word) and **scene/person**. So read this once; each identity's DNA/theme file is short.
 
 HyperFrames-native, so anyone can reproduce it:
 

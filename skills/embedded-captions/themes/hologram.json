@@ -31,7 +31,6 @@
   },
   "hero": {
     "setpiece": "holoboot",
-    "layer": "bg",
     "fontPx": 118,
     "params": { "passAt": 1.29, "coneW": 800 }
   },

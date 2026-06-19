@@ -24,7 +24,6 @@
   },
   "hero": {
     "setpiece": "silkribbon",
-    "layer": "bg",
     "params": {
       "targetWidth": 880,
       "window": 0.68,

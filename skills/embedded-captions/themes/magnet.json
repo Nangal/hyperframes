@@ -37,7 +37,6 @@
   },
   "hero": {
     "setpiece": "magnetapex",
-    "layer": "bg",
     "x": 768,
     "y": 142,
     "fontPx": 100,
@@ -60,8 +59,7 @@
     "shakeAmpY": 2,
     "shakeHz": 11,
     "shakeDecay": 8,
-    "shakeWindow": 0.4,
-    "grain": 5
+    "shakeWindow": 0.4
   },
   "linkages": []
 }

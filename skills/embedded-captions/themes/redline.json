@@ -19,7 +19,6 @@
   },
   "hero": {
     "setpiece": "doppler",
-    "layer": "bg",
     "fontPx": 150,
     "params": {
       "tracking": 0.02,
@@ -41,8 +40,7 @@
     "shakeAmpY": 4,
     "shakeHz": 13,
     "shakeDecay": 8,
-    "shakeWindow": 0.5,
-    "grain": 6
+    "shakeWindow": 0.5
   },
   "linkages": []
 }

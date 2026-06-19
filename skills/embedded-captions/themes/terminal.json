@@ -23,7 +23,6 @@
   },
   "hero": {
     "setpiece": "decode",
-    "layer": "bg",
     "x": 660,
     "y": 255,
     "fontPx": 112,
@@ -31,7 +30,6 @@
       "glyphs": "X017#%/<>+=*KZR",
       "brackets": true,
       "lockStagger": 0.045,
-      "exit": "crt-off",
       "seed": 99
     }
   },
@@ -42,8 +40,7 @@
     "punchDecay": 10,
     "shakeAmpX": 0,
     "shakeAmpY": 0,
-    "rgbashift": 4,
-    "grain": 6
+    "rgbashift": 4
   },
   "linkages": ["redact-until-hero", "corrupt-on-last-word"]
 }

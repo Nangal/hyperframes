@@ -23,7 +23,6 @@
   },
   "hero": {
     "setpiece": "masthead",
-    "layer": "bg",
     "x": 640,
     "y": 172,
     "fontPx": 148,

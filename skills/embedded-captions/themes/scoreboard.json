@@ -24,7 +24,6 @@
   },
   "hero": {
     "setpiece": "flapboard",
-    "layer": "bg",
     "fontPx": 138,
     "params": {
       "seed": 8088,
@@ -47,8 +46,7 @@
     "shakeAmpY": 5,
     "shakeHz": 12,
     "shakeDecay": 7,
-    "shakeWindow": 0.6,
-    "grain": 6
+    "shakeWindow": 0.6
   },
   "linkages": []
 }

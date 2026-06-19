@@ -30,7 +30,6 @@
   },
   "hero": {
     "setpiece": "ironbrand",
-    "layer": "bg",
     "x": 600,
     "y": 314,
     "fontPx": 124,
@@ -56,8 +55,7 @@
     "shakeAmpY": 4,
     "shakeHz": 11,
     "shakeDecay": 7,
-    "shakeWindow": 0.5,
-    "grain": 6
+    "shakeWindow": 0.5
   },
   "linkages": []
 }

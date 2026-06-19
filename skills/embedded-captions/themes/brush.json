@@ -38,7 +38,6 @@
   },
   "hero": {
     "setpiece": "brushwrite",
-    "layer": "bg",
     "params": {
       "targetWidth": 760,
       "window": 0.45,
@@ -66,8 +65,7 @@
     "shakeAmpY": 5,
     "shakeHz": 12,
     "shakeDecay": 7,
-    "shakeWindow": 0.6,
-    "grain": 6
+    "shakeWindow": 0.6
   },
   "linkages": []
 }

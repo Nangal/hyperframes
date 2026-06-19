@@ -1,4 +1,4 @@
-# Cinematic mode (pure embed) — one engine, six DNAs
+# Cinematic mode (pure embed) — one engine, ten DNAs
 
 > Cinematic mode compiles **[../../dna/](../../dna/README.md)** through
 > **[engine.html](engine.html)** (`make-composition.cjs`). The old per-template HTML
@@ -14,7 +14,7 @@ blocks, per-line typography within the DNA).
 
 1. `bash scripts/prepare.sh <project>` → matte ∥ transcript ∥ envelope → safe-zones v2
 2. Pick a DNA ([../../dna/README.md](../../dna/README.md)): bright hero band → `ink`,
-   else by register (cream / editorial / keynote / documentary / loud). Recommend, let
+   else by register (cream / editorial / keynote / documentary / loud / neon / glitch / chrome / velocity). Recommend, let
    the user pick.
 3. Author `<project>/cinematic.json` — `"dna": "<name>"` + thought-blocks (schema:
    `scripts/make-cinematic.cjs` header)

@@ -19,7 +19,6 @@
   },
   "hero": {
     "setpiece": "detonation",
-    "layer": "bg",
     "x": 640,
     "y": 268,
     "fontPx": 178,
@@ -32,7 +31,6 @@
       "sliceShear": [-46, 52, -58],
       "bars": true,
       "barWidth": 760,
-      "barDy": 124,
       "ticks": true,
       "tag": "APEX-01"
     }
@@ -47,8 +45,7 @@
     "shakeAmpY": 5,
     "shakeHz": 12,
     "shakeDecay": 7,
-    "shakeWindow": 0.6,
-    "grain": 6
+    "shakeWindow": 0.6
   },
   "linkages": []
 }

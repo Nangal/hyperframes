@@ -25,7 +25,6 @@
   },
   "hero": {
     "setpiece": "biobloom",
-    "layer": "bg",
     "fontPx": 120,
     "params": { "crush": 0.11, "drift": -30, "mood": 0.92 }
   },

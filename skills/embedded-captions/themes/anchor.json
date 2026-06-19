@@ -18,7 +18,6 @@
   },
   "hero": {
     "setpiece": "settle",
-    "layer": "bg",
     "fontPx": 150,
     "params": {}
   },

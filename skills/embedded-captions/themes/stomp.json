@@ -36,7 +36,6 @@
     "shakeHz": 12,
     "shakeDecay": 7,
     "shakeWindow": 0.6,
-    "grain": 7,
     "minorPunch": 0.02
   },
   "linkages": []

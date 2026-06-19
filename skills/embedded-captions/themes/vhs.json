@@ -23,7 +23,6 @@
   },
   "hero": {
     "setpiece": "vhsosd",
-    "layer": "bg",
     "x": 640,
     "y": 268,
     "fontPx": 150,

@@ -1,4 +1,4 @@
-# THE CATALOG — one front-end, three engines behind
+# THE CATALOG — one front-end, two engines behind
 
 This is the skill's single selection surface. **The user picks an IDENTITY from
 this table; everything else (engine, compiler, authoring file) is derived by

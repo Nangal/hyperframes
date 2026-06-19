@@ -25,7 +25,6 @@
   },
   "hero": {
     "setpiece": "inkbloom",
-    "layer": "bg",
     "fontPx": 132,
     "params": {
       "fall": 0.15,

@@ -29,7 +29,6 @@
   },
   "hero": {
     "setpiece": "drawon",
-    "layer": "bg",
     "x": 560,
     "y": 200,
     "params": {
@@ -46,8 +45,7 @@
   },
   "fx": {},
   "plate": {
-    "pushIn": 0.012,
-    "grain": 5
+    "pushIn": 0.012
   },
   "linkages": []
 }

@@ -6,7 +6,7 @@ fixed look: the accent color is sampled from THIS scene, the contact shadow fall
 THIS scene's light, embed text blur matches THIS scene's depth-of-field, and the hero's
 entrance amplitude follows how hard the word was actually spoken (RMS).
 
-This replaces the template grab-bag. Six deep languages × scene adaptation beats 54
+This replaces the template grab-bag. Ten deep languages × scene adaptation beats 54
 shallow presets — every render is already fitted to its footage.
 
 ## Category lock (deliveries field, enforced by the compilers)

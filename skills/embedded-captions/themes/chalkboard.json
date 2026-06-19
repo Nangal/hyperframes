@@ -31,7 +31,6 @@
   },
   "hero": {
     "setpiece": "chalkwrite",
-    "layer": "bg",
     "params": {
       "targetWidth": 860,
       "window": 0.78,

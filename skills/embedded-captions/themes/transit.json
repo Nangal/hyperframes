@@ -27,7 +27,6 @@
   },
   "hero": {
     "setpiece": "ledwipe",
-    "layer": "bg",
     "x": 620,
     "y": 444,
     "fontPx": 120,

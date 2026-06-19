@@ -28,7 +28,6 @@
   },
   "hero": {
     "setpiece": "glassslab",
-    "layer": "bg",
     "x": 900,
     "y": 390,
     "fontPx": 90,

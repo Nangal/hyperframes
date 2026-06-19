@@ -27,7 +27,7 @@
  *          themes/<dna>.json
  * Outputs: index.html (bg: plate reaction + embedded setpiece)
  *          rail.html  (fg alpha: body paradigm + front fx)   [unless body.layer=bg]
- *          _postfx.sh (plate reaction: punch/shake/grain after composite)
+ *          _postfx.sh (plate reaction: punch/shake after composite)
  *
  * Render: scripts/render-theme.sh <project>   (render-and-composite + postfx)
  *
@@ -7452,6 +7452,7 @@ const PARADIGMS = {
   leatherrail: paradigmLeatherrail,
 };
 
+// NOTE: no shipping theme selects `cpslam` — kept as a documented, ready-to-use porting option.
 function setpieceCpslam() {
   // CP-language EMBED climax: acid-yellow word slams in BEHIND the subject with
   // REAL notch cuts (SVG mask = true transparency over footage), a chromatic

@@ -27,7 +27,6 @@
   },
   "hero": {
     "setpiece": "papermat",
-    "layer": "bg",
     "fontPx": 130,
     "params": { "step": 0.09, "seed": 151515, "vig": 0.3 }
   },

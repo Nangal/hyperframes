@@ -2,7 +2,7 @@
 
 10 distinct aesthetic directions the skill can express. Each is a complete look: font, motion, color, placement, rhetorical defaults. The agent picks by **content tone × shot type × platform**, not preset name.
 
-Current shipped templates (`modes/cinematic/*`) cover about 30% of this catalog. The rest are future ship-ready aesthetics.
+The 10 column-flow DNAs (`dna/`) + 38 themes (`themes/`) cover most of this catalog; the rest are future ship-ready aesthetics.
 
 Classification matrix — pick direction by intersection:
 

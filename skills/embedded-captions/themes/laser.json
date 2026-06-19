@@ -24,7 +24,6 @@
   },
   "hero": {
     "setpiece": "lasercage",
-    "layer": "bg",
     "fontPx": 100,
     "params": {}
   },
@@ -39,8 +38,7 @@
     "shakeAmpY": 4,
     "shakeHz": 12,
     "shakeDecay": 7,
-    "shakeWindow": 0.5,
-    "grain": 5
+    "shakeWindow": 0.5
   },
   "linkages": []
 }

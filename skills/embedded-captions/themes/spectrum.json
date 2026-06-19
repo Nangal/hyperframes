@@ -29,7 +29,6 @@
   },
   "hero": {
     "setpiece": "scopetrace",
-    "layer": "bg",
     "params": {
       "targetWidth": 720,
       "window": 0.6,

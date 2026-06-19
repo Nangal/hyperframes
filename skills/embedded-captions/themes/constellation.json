@@ -30,7 +30,6 @@
   "hero": {
     "setpiece": "starfield",
     "match": "stars",
-    "layer": "bg",
     "x": 725,
     "y": 247,
     "fontPx": 150,

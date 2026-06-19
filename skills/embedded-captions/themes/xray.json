@@ -31,7 +31,6 @@
   },
   "hero": {
     "setpiece": "scanlock",
-    "layer": "bg",
     "fontPx": 116,
     "params": {
       "charEm": 0.819,

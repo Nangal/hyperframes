@@ -38,7 +38,6 @@
   },
   "hero": {
     "setpiece": "plotterdraw",
-    "layer": "bg",
     "params": {
       "targetWidth": 960,
       "window": 0.55,

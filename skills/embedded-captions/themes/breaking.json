@@ -31,7 +31,6 @@
   },
   "hero": {
     "setpiece": "breakaway",
-    "layer": "fg",
     "fontPx": 110,
     "params": {
       "tag": "BREAKING NEWS",
@@ -51,8 +50,7 @@
     "punch": 0.04,
     "punchDecay": 9,
     "punchOffset": 0.09,
-    "shakeWindow": 0.5,
-    "grain": 5
+    "shakeWindow": 0.5
   },
   "linkages": []
 }
