@@ -4,6 +4,10 @@ type IframeWindow = Window & {
   __hfForceTimelineRebind?: () => void;
   __hfSuppressSceneMutations?: <T>(fn: () => T) => T;
   __hfStudioManualEditsApply?: () => void;
+  // Set while a MotionPathPlugin <script> is being fetched, so overlapping soft
+  // reloads (each needing the plugin) don't queue duplicate plugin scripts that
+  // re-flash the iframe. Cleared once the plugin loads or errors.
+  __hfMotionPathPluginLoading?: boolean;
   gsap?: {
     timeline?: (...args: unknown[]) => unknown;
     registerPlugin?: (...plugins: unknown[]) => unknown;
@@ -64,8 +68,18 @@ function verifyTimelinesPopulated(win: IframeWindow): boolean {
  * - The iframe or GSAP runtime isn't available
  * - Multiple GSAP scripts are found (ambiguous which to replace)
  * - No matching GSAP script element exists in the live DOM
+ *
+ * `onAsyncFailure` is invoked when the soft reload was deferred to load the
+ * MotionPath plugin (so this returned true optimistically) but the plugin
+ * `<script>` then failed to load — the iframe is left without the plugin and the
+ * caller should perform a full reload to recover. It never fires on the
+ * synchronous paths.
  */
-export function applySoftReload(iframe: HTMLIFrameElement | null, scriptText: string): boolean {
+export function applySoftReload(
+  iframe: HTMLIFrameElement | null,
+  scriptText: string,
+  onAsyncFailure?: () => void,
+): boolean {
   if (!iframe || !scriptText) return false;
 
   const win = iframe.contentWindow as IframeWindow | null;
@@ -161,10 +175,41 @@ export function applySoftReload(iframe: HTMLIFrameElement | null, scriptText: st
     const needsMotionPath = /motionPath\s*[:{]/.test(scriptText);
     if (needsMotionPath && !win.MotionPathPlugin && win.gsap) {
       deferredToAsync = true;
+      // A prior soft reload is already fetching the plugin — don't queue a second
+      // <script> (it re-flashes the iframe). Defer THIS script's execution until
+      // the in-flight load settles via a one-shot poll. The bootstrap guard is
+      // the single source of truth for "plugin fetch in progress".
+      if (win.__hfMotionPathPluginLoading) {
+        const started = Date.now();
+        const poll = win.setInterval(() => {
+          if (win.MotionPathPlugin) {
+            win.clearInterval(poll);
+            executeScript();
+          } else if (!win.__hfMotionPathPluginLoading || Date.now() - started > 10000) {
+            // The in-flight load finished without registering the plugin (errored)
+            // or we timed out — recover with a full reload instead of running a
+            // script that references a missing plugin.
+            win.clearInterval(poll);
+            onAsyncFailure?.();
+          }
+        }, 50);
+        return;
+      }
+      win.__hfMotionPathPluginLoading = true;
       const pluginScript = doc.createElement("script");
       pluginScript.src = "https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/MotionPathPlugin.min.js";
-      pluginScript.onload = () => executeScript();
-      pluginScript.onerror = () => executeScript();
+      pluginScript.onload = () => {
+        win.__hfMotionPathPluginLoading = false;
+        executeScript();
+      };
+      pluginScript.onerror = () => {
+        // The plugin failed to load. Running executeScript() now would leave the
+        // iframe with a motionPath tween referencing a missing plugin while the
+        // caller already thinks the soft reload succeeded. Signal failure so the
+        // caller can full-reload (which fetches the plugin fresh) instead.
+        win.__hfMotionPathPluginLoading = false;
+        onAsyncFailure?.();
+      };
       doc.head.appendChild(pluginScript);
       return;
     }

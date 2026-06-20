@@ -277,7 +277,15 @@ export const MotionPathOverlay = memo(function MotionPathOverlay({
   const dragRef = useRef<DragState | null>(null);
   // Park-on-click is debounced so a double-click cancels the seek (see onUp).
   const parkTimerRef = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  useEffect(() => () => clearTimeout(parkTimerRef.current), []);
+  // The animation id whose path is currently editable. Computed at hook level (not
+  // just in render, after the early returns) so the park-timer cleanup can key on
+  // it: a pending park seek belongs to the OLD animation, so firing it after the
+  // active animation changed would jump the playhead onto a stale keyframe.
+  const animId = editableAnimationId(selectedGsapAnimations ?? [], geometry?.kind ?? "linear");
+  // Clear the debounced park timer on unmount AND whenever the active animation id
+  // changes — not unmount-only, or a queued seek from the previous selection still
+  // fires against the new one.
+  useEffect(() => () => clearTimeout(parkTimerRef.current), [animId]);
 
   // Create mode: a selected element with no positional motion. A double-click on
   // the canvas authors a new motionPath from the element to that point. Gated on
@@ -375,7 +383,6 @@ export const MotionPathOverlay = memo(function MotionPathOverlay({
 
   const scale = rect.width / compositionSize.width;
   const nodeR = NODE_PX / scale;
-  const animId = editableAnimationId(selectedGsapAnimations ?? [], geometry.kind);
   const interactive = Boolean(animId) && !isPlaying;
   // The × "quick remove" badge applies to non-cubic motionPath arcs only (cubic
   // anchors carry control points we don't synthesize; keyframe paths remove via

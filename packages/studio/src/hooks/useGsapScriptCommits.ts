@@ -84,7 +84,9 @@ export function useGsapScriptCommits({ projectIdRef, activeCompPath, previewIfra
     options.beforeReload?.();
     let applied: "soft" | "full" = "full";
     if (options.softReload && result.scriptText) {
-      applied = applySoftReload(previewIframeRef.current, result.scriptText) ? "soft" : "full";
+      applied = applySoftReload(previewIframeRef.current, result.scriptText, reloadPreview)
+        ? "soft"
+        : "full";
       if (applied === "full") reloadPreview();
     } else {
       reloadPreview();
@@ -112,7 +114,9 @@ export function useGsapScriptCommits({ projectIdRef, activeCompPath, previewIfra
   const sdkRefresh = useCallback(
     (after: string) => {
       const script = extractGsapScriptText(after);
-      if (!(script && applySoftReload(previewIframeRef.current, script))) reloadPreview();
+      if (!(script && applySoftReload(previewIframeRef.current, script, reloadPreview))) {
+        reloadPreview();
+      }
       onCacheInvalidate();
     },
     [previewIframeRef, reloadPreview, onCacheInvalidate],

@@ -10,8 +10,6 @@
 import { useCallback } from "react";
 import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
 import type { DomEditSelection } from "../components/editor/domEditingTypes";
-import { STUDIO_GSAP_DRAG_INTERCEPT_ENABLED } from "../components/editor/manualEditingAvailability";
-import { GSAP_CSS_FALLBACK_BLOCKED_MESSAGE } from "./useDomGeometryCommits";
 import {
   tryGsapDragIntercept,
   tryGsapResizeIntercept,
@@ -94,12 +92,7 @@ export function useGsapAwareEditing({
 
   const handleGsapAwarePathOffsetCommit = useCallback(
     async (selection: DomEditSelection, next: { x: number; y: number }) => {
-      const hasGsapAnims = selectedGsapAnimations.length > 0;
-      if (hasGsapAnims && !STUDIO_GSAP_DRAG_INTERCEPT_ENABLED) {
-        showToast(GSAP_CSS_FALLBACK_BLOCKED_MESSAGE, "error");
-        throw new Error(GSAP_CSS_FALLBACK_BLOCKED_MESSAGE);
-      }
-      if (STUDIO_GSAP_DRAG_INTERCEPT_ENABLED && gsapCommitMutation) {
+      if (gsapCommitMutation) {
         try {
           // The GSAP timeline is the single source of truth for element position —
           // for the top-level composition AND subcompositions. tryGsapDragIntercept
@@ -126,13 +119,12 @@ export function useGsapAwareEditing({
       previewIframeRef,
       makeFetchFallback,
       trackGsapInteractionFailure,
-      showToast,
     ],
   );
 
   const handleGsapAwareBoxSizeCommit = useCallback(
     async (selection: DomEditSelection, next: { width: number; height: number }) => {
-      if (STUDIO_GSAP_DRAG_INTERCEPT_ENABLED && gsapCommitMutation) {
+      if (gsapCommitMutation) {
         try {
           const handled = await tryGsapResizeIntercept(
             selection,
@@ -162,7 +154,7 @@ export function useGsapAwareEditing({
 
   const handleGsapAwareRotationCommit = useCallback(
     async (selection: DomEditSelection, next: { angle: number }) => {
-      if (STUDIO_GSAP_DRAG_INTERCEPT_ENABLED && gsapCommitMutation) {
+      if (gsapCommitMutation) {
         try {
           // Single source of truth for rotation too: tryGsapRotationIntercept handles
           // tweened elements (keyframes) and static ones (a tl.set), so there's no

@@ -178,6 +178,57 @@ async function commitKeyframedPosition(
   }
 }
 
+// Minimal GSAP runtime surface the start-value read needs — narrowed from the
+// iframe window so the read path isn't a blanket `as any` ladder.
+interface DragRuntimeGsap {
+  getProperty: (target: Element, key: string) => unknown;
+  set: (target: Element, vars: Record<string, unknown>) => void;
+}
+interface DragRuntimeTimeline {
+  seek: (time: number) => void;
+}
+interface DragRuntime {
+  gsapLib: DragRuntimeGsap;
+  el: Element;
+  mainTl: DragRuntimeTimeline;
+}
+
+/**
+ * Resolve the iframe's GSAP lib, the target element, and the main timeline for a
+ * drag start-value read. Returns null (caller falls back to identity values)
+ * when any piece is missing — a legitimate "runtime not ready" case, distinct
+ * from a read that throws mid-flight (which the caller surfaces).
+ */
+function resolveDragRuntime(
+  iframe: HTMLIFrameElement | null | undefined,
+  selector: string | undefined,
+): DragRuntime | null {
+  if (!iframe || !selector) return null;
+  const win = iframe.contentWindow as
+    | (Window & {
+        gsap?: Partial<DragRuntimeGsap>;
+        __timelines?: Record<string, Partial<DragRuntimeTimeline>>;
+      })
+    | null;
+  const gsap = win?.gsap;
+  if (typeof gsap?.getProperty !== "function" || typeof gsap.set !== "function") return null;
+  let el: Element | null = null;
+  try {
+    el = iframe.contentDocument?.querySelector(selector) ?? null;
+  } catch {
+    return null; // cross-origin / detached document
+  }
+  if (!el) return null;
+  const timelines = win?.__timelines;
+  const mainTl = timelines ? Object.values(timelines)[0] : undefined;
+  if (typeof mainTl?.seek !== "function") return null;
+  return {
+    gsapLib: gsap as DragRuntimeGsap,
+    el,
+    mainTl: mainTl as DragRuntimeTimeline,
+  };
+}
+
 /**
  * For flat to()/set() tweens, convert to keyframes first so we can place the
  * drag position at the current percentage.
@@ -206,44 +257,48 @@ async function commitFlatViaKeyframes(
   // captures the actual interpolated value (e.g. x=300 after a preceding slide),
   // not the identity value (x=0) that a blind convert would produce.
   const resolvedFromValues: Record<string, number | string> = {};
-  if (iframe && selector && ts !== null) {
+  const runtime = resolveDragRuntime(iframe, selector);
+  if (runtime && ts !== null) {
+    const { gsapLib, el, mainTl } = runtime;
+    // Snapshot the live drag's gsap overrides BEFORE clearing them. The clear
+    // below is only needed to read the tween's start values cleanly; if the
+    // commit that follows later fails, we must put the dragged pose back so the
+    // element isn't left with its overrides cleared and nothing applied (a
+    // visible snap to the base pose with the drag silently lost).
+    const draggedValues: Record<string, number> = {};
+    for (const key of Object.keys(properties)) {
+      const v = Number(gsapLib.getProperty(el, key));
+      if (Number.isFinite(v)) draggedValues[key] = v;
+    }
     try {
-      const iframeWin = iframe.contentWindow as any;
-      const gsapLib = iframeWin?.gsap;
-      const el = iframe.contentDocument?.querySelector(selector);
-      const timelines = iframeWin?.__timelines;
-      const mainTl = timelines ? (Object.values(timelines)[0] as any) : null;
-      if (gsapLib && el && mainTl?.seek) {
-        // Snapshot the live drag's gsap overrides BEFORE clearing them. The clear
-        // below is only needed to read the tween's start values cleanly; if the
-        // commit that follows later fails, we must put the dragged pose back so the
-        // element isn't left with its overrides cleared and nothing applied (a
-        // visible snap to the base pose with the drag silently lost).
-        const draggedValues: Record<string, number> = {};
-        for (const key of Object.keys(properties)) {
-          const v = Number(gsapLib.getProperty(el, key));
-          if (Number.isFinite(v)) draggedValues[key] = v;
-        }
-        // Clear the live drag's gsap overrides first. Otherwise a property the
-        // tween doesn't animate (e.g. `y` on a flat `to({x})`) keeps the dragged
-        // value through the seek and pollutes the 0% keyframe (it would start at
-        // the dropped position instead of animating there). After clearing, the
-        // seek reapplies the timeline's real interpolated values for animated
-        // props, and untweened props fall back to their base (0).
-        gsapLib.set(el, { clearProps: Object.keys(properties).join(",") });
-        mainTl.seek(ts);
-        for (const key of Object.keys(properties)) {
-          const v = Number(gsapLib.getProperty(el, key));
-          if (Number.isFinite(v)) resolvedFromValues[key] = roundTo3(v);
-        }
-        mainTl.seek(ct);
-        // Re-apply the dragged overrides. On a successful commit the soft-reload
-        // re-seek overwrites these with the persisted keyframe values; on a failed
-        // commit they keep the element showing where the user dropped it.
-        if (Object.keys(draggedValues).length > 0) gsapLib.set(el, draggedValues);
+      // Clear the live drag's gsap overrides first. Otherwise a property the
+      // tween doesn't animate (e.g. `y` on a flat `to({x})`) keeps the dragged
+      // value through the seek and pollutes the 0% keyframe (it would start at
+      // the dropped position instead of animating there). After clearing, the
+      // seek reapplies the timeline's real interpolated values for animated
+      // props, and untweened props fall back to their base (0).
+      gsapLib.set(el, { clearProps: Object.keys(properties).join(",") });
+      mainTl.seek(ts);
+      for (const key of Object.keys(properties)) {
+        const v = Number(gsapLib.getProperty(el, key));
+        if (Number.isFinite(v)) resolvedFromValues[key] = roundTo3(v);
       }
-    } catch {
-      /* iframe access failed — fall back to identity values */
+      mainTl.seek(ct);
+    } catch (err) {
+      // A read/seek failure here is NOT routine — it means resolvedFromValues is
+      // incomplete and the 0% keyframe would silently capture identity (x=0)
+      // instead of the real interpolated start. Drop the partial reads so the
+      // caller falls back to identity deliberately (not on a phantom value), and
+      // surface the failure rather than swallowing it.
+      console.warn("[gsap-drag] start-value read failed; using identity from values", err);
+      for (const key of Object.keys(resolvedFromValues)) delete resolvedFromValues[key];
+    } finally {
+      // Re-apply the dragged overrides. On a successful commit the soft-reload
+      // re-seek overwrites these with the persisted keyframe values; on a failed
+      // commit they keep the element showing where the user dropped it. Runs even
+      // if the seek threw, so a partial clear doesn't leave the element snapped to
+      // its base pose with the drag lost.
+      if (Object.keys(draggedValues).length > 0) gsapLib.set(el, draggedValues);
     }
   }
 

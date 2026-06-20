@@ -11,6 +11,46 @@ import type { GsapAnimation } from "@hyperframes/core/gsap-parser";
 import { roundTo3 } from "../utils/rounding";
 import { classifyPropertyGroup } from "@hyperframes/core/gsap-parser";
 
+type RecordedKeyframe = { percentage: number; properties: Record<string, number | string> };
+
+/**
+ * Split recorded keyframes into one keyframe-set per property group (position /
+ * scale / rotation / …), each keyframe carrying only that group's props.
+ *
+ * A mixed-prop gesture (e.g. x/y + opacity) emitted as ONE add-with-keyframes
+ * mutation parses back as an untagged legacy mixed tween, which breaks the
+ * position-only drag intercept (it can't find a pure position tween to edit).
+ * Emitting one tween per group keeps the position tween tagged and editable.
+ * Keyframes with no prop in a group are dropped from that group's set.
+ */
+function partitionKeyframesByGroup(keyframes: RecordedKeyframe[]): RecordedKeyframe[][] {
+  // Preserve first-seen group order for deterministic, stable mutation ordering.
+  const groupOrder: string[] = [];
+  const byGroup = new Map<string, RecordedKeyframe[]>();
+  for (const kf of keyframes) {
+    const perGroup = new Map<string, Record<string, number | string>>();
+    for (const [key, value] of Object.entries(kf.properties)) {
+      const group = classifyPropertyGroup(key);
+      let props = perGroup.get(group);
+      if (!props) {
+        props = {};
+        perGroup.set(group, props);
+      }
+      props[key] = value;
+    }
+    for (const [group, props] of perGroup) {
+      let set = byGroup.get(group);
+      if (!set) {
+        set = [];
+        byGroup.set(group, set);
+        groupOrder.push(group);
+      }
+      set.push({ percentage: kf.percentage, properties: props });
+    }
+  }
+  return groupOrder.map((group) => byGroup.get(group)!);
+}
+
 // Minimal subset of the session used by gesture commit
 interface GestureSessionRef {
   domEditSelection: DomEditSelection | null;
@@ -184,29 +224,37 @@ export function useGestureCommit({
                 { label: "Gesture recording (merge)", softReload: true },
               );
             } else {
-              await liveSession.commitMutation(
-                {
-                  type: "add-with-keyframes",
-                  targetSelector: selector,
-                  position: roundTo3(recStart),
-                  duration: roundTo3(duration),
-                  keyframes,
-                },
-                { label: "Gesture recording (new range)", softReload: true },
-              );
+              // Emit one tween per property group so a mixed-prop gesture (e.g.
+              // x/y + opacity) doesn't collapse into an untagged legacy mixed
+              // tween that the position-only drag intercept can't edit.
+              for (const groupKfs of partitionKeyframesByGroup(keyframes)) {
+                await liveSession.commitMutation(
+                  {
+                    type: "add-with-keyframes",
+                    targetSelector: selector,
+                    position: roundTo3(recStart),
+                    duration: roundTo3(duration),
+                    keyframes: groupKfs,
+                  },
+                  { label: "Gesture recording (new range)", softReload: true },
+                );
+              }
             }
           }
         } else {
-          await liveSession.commitMutation(
-            {
-              type: "add-with-keyframes",
-              targetSelector: selector,
-              position: roundTo3(recStart),
-              duration: roundTo3(duration),
-              keyframes,
-            },
-            { label: "Gesture recording", softReload: true },
-          );
+          // No existing tween — same per-group split as the new-range branch above.
+          for (const groupKfs of partitionKeyframesByGroup(keyframes)) {
+            await liveSession.commitMutation(
+              {
+                type: "add-with-keyframes",
+                targetSelector: selector,
+                position: roundTo3(recStart),
+                duration: roundTo3(duration),
+                keyframes: groupKfs,
+              },
+              { label: "Gesture recording", softReload: true },
+            );
+          }
         }
       }
       showToast(`Recorded ${sortedPcts.length} keyframes`, "info");
