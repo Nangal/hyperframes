@@ -222,7 +222,10 @@ Run the final commands. There is **no backstop** in this step: if any command fa
 ```bash
 node <SKILL_DIR>/scripts/transitions.mjs inject --storyboard ./STORYBOARD.md --hyperframes .
 node <SKILL_DIR>/scripts/transitions.mjs verify --storyboard ./STORYBOARD.md --index ./index.html
-npx hyperframes lint && npx hyperframes validate
+npx hyperframes lint
+npx hyperframes validate
+npx hyperframes inspect
+npx hyperframes snapshot --at <frame-midpoints>
 npx hyperframes render --quality high --output renders/video.mp4
 ```
 
@@ -236,7 +239,7 @@ npx hyperframes preview
 
 Report the real preview URL.
 
-**Gate:** `lint` and `validate` pass, and `renders/video.mp4` exists. The final reply states the MP4 path, duration, and offers the preview.
+**Gate:** `lint` , `validate` and `inspect` pass, and `renders/video.mp4` exists. The final reply states the MP4 path, duration, and offers the preview.
 
 ---
 

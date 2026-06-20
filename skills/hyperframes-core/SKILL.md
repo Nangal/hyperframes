@@ -68,10 +68,10 @@ Surfaced here; full rationale in the linked reference. Do not violate:
 
 ## Validation
 
-Use `hyperframes-cli` for command details.
+Use `hyperframes-cli` for command details
 
 - [ ] `npx hyperframes lint` passes (0 errors)
 - [ ] `npx hyperframes validate` passes (0 console errors)
-- [ ] `npx hyperframes inspect` passes, or overflow is intentionally marked
+- [ ] `npx hyperframes inspect` passes (0 errors)
 - [ ] Projects with sub-compositions: `npx hyperframes snapshot --at <midpoints>` and eyeball each frame
 - [ ] Render the final MP4 (`npx hyperframes render`) and eyeball it. (Offer preview on completion; don't auto-open mid-edit — the workflow sets the policy.)

@@ -45,19 +45,21 @@ Generic seek-safety + structure live in `hyperframes-core` (read it; not restate
 
 ## Workflow
 
-1. **Read** — `hyperframes-core`'s composition contract (the structural law), then `frame.md` (the look) and your `## Frame N` block (content + effects / blueprint / assets). **Then open the recipe body of every id the block cites** — `ANIM_DIR/rules/<id>.md` per effect and `ANIM_DIR/blueprints/<id>.md` for the blueprint (plus its linked `examples/<id>.html` when the recipe is unclear): you reproduce these, not improvise them. The core rules that bite hardest, internalize them: **`<style>` + `<script>` (including the gsap load) live INSIDE `<template>`** (the runtime only clones template contents — anything outside renders blank, and **lint/validate do NOT catch it**), **hero visible by ≤ 0.5s** (use `gsap.fromTo`, never CSS-hide an element that has an entrance tween), **one writer per animated property**, **transform aliases only**, **no `Date.now` / `Math.random` / fetch / repeat / yoyo**.
+1. **Read** — `hyperframes-core`'s composition contract (the structural law), then `frame.md` (the look) and your `## Frame N` block (content + effects / blueprint / assets). **Then open the recipe body of every id the block cites** — `ANIM_DIR/rules/<id>.md` per effect and `ANIM_DIR/blueprints/<id>.md` for the blueprint (plus its linked `examples/<id>.html` when the recipe is unclear): you reproduce these, not improvise them. The core rules that bite hardest, internalize them: **`<style>` + `<script>` (including the gsap load) live INSIDE `<template>`** (the runtime only clones template contents — anything outside can render blank, and `lint` / `validate` / `inspect` may still miss assembled sub-composition transport failures), **hero visible by ≤ 0.5s** (use `gsap.fromTo`, never CSS-hide an element that has an entrance tween), **one writer per animated property**, **transform aliases only**, **no `Date.now` / `Math.random` / fetch / repeat / yoyo**.
 2. **Design** — translate `scene` + the (sometimes shot-by-shot) narrative + the recipes you just read into a visual plan using `frame.md`'s components and type ramp. Honor a multi-shot brief shot-by-shot — don't collapse it to one move. Find a visual idea that reinforces the beat, not a literal restyle of the words. Place the named assets.
 3. **Author** — write the full sub-composition to `compositions/frames/<frame_id>.html` (rewrite to iterate; last write wins). `<template>`-wrapped root carrying `data-composition-id="<frame_id>"`, exactly one `gsap.timeline({ paused: true })` registered at `window.__timelines["<frame_id>"]`, built synchronously — per the core contract.
 4. **Self-check, then finish** — run the checklist below and fix in place. Writing the passing file is your terminal action.
 
 ## Self-check (fix before finishing)
 
-The orchestrator runs the project lint after all workers return; catch these yourself first (codes are `hyperframes lint`'s; the rules behind them are in `hyperframes-core`):
+The orchestrator runs `lint` / `validate` / `inspect` / midpoint `snapshot` after all workers return; catch these yourself first (codes are `hyperframes lint`'s; the rules behind them are in `hyperframes-core`):
 
 - `missing_template_wrapper` / `missing_composition_id` — root is `<template>`-wrapped and carries `data-composition-id="<frame_id>"`.
+- **Template transport** — every `<style>` and `<script>` block, including the GSAP load, lives inside `<template>`.
 - `clip_missing_data_attrs` — every `class="clip"` element has `data-start` / `data-duration` / `data-track-index`.
 - `timeline_not_paused` / `timeline_not_registered` — one paused timeline, registered at `window.__timelines["<frame_id>"]`.
 - `css_transition_used` + repeat / yoyo / non-deterministic logic — none present (the renderer seeks frame-by-frame).
+- **Hero visibility** — the main subject is visible by `t <= 0.5s`; entrance tweens use `fromTo` instead of CSS-hidden starting states.
 - `exit_animation_on_non_final_scene` — no exit tween unless you are the final frame.
 - `font_family_without_font_face` — every non-system font named in `frame.md` has an `@import` / `@font-face`.
 - **Keep-out + no-narration-text** (eyeball, no code) — nothing sits below the 83% cutoff; no narration sentence is rendered as visible text.
