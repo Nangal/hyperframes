@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { arcPathFromMotionPathValue, readRuntimeKeyframes } from "./gsapRuntimeKeyframes";
+import {
+  arcPathFromMotionPathValue,
+  hasNonHoldTweenForElement,
+  readRuntimeKeyframes,
+} from "./gsapRuntimeKeyframes";
 
 // Build a fake preview iframe whose runtime timeline holds the given child tweens
 // and resolves `selector` to `el`.
@@ -94,6 +98,34 @@ describe("readRuntimeKeyframes — multiple tweens pick the one under the playhe
   it("playhead outside every range falls back to the first keyframed tween", () => {
     const read = readRuntimeKeyframes(fakeIframe(el, [gestureA, gestureB], 9.0), "#puck-a");
     expect(read?.keyframes).toHaveLength(2); // gestureA (first)
+  });
+});
+
+describe("hasNonHoldTweenForElement — strict live-tween existence (drag stale-parse guard)", () => {
+  const el = { id: "puck-b" };
+  const holdSet = {
+    targets: () => [el],
+    vars: { x: 0, y: 0, data: "hf-hold" },
+    duration: () => 0,
+    startTime: () => 0,
+  };
+  const liveTween = {
+    targets: () => [el],
+    vars: { x: -120, y: 40, duration: 1 },
+    duration: () => 1,
+    startTime: () => 1,
+  };
+
+  it("true when a non-hold tween targets the element", () => {
+    expect(hasNonHoldTweenForElement(fakeIframe(el, [liveTween]), "#puck-b")).toBe(true);
+  });
+
+  it("false when only a zero-duration hold/set remains (post delete-all)", () => {
+    expect(hasNonHoldTweenForElement(fakeIframe(el, [holdSet]), "#puck-b")).toBe(false);
+  });
+
+  it("false when the element has no tweens at all", () => {
+    expect(hasNonHoldTweenForElement(fakeIframe(el, []), "#puck-b")).toBe(false);
   });
 });
 

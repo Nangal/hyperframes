@@ -21,7 +21,7 @@ import {
 import { resolveTweenStart, resolveTweenDuration } from "../utils/globalTimeCompiler";
 import type { GsapDragCommitCallbacks } from "./gsapDragCommit";
 import { getIframeGsap, queryIframeElement, selectorFromSelection } from "./gsapShared";
-import { readRuntimeKeyframes } from "./gsapRuntimeKeyframes";
+import { hasNonHoldTweenForElement } from "./gsapRuntimeKeyframes";
 import { roundTo3 } from "../utils/rounding";
 
 // ── Runtime reads ──────────────────────────────────────────────────────────
@@ -228,7 +228,9 @@ export async function tryGsapDragIntercept(
   // be a phantom of a just-deleted tween. If the live timeline has no non-hold
   // tween for this element, the parse is stale — bail so the drag falls back to
   // the CSS path instead of resurrecting the deleted animation from stale cache.
-  if (!readRuntimeKeyframes(iframe, selector)) {
+  // Use the strict existence check (not a truthy keyframe read): a leftover hold
+  // `set` after a delete-all must NOT count as a live tween.
+  if (!hasNonHoldTweenForElement(iframe, selector)) {
     return false;
   }
 

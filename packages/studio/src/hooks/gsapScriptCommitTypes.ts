@@ -38,7 +38,7 @@ export type SafeGsapCommitMutation = (
   selection: DomEditSelection,
   mutation: Record<string, unknown>,
   options: CommitMutationOptions,
-) => void;
+) => Promise<void>;
 
 export type TrackGsapSaveFailure = (
   error: unknown,

@@ -240,7 +240,10 @@ export function useGsapAwareEditing({
   const commitMutation = useCallback(
     async (mutation: Record<string, unknown>, options: { label: string; softReload?: boolean }) => {
       if (!domEditSelection) return;
-      safeGsapCommit(domEditSelection, mutation, options);
+      // Return (await) the safe-commit chain so consumers that `await
+      // session.commitMutation(...)` (gesture recording, enable-keyframes) run
+      // their post-actions only after the server save has settled.
+      await safeGsapCommit(domEditSelection, mutation, options);
     },
     [domEditSelection, safeGsapCommit],
   );

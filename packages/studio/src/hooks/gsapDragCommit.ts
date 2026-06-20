@@ -213,6 +213,16 @@ async function commitFlatViaKeyframes(
       const timelines = iframeWin?.__timelines;
       const mainTl = timelines ? (Object.values(timelines)[0] as any) : null;
       if (gsapLib && el && mainTl?.seek) {
+        // Snapshot the live drag's gsap overrides BEFORE clearing them. The clear
+        // below is only needed to read the tween's start values cleanly; if the
+        // commit that follows later fails, we must put the dragged pose back so the
+        // element isn't left with its overrides cleared and nothing applied (a
+        // visible snap to the base pose with the drag silently lost).
+        const draggedValues: Record<string, number> = {};
+        for (const key of Object.keys(properties)) {
+          const v = Number(gsapLib.getProperty(el, key));
+          if (Number.isFinite(v)) draggedValues[key] = v;
+        }
         // Clear the live drag's gsap overrides first. Otherwise a property the
         // tween doesn't animate (e.g. `y` on a flat `to({x})`) keeps the dragged
         // value through the seek and pollutes the 0% keyframe (it would start at
@@ -226,6 +236,10 @@ async function commitFlatViaKeyframes(
           if (Number.isFinite(v)) resolvedFromValues[key] = roundTo3(v);
         }
         mainTl.seek(ct);
+        // Re-apply the dragged overrides. On a successful commit the soft-reload
+        // re-seek overwrites these with the persisted keyframe values; on a failed
+        // commit they keep the element showing where the user dropped it.
+        if (Object.keys(draggedValues).length > 0) gsapLib.set(el, draggedValues);
       }
     } catch {
       /* iframe access failed — fall back to identity values */

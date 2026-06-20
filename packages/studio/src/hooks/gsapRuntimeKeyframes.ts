@@ -213,6 +213,46 @@ export function readRuntimeKeyframes(
   return firstRead;
 }
 
+/**
+ * Whether the live timeline has at least one NON-HOLD tween (non-zero duration,
+ * not the studio position-hold `set`) targeting `selector`. Stricter than a
+ * truthy `readRuntimeKeyframes`: that returns a flat read for any property-bearing
+ * tween, so it can't distinguish a real animation from a leftover hold/marker.
+ * The drag's stale-parse guard needs this exact distinction — after a delete-all
+ * only a hold may remain, and resurrecting the deleted tween from the stale parse
+ * must be avoided.
+ */
+export function hasNonHoldTweenForElement(
+  iframe: HTMLIFrameElement | null,
+  selector: string,
+  compositionId?: string,
+): boolean {
+  const timelines = timelinesOf(iframe);
+  if (!timelines) return false;
+  const tlId =
+    compositionId ||
+    Object.keys(timelines).find((k) => typeof timelines[k]?.getChildren === "function");
+  if (!tlId) return false;
+  const timeline = timelines[tlId];
+  if (!timeline?.getChildren) return false;
+
+  let targetEl: Element | null = null;
+  try {
+    targetEl = iframe?.contentDocument?.querySelector(selector) ?? null;
+  } catch {
+    return false;
+  }
+  if (!targetEl) return false;
+
+  for (const tween of timeline.getChildren(true)) {
+    if (!tween.vars || !matchesElement(tween, targetEl)) continue;
+    const dur = typeof tween.duration === "function" ? tween.duration() : 0;
+    if (isZeroDurationSet(dur)) continue; // skip hold/set tweens (see isZeroDurationSet)
+    if (readTween(tween.vars)) return true;
+  }
+  return false;
+}
+
 /** Convert tween-relative keyframes to clip-relative % using the element's clip dims. */
 function toClipRelative(
   keyframes: Pct[],
