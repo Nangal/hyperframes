@@ -25,7 +25,18 @@ export function isElementVisibleForOverlay(el: HTMLElement): boolean {
   return isElementVisibleThroughAncestors(el);
 }
 
-// Sample points (as fractions of the element box) for the occlusion hit-test.
+// Sample points (as fractions of the element box) for the occlusion hit-test:
+// the four inner corners plus the center. This is a coarse approximation of the
+// element's painted area — we assume a sampled point that lands inside the box also
+// lands on something the element actually paints.
+//
+// LIMITATION: a donut/ring-shaped element (a hole in the middle, content only around
+// the edges) breaks that assumption — the center sample, and even the corner samples,
+// can fall in the transparent hole and hit-test through to whatever is behind, so the
+// element could read as occluded (or as covering) incorrectly. Today's scene element
+// shapes (rectangular cards, text, full-bleed media) don't have interior holes, so this
+// doesn't bite. If ring/cutout shapes become editable targets, sample more densely or
+// hit-test against the element's actual painted geometry instead of its bounding box.
 const OCCLUSION_SAMPLE_POINTS: ReadonlyArray<readonly [number, number]> = [
   [0.5, 0.5],
   [0.2, 0.2],
@@ -34,7 +45,24 @@ const OCCLUSION_SAMPLE_POINTS: ReadonlyArray<readonly [number, number]> = [
   [0.8, 0.8],
 ];
 
-/** Cumulative opacity of an element through its ancestors (0 if any link is ~0). */
+/**
+ * Cumulative opacity of an element through its ancestors (0 if any link is ~0).
+ *
+ * The caller (`isElementVisibleInPreview`) treats a result `> 0.01` as an OPAQUE
+ * cover that blocks the element behind it. The `0.01` cutoff (rather than a literal
+ * `> 0`) ignores sub-perceptible residue — a scene parked at `opacity: 0` can compute
+ * to a tiny non-zero value (rounding, an in-flight tween a frame from settling), and
+ * we don't want that to register as a real cover.
+ *
+ * RUNTIME INVARIANT this relies on: in the current composition model scenes only ever
+ * fade IN (0 → 1) and then stay; they never fade OUT and are never parked at a partial
+ * mid-opacity. So any element above this threshold is genuinely an opaque, fully-painted
+ * cover. A fade-OUT or a crossfade that lingers at, say, opacity 0.4 would break this:
+ * `effectiveOpacity` would report `> 0.01` for a half-transparent layer and the occlusion
+ * test would wrongly treat the element behind it as hidden. If the model ever grows
+ * fade-out / crossfade scenes, the occlusion test needs a real coverage model (alpha
+ * accumulation), not this binary cutoff.
+ */
 function effectiveOpacity(el: Element | null, win: Window): number {
   let opacity = 1;
   let current: Element | null = el;

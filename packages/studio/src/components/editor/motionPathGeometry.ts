@@ -38,10 +38,22 @@ export interface MotionPathGeometry {
  */
 /**
  * Nearest point on a polyline to (px, py), with the index of the segment it
- * lies on and `t` = how far along that segment the point sits (0 at `segIndex`,
- * 1 at `segIndex + 1`). Used to position the ghost "add" node and decide where a
- * new node goes: a motionPath waypoint inserts between `segIndex`/`segIndex + 1`,
- * a keyframe interpolates its tween-% from the two adjacent keyframes via `t`.
+ * lies on and `t` = how far along that segment the returned point sits.
+ *
+ * `t` semantics: clamped to the inclusive range [0, 1].
+ *   - `t === 0` → the point is at (or projects before) the segment's start node
+ *     (`segIndex`); a perpendicular dropped from (px, py) falls at or behind `a`.
+ *   - `0 < t < 1` → the point is strictly interior to the segment.
+ *   - `t === 1` → the point is at (or projects PAST) the segment's end node
+ *     (`segIndex + 1`); past-the-end projections are clamped back onto the endpoint,
+ *     so the returned (x, y) is exactly `nodes[segIndex + 1]`. Callers can read
+ *     `t === 1` as "snapped to the end anchor of this segment" (equivalently, the
+ *     start anchor of the next segment).
+ * A degenerate zero-length segment (`a === b`) yields `t === 0`.
+ *
+ * Used to position the ghost "add" node and decide where a new node goes: a
+ * motionPath waypoint inserts between `segIndex`/`segIndex + 1`, a keyframe
+ * interpolates its tween-% from the two adjacent keyframes via `t`.
  * Coordinates are whatever space the caller passes (overlay uses absolute px).
  */
 export function nearestPointOnPath(
