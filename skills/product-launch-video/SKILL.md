@@ -70,7 +70,7 @@ npx hyperframes capture "<URL>" -o ./capture   # CLI crawl
 
 **No capture** (script/brief only, no site to crawl) → write, by hand, the two files the later steps still read: `capture/extracted/tokens.json` (brand tokens — `{ title, description, colors: [], fonts: [] }`; empty colors/fonts tell Step 2 to color the preset from the brief) and `capture/extracted/visible-text.txt` (the full brief — Step 3's narration source). Steps 2–6 then run exactly as they would after a real capture.
 
-**Gate:** `capture/extracted/tokens.json` and `capture/assets/` exist, and you can state the brand in one line. Otherwise stop and report; if `capture/BLOCKED.md` exists, follow it.
+**Gate:** `capture/extracted/tokens.json`, `capture/extracted/visible-text.txt`, `capture/extracted/asset-descriptions.md`, and `capture/assets/` exist, and you can state the brand in one line. Treat `asset-descriptions.md` as the canonical asset inventory for later planning. If it is missing after a real capture, stop and report capture incomplete. If `capture/BLOCKED.md` exists, follow it.
 
 ---
 

@@ -55,7 +55,10 @@ function mountedFramesInOrder(manifest, html) {
   const out = [];
   for (const f of manifest.frames) {
     if (!f.src) continue;
-    const id = f.src.split("/").pop().replace(/\.html?$/i, "");
+    const id = f.src
+      .split("/")
+      .pop()
+      .replace(/\.html?$/i, "");
     if (html.includes(`id="el-${id}"`)) out.push({ id, frame: f });
   }
   return out;
@@ -105,13 +108,19 @@ function resolveDur(spec, rec, reg) {
 
 // GSAP lines for one transition record (token substitution).
 function buildGsap(rec, fromId, toId, dur, T, direction, canvasW, canvasH, die) {
-  const subs = { __OLD__: `"#el-${fromId}"`, __NEW__: `"#el-${toId}"`, __T__: String(T), __DUR__: String(dur) };
+  const subs = {
+    __OLD__: `"#el-${fromId}"`,
+    __NEW__: `"#el-${toId}"`,
+    __T__: String(T),
+    __DUR__: String(dur),
+  };
   let template;
   if (rec.directions && rec.directions.length > 0) {
     const dir = (direction || rec.default_direction || rec.directions[0]).toUpperCase();
     const vertical = dir === "UP" || dir === "DOWN";
     template = vertical ? rec.gsap_template_vertical : rec.gsap_template_horizontal;
-    if (!template) die(`transition ${rec.name}: missing ${vertical ? "vertical" : "horizontal"} template`);
+    if (!template)
+      die(`transition ${rec.name}: missing ${vertical ? "vertical" : "horizontal"} template`);
     if (vertical) {
       const dy = dir === "UP" ? -canvasH : canvasH;
       subs.__DY__ = String(dy);
@@ -142,7 +151,8 @@ function runInject(argv) {
   };
 
   if (!existsSync(storyboardPath)) die(`STORYBOARD.md not found at ${storyboardPath}`);
-  if (!existsSync(indexPath)) die(`index.html not found at ${indexPath} — run assemble-index.mjs first`);
+  if (!existsSync(indexPath))
+    die(`index.html not found at ${indexPath} — run assemble-index.mjs first`);
 
   const manifest = parseStoryboard(readFileSync(storyboardPath, "utf8"));
   const { width: CW, height: CH } = parseFormat(manifest.globals.format);
@@ -162,11 +172,15 @@ function runInject(argv) {
     if (!spec) continue; // hard cut
     const incoming = clips.get(order[i].id);
     const outgoing = clips.get(order[i - 1].id);
-    const rec = resolveRecord(spec, byName, reg, (m) => console.error(`  ! frame ${order[i].id}: ${m}`));
+    const rec = resolveRecord(spec, byName, reg, (m) =>
+      console.error(`  ! frame ${order[i].id}: ${m}`),
+    );
     const dur = resolveDur(spec, rec, reg);
     const T = r3(incoming.start); // cut = incoming start (frames tile)
     outgoing.duration = r3(outgoing.duration + dur); // extend outgoing only
-    gsapLines.push(...buildGsap(rec, outgoing.id, incoming.id, dur, T, spec.direction, CW, CH, die));
+    gsapLines.push(
+      ...buildGsap(rec, outgoing.id, incoming.id, dur, T, spec.direction, CW, CH, die),
+    );
     applied.push({ from: outgoing.id, to: incoming.id, type: rec.name, dur, T });
   }
 
@@ -192,11 +206,25 @@ function runInject(argv) {
   // stamp the GSAP after the master timeline anchor.
   const anchor = 'window.__timelines["main"] = gsap.timeline({ paused: true });';
   if (!html.includes(anchor)) die("master timeline anchor not found in index.html");
+  // The transition tweens alone leave window.__timelines["main"] spanning only the
+  // last transition (e.g. 24.7s), shorter than the real composition. The Studio
+  // reads main.duration() as its master duration and parses clips against it, so a
+  // short master collapses its timeline (clips dropped, duration wrong, blank stage)
+  // — the render engine is unaffected (it trusts the root data-duration attr). Stamp
+  // a full-span anchor so main.duration() == composition total. Mirrors the
+  // `tl.to({}, { duration })` anchor captions.html already uses.
+  const rootDurMatch = html.match(/data-composition-id="main"[^>]*?data-duration="([\d.]+)"/);
+  const totalDur = rootDurMatch ? Number(rootDurMatch[1]) : null;
   const block = [
     anchor,
     "      // ── frame transitions (injected by transitions.mjs) ──",
     '      (function () { var tl = window.__timelines["main"];',
     ...gsapLines.map((l) => "        " + l),
+    ...(totalDur
+      ? [
+          `        tl.to({}, { duration: ${totalDur} }, 0); // full-span anchor — main.duration() == composition total (Studio master duration)`,
+        ]
+      : []),
     "      })();",
   ].join("\n");
   html = html.replace(anchor, block);
@@ -229,7 +257,8 @@ function runVerify(argv) {
   const clips = parseFrameClips(html, frameIds);
 
   const EPS = 0.011;
-  const overlaps = (a, b) => a.start < b.start + b.duration - EPS && b.start < a.start + a.duration - EPS;
+  const overlaps = (a, b) =>
+    a.start < b.start + b.duration - EPS && b.start < a.start + a.duration - EPS;
   const fail = [];
 
   // (4) global no same-track overlap (the lint invariant).
@@ -260,9 +289,11 @@ function runVerify(argv) {
       fail.push(`boundary ${from.id}→${to.id}: injected block does not reference both ids`);
     const overlapAmt = r3(from.start + from.duration - to.start);
     if (overlapAmt <= 0) fail.push(`boundary ${from.id}→${to.id}: no overlap (${overlapAmt}s)`);
-    if (from.track === to.track) fail.push(`boundary ${from.id}→${to.id}: both on track ${from.track}`);
+    if (from.track === to.track)
+      fail.push(`boundary ${from.id}→${to.id}: both on track ${from.track}`);
   }
-  if (expected > 0 && !txBlock) fail.push(`${expected} transition(s) expected but no injected block found`);
+  if (expected > 0 && !txBlock)
+    fail.push(`${expected} transition(s) expected but no injected block found`);
 
   if (fail.length) {
     console.error(`✗ transitions verify: ${fail.length} failure(s):`);
