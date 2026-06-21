@@ -166,7 +166,10 @@ function runBuild(argv) {
   let source;
   if (existsSync(skinPath)) {
     const tokens = frameTokensCss(framePath, H);
-    writeFileSync(htmlPath, buildFromSkin(readFileSync(skinPath, "utf8"), finalized, total, W, H, tokens, die));
+    writeFileSync(
+      htmlPath,
+      buildFromSkin(readFileSync(skinPath, "utf8"), finalized, total, W, H, tokens, die),
+    );
     source = `preset skin (${skinPath.replace(hyperframesDir + "/", "")})`;
   } else {
     writeFileSync(htmlPath, buildCaptionsHtml(finalized, total, W, H));
@@ -192,8 +195,18 @@ function buildFromSkin(skin, groups, total, W, H, tokens, die) {
     return src.replace(re, () => repl);
   };
   let out = skin;
-  out = fillOnce(out, /<style data-brand-tokens>\s*<\/style>/, `<style data-brand-tokens>\n${tokens}\n    </style>`, "<style data-brand-tokens></style> hole");
-  out = fillOnce(out, /var GROUPS = \[\];/, `var GROUPS = ${JSON.stringify(groups)};`, "`var GROUPS = [];` hole");
+  out = fillOnce(
+    out,
+    /<style data-brand-tokens>\s*<\/style>/,
+    `<style data-brand-tokens>\n${tokens}\n    </style>`,
+    "<style data-brand-tokens></style> hole",
+  );
+  out = fillOnce(
+    out,
+    /var GROUPS = \[\];/,
+    `var GROUPS = ${JSON.stringify(groups)};`,
+    "`var GROUPS = [];` hole",
+  );
   out = fillOnce(out, /var DURATION = 0;/, `var DURATION = ${total};`, "`var DURATION = 0;` hole");
   out = fillOnce(out, /data-duration="0"/, `data-duration="${total}"`, '`data-duration="0"` hole');
   out = fillOnce(out, /data-width="0"/, `data-width="${W}"`, '`data-width="0"` hole');
@@ -237,7 +250,9 @@ function parseColors(md) {
     }
     if (!inBlock) continue;
     if (/^\S/.test(line)) break; // dedent to a top-level key → end of block
-    const m = line.match(/^\s+([\w-]+):\s*["']?(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|[^"'#\s][^"'\n]*?)["']?\s*$/);
+    const m = line.match(
+      /^\s+([\w-]+):\s*["']?(#[0-9a-fA-F]{3,8}|rgba?\([^)]*\)|[^"'#\s][^"'\n]*?)["']?\s*$/,
+    );
     if (m) out.push([m[1], m[2].trim()]);
   }
   return out;
@@ -251,9 +266,21 @@ function lum(v) {
   return 0.2126 * ((n >> 16) & 255) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255);
 }
 
+// chroma (max−min channel) of a #rrggbb — a cheap "how colorful" proxy; −1 for non-hex.
+function chroma(v) {
+  const m = /^#?([0-9a-fA-F]{6})$/.exec(String(v).trim());
+  if (!m) return -1;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) & 255,
+    g = (n >> 8) & 255,
+    b = n & 255;
+  return Math.max(r, g, b) - Math.min(r, g, b);
+}
+
 // Map a preset's colors to the fixed semantic vocab. ink = a dark/ink-named color
 // (else darkest); canvas = a paper/cream/white-named color (else lightest); accents
-// = whatever's left, in declaration order.
+// = whatever's left, ranked by chroma (the loudest color is almost always the brand
+// accent — e.g. biennale's solar `sun` over the near-paper `paper-deep`).
 function semanticColors(colors) {
   if (!colors.length) return {};
   const named = (re) => colors.find(([k]) => re.test(k));
@@ -265,7 +292,10 @@ function semanticColors(colors) {
     named(/cream|paper|canvas|white|bg|ground|surface|base|sand|parchment|off-?white|bone/i),
     byLum[byLum.length - 1] ?? colors[colors.length - 1],
   );
-  const accents = colors.map(([, v]) => v).filter((v) => v !== ink && v !== canvas);
+  const accents = colors
+    .filter(([, v]) => v !== ink && v !== canvas)
+    .sort((a, b) => chroma(b[1]) - chroma(a[1]))
+    .map(([, v]) => v);
   return { ink, canvas, accent: accents[0] ?? ink, accent2: accents[1] ?? accents[0] ?? ink };
 }
 
@@ -388,6 +418,8 @@ function buildCaptionsHtml(groups, total, W, H) {
 const sub = process.argv[2];
 if (sub === "build" || sub === undefined) runBuild(process.argv.slice(sub === "build" ? 3 : 2));
 else {
-  console.error("usage: node captions.mjs build [--storyboard …] [--audio-meta …] [--hyperframes .]");
+  console.error(
+    "usage: node captions.mjs build [--storyboard …] [--audio-meta …] [--hyperframes .]",
+  );
   process.exit(2);
 }
