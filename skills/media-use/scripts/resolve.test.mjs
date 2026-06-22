@@ -124,6 +124,64 @@ test("freezeLocalFile creates parent dirs and copies", () => {
   cleanup();
 });
 
+// --- adopt existing assets ---
+
+test("--adopt registers existing assets/ files", () => {
+  setup();
+  mkdirSync(join(tmp, "assets/bgm"), { recursive: true });
+  mkdirSync(join(tmp, "assets/icons"), { recursive: true });
+  writeFileSync(join(tmp, "assets/bgm/track.mp3"), "fake mp3");
+  writeFileSync(join(tmp, "assets/icons/logo.svg"), "fake svg");
+
+  const out = execSync(
+    resolveCmd(`--adopt --project "${tmp}" --json`),
+    { cwd: REPO_ROOT, encoding: "utf8" },
+  );
+  const parsed = JSON.parse(out.trim());
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.adopted, 2);
+  assert.ok(parsed.assets.some((a) => a.path === "assets/bgm/track.mp3"));
+  assert.ok(parsed.assets.some((a) => a.path === "assets/icons/logo.svg"));
+
+  const manifest = readManifest(tmp);
+  assert.equal(manifest.length, 2);
+  cleanup();
+});
+
+test("--adopt skips already-registered assets", () => {
+  setup();
+  mkdirSync(join(tmp, "assets/bgm"), { recursive: true });
+  writeFileSync(join(tmp, "assets/bgm/track.mp3"), "fake mp3");
+
+  execSync(resolveCmd(`--adopt --project "${tmp}" --json`), { cwd: REPO_ROOT, encoding: "utf8" });
+  const out = execSync(
+    resolveCmd(`--adopt --project "${tmp}" --json`),
+    { cwd: REPO_ROOT, encoding: "utf8" },
+  );
+  const parsed = JSON.parse(out.trim());
+  assert.equal(parsed.adopted, 0);
+
+  const manifest = readManifest(tmp);
+  assert.equal(manifest.length, 1);
+  cleanup();
+});
+
+test("resolve finds existing unregistered asset before hitting providers", () => {
+  setup();
+  mkdirSync(join(tmp, "assets/bgm"), { recursive: true });
+  writeFileSync(join(tmp, "assets/bgm/ambient-track.mp3"), "existing bgm");
+
+  const out = execSync(
+    resolveCmd(`--type bgm --intent "ambient track" --project "${tmp}" --json`),
+    { cwd: REPO_ROOT, encoding: "utf8" },
+  );
+  const parsed = JSON.parse(out.trim());
+  assert.equal(parsed.ok, true);
+  assert.equal(parsed.path, "assets/bgm/ambient-track.mp3");
+  assert.equal(parsed._source, "existing");
+  cleanup();
+});
+
 // --- CLI interface ---
 
 test("--help exits 0", () => {

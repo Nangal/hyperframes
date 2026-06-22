@@ -18,6 +18,7 @@ import {
 } from "./lib/cache.mjs";
 import { getProvider, listTypes } from "./lib/providers.mjs";
 import { freezeUrl, freezeLocalFile } from "./lib/freeze.mjs";
+import { findExistingAsset } from "./lib/adopt.mjs";
 
 const { values: args } = parseArgs({
   options: {
@@ -25,6 +26,7 @@ const { values: args } = parseArgs({
     intent: { type: "string", short: "i" },
     entity: { type: "string", short: "e" },
     project: { type: "string", short: "p", default: "." },
+    adopt: { type: "boolean", default: false },
     json: { type: "boolean", default: false },
     help: { type: "boolean", short: "h", default: false },
   },
@@ -44,8 +46,24 @@ Options:
   --intent, -i    What you need (required)
   --entity, -e    Entity name for cache matching (optional)
   --project, -p   Project directory (default: .)
+  --adopt         Adopt all existing assets/ files into the manifest
   --json          Output JSON instead of one-line result
   --help, -h      Show this help`);
+  process.exit(0);
+}
+
+if (args.adopt) {
+  const { adoptExistingAssets } = await import("./lib/adopt.mjs");
+  const projectDir = resolve(args.project);
+  const adopted = adoptExistingAssets(projectDir);
+  if (args.json) {
+    console.log(JSON.stringify({ ok: true, adopted: adopted.length, assets: adopted }));
+  } else if (adopted.length === 0) {
+    console.log("no new assets to adopt (assets/ empty or already registered)");
+  } else {
+    console.log(`adopted ${adopted.length} asset${adopted.length === 1 ? "" : "s"} from assets/`);
+    for (const r of adopted) console.log(`  ${r.id} → ${r.path} (${r.type})`);
+  }
   process.exit(0);
 }
 
@@ -72,6 +90,23 @@ async function run() {
     if (entityHit && entityHit.type === type && existsSync(join(projectDir, entityHit.path))) {
       return result(entityHit, "cached");
     }
+  }
+
+  // 1c. scan existing assets/ directory for unregistered matches
+  const existingAsset = findExistingAsset(projectDir, intent, type);
+  if (existingAsset) {
+    const id = nextId(projectDir, type);
+    const record = {
+      id,
+      type: existingAsset.type,
+      path: existingAsset.relativePath,
+      source: "existing",
+      description: existingAsset.name.replace(/[-_]/g, " "),
+      provenance: { provider: "local", adopted: true, prompt: intent },
+    };
+    appendRecord(projectDir, record);
+    regenerateIndex(projectDir);
+    return result(record, "existing");
   }
 
   // 2. global cache — exact-prompt or entity match

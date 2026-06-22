@@ -10,8 +10,15 @@ Resolve media needs into frozen local files. One verb, all types, zero context n
 ## Quick start
 
 ```bash
+# resolve a media need
 node <SKILL_DIR>/scripts/resolve.mjs --type bgm --intent "subtle confident tech" --project .
 # → resolved bgm_001 → .media/audio/bgm/bgm_001.wav (bgm, 11s)
+
+# adopt all existing assets/ files into the manifest (run once per project)
+node <SKILL_DIR>/scripts/resolve.mjs --adopt --project .
+# → adopted 4 assets from assets/
+#   bgm_001 → assets/bgm/track.mp3 (bgm)
+#   image_001 → assets/icons/logo.svg (icon)
 ```
 
 ## Supported types
@@ -28,12 +35,21 @@ node <SKILL_DIR>/scripts/resolve.mjs --type bgm --intent "subtle confident tech"
 ## How it works
 
 1. Check project `.media/manifest.jsonl` for exact-prompt match
-2. Check global cache `~/.media/` for reusable asset
-3. Search via provider (HeyGen catalog, asset search, brand kits)
-4. Fall back to generation (local BGM/TTS) or agent-selected URL
-5. Freeze file to `.media/<type>/`, register in manifest, regenerate `index.md`
+2. Scan existing `assets/` directory for unregistered files matching the need
+3. Check global cache `~/.media/` for reusable asset
+4. Search via provider (HeyGen catalog, asset search, brand kits)
+5. Fall back to generation (local BGM/TTS) or agent-selected URL
+6. Freeze file to `.media/<type>/`, register in manifest, regenerate `index.md`
 
 The agent gets back **one line**. Candidates, scores, provenance stay on disk.
+
+## Working with existing projects
+
+Most HyperFrames projects already have assets in `assets/` (audio in `assets/bgm/`, images in `assets/icons/`, etc.). media-use is aware of these:
+
+- **`--adopt`** scans `assets/` and registers every media file in the manifest without moving anything. Compositions keep their existing `src="assets/..."` paths. Run once per project to get a full inventory.
+- **During resolve**, if an unregistered file in `assets/` matches the intent, media-use adopts it on the fly — no re-download, no provider call.
+- The `index.md` shows ALL media: both `.media/` (resolved) and `assets/` (existing). Agents see the complete picture.
 
 ## Files
 
