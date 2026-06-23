@@ -446,7 +446,7 @@ export function createDomEditOverlayGestureHandlers(opts: UseDomEditOverlayGestu
       void Promise.resolve(
         opts.onPathOffsetCommitRef.current(sel, finalOffset, { altKey: e.altKey }),
       )
-        .catch(() => {
+        .catch((err) => {
           if (
             g.pathOffsetMember?.gestureToken &&
             isStudioManualEditGestureCurrent(sel.element, g.pathOffsetMember.gestureToken)

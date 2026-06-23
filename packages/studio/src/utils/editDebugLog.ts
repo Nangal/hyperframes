@@ -12,5 +12,4 @@ export function editLog(scope: string, ...args: unknown[]): void {
   const parts = args.map((a) =>
     typeof a === "object" && a !== null ? JSON.stringify(a) : String(a),
   );
-  console.debug(`[hf-edit:${scope}]`, ...parts);
 }

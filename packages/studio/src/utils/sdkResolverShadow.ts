@@ -193,7 +193,7 @@ export function sdkResolverShadowCheck(
       session.batch(() => {
         for (const op of editOps) session.dispatch(op);
       });
-    } catch (err) {
+    } catch {
       return [{ kind: "dispatch_error", hfId, error: String(err) }];
     }
 

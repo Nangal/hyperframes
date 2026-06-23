@@ -73,7 +73,7 @@ export async function persistSlideshowManifest(args: PersistSlideshowArgs): Prom
     if (!parseSlideshowManifest(islandHtml)) {
       throw new Error("built island did not parse back to a manifest");
     }
-  } catch (err) {
+  } catch {
     throw new Error(`refusing to persist invalid slideshow manifest: ${(err as Error).message}`);
   }
 

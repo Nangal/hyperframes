@@ -26,7 +26,6 @@ export const BlockParamsPanel = memo(function BlockParamsPanel({
   const handleChange = useCallback(
     (key: string, value: string) => {
       setValues((prev) => ({ ...prev, [key]: value }));
-      console.log(`[BlockParams] ${compositionPath} ${key}: ${value}`);
     },
     [compositionPath],
   );

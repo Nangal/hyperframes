@@ -252,7 +252,7 @@ export async function sdkCutoverPersist(
     await persistSdkSerialize(after, targetPath, originalContent, deps, options);
     trackStudioEvent("sdk_cutover_success", { hfId, opCount: ops.length });
     return true;
-  } catch (err) {
+  } catch {
     trackStudioEvent("sdk_cutover_fallback", {
       hfId: selection.hfId ?? null,
       error: String(err),
@@ -290,7 +290,7 @@ export async function sdkTimingPersist(
     await persistSdkSerialize(after, targetPath, undoBefore, deps, options);
     trackStudioEvent("sdk_cutover_success", { hfId, opCount: 1 });
     return true;
-  } catch (err) {
+  } catch {
     trackStudioEvent("sdk_cutover_fallback", { hfId, error: String(err) });
     return false;
   }
@@ -377,7 +377,7 @@ async function dispatchGsapOpAndPersist(
       await persistSdkSerialize(after, targetPath, undoBefore, deps, options);
       trackStudioEvent("sdk_cutover_success", { opCount: 1 });
       return true;
-    } catch (err) {
+    } catch {
       trackStudioEvent("sdk_cutover_fallback", { error: String(err) });
       return false;
     }
@@ -591,7 +591,7 @@ export async function sdkDeletePersist(
     });
     trackStudioEvent("sdk_cutover_success", { hfId, opCount: 1 });
     return true;
-  } catch (err) {
+  } catch {
     trackStudioEvent("sdk_cutover_fallback", { hfId, error: String(err) });
     return false;
   }

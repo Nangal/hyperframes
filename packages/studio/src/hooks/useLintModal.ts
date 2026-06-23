@@ -44,7 +44,7 @@ export function useLintModal(projectId: string | null, refreshKey?: number) {
           setLintModal(parsed);
           setBackgroundFindings(parsed);
         }
-      } catch (err) {
+      } catch {
         if (!opts?.background) {
           const msg = err instanceof Error ? err.message : String(err);
           setLintModal([{ severity: "error", message: `Failed to run lint: ${msg}` }]);

@@ -34,7 +34,7 @@ export function useBlockCatalog() {
             return (ia === -1 ? 99 : ia) - (ib === -1 ? 99 : ib);
           });
         setBlocks(items);
-      } catch (err) {
+      } catch {
         if (cancelled) return;
         setError(err instanceof Error ? err.message : "Failed to load catalog");
       } finally {

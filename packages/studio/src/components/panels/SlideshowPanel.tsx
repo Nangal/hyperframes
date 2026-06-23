@@ -50,7 +50,6 @@ export function safeParseManifest(html: string): SlideshowManifest {
   try {
     return parseSlideshowManifest(html) ?? { slides: [] };
   } catch {
-    console.warn("[SlideshowPanel] Failed to parse slideshow manifest; using empty manifest");
     return { slides: [] };
   }
 }
@@ -223,7 +222,7 @@ export function SlideshowPanel({ scenes, onPersist, onPersistNotes }: SlideshowP
       // Surface persist failures instead of swallowing them at each call site.
       try {
         await onPersist(merged);
-      } catch (err) {
+      } catch {
         console.error("[slideshow] failed to persist manifest edit:", err);
       }
     },

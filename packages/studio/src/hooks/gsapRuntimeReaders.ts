@@ -116,10 +116,6 @@ export function readAllAnimatedProperties(
       }
     }
   } catch (e) {
-    console.warn(
-      "Cross-tween guard failed — baseline capture may include values from other tweens",
-      e,
-    );
   }
   for (const p of propKeys) otherTweenProps.delete(p);
 

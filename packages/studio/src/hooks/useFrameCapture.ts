@@ -77,7 +77,7 @@ export function useFrameCapture({
           }
           throw fetchErr;
         }
-      } catch (err) {
+      } catch {
         showToast(err instanceof Error ? err.message : "Capture failed", "error");
       }
     },
