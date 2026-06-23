@@ -24,7 +24,9 @@ async function searchAssets(query, type = "image", { limit = 5, minScore = 0.3 }
   const headers = resolveCredential();
   if (!headers) return null;
   const params = new URLSearchParams({ query, type, limit: String(limit), min_score: String(minScore) });
-  const res = await fetch(`${HEYGEN_BASE}/assets/search?${params}`, { headers });
+  const res = await fetch(`${HEYGEN_BASE}/assets/search?${params}`, {
+    headers: { ...headers, "X-HeyGen-Client-Origin": "media-use" },
+  });
   if (!res.ok) return null;
   const payload = await res.json();
   const data = payload?.data;

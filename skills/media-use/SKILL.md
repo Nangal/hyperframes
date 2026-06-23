@@ -1,56 +1,104 @@
 ---
 name: media-use
-description: Agent Media OS — resolve any media need (BGM, SFX, voice, image, icon, brand asset) into a frozen local file + ledger record. One verb (`resolve`) handles the full cascade: project cache, global cache, provider search, generation fallback, freeze, register. Keeps search noise on disk, hands the agent a path. Use when a composition needs audio, images, icons, or brand assets.
+description: Agent Media OS — resolve any media need (BGM, SFX, image, icon) into a frozen local file + ledger record. One verb (`resolve`) handles the full cascade: project cache, global cache, HeyGen catalog search, freeze, register. Keeps search noise on disk, hands the agent a path. Use when a composition needs background music, sound effects, images, or icons.
 ---
 
 # media-use
 
-Resolve media needs into frozen local files. One verb, all types, zero context noise.
+Resolve media needs into frozen local files. One verb, four types, zero context noise.
 
-## Quick start
+## When to use
+
+Call `resolve` whenever a composition needs media — background music, sound effects, images, or icons. media-use searches the HeyGen catalog, downloads the best match, freezes it locally, and registers it in a manifest. The agent gets back one line; all search noise stays on disk.
+
+## Resolve
 
 ```bash
-# resolve a media need
-node <SKILL_DIR>/scripts/resolve.mjs --type bgm --intent "subtle confident tech" --project .
-# → resolved bgm_001 → .media/audio/bgm/bgm_001.wav (bgm, 11s)
-
-# adopt all existing assets/ files into the manifest (run once per project)
-node <SKILL_DIR>/scripts/resolve.mjs --adopt --project .
-# → adopted 4 assets from assets/
-#   bgm_001 → assets/bgm/track.mp3 (bgm)
-#   image_001 → assets/icons/logo.svg (icon)
+node <SKILL_DIR>/scripts/resolve.mjs --type <type> --intent "<description>" --project <dir>
 ```
 
-## Supported types
+Returns one line: `resolved <id> → <path> (<type>, <metadata>)`
 
-| Type    | What it finds       | Search provider              | Generate fallback              |
-| ------- | ------------------- | ---------------------------- | ------------------------------ |
-| `bgm`   | Background music    | HeyGen audio catalog         | hyperframes bgm (local gen)    |
-| `sfx`   | Sound effects       | HeyGen audio catalog         | Bundled SFX library            |
-| `voice` | TTS voiceover       | ElevenLabs                   | hyperframes tts (Kokoro local) |
-| `image` | Photos, backgrounds | Asset Scout + HeyGen library | fal.ai image gen (Flux)        |
-| `icon`  | Icons, logos        | Asset Scout + HeyGen library | —                              |
-| `brand` | Brand kit assets    | HeyGen brand kits            | —                              |
-| `video` | B-roll clips        | HeyGen video search          | fal.ai video gen (v1.1)        |
+### Types
+
+| Type    | What it finds       | Provider                                 |
+| ------- | ------------------- | ---------------------------------------- |
+| `bgm`   | Background music    | HeyGen audio catalog (10k+ tracks)       |
+| `sfx`   | Sound effects       | Bundled 19-file library + HeyGen catalog |
+| `image` | Photos, backgrounds | HeyGen asset search (75k+ vectors)       |
+| `icon`  | Icons, logos        | HeyGen asset search (type=icon)          |
+
+### Examples
+
+```bash
+# Background music
+node <SKILL_DIR>/scripts/resolve.mjs --type bgm --intent "upbeat tech launch" --project .
+# → resolved bgm_001 → .media/audio/bgm/bgm_001.mp3 (bgm, 25s)
+
+# Sound effect
+node <SKILL_DIR>/scripts/resolve.mjs --type sfx --intent "whoosh" --project .
+# → resolved sfx_001 → .media/audio/sfx/sfx_001.mp3 (sfx, 0.57s)
+
+# Image
+node <SKILL_DIR>/scripts/resolve.mjs --type image --intent "gradient tech background" --project .
+# → resolved image_001 → .media/images/image_001.jpg (image)
+
+# Icon
+node <SKILL_DIR>/scripts/resolve.mjs --type icon --intent "rocket" --project .
+# → resolved icon_001 → .media/images/icon_001.svg (icon, transparent)
+```
+
+### Flags
+
+| Flag            | Description                                |
+| --------------- | ------------------------------------------ |
+| `--type, -t`    | Media type: bgm, sfx, image, icon          |
+| `--intent, -i`  | What you need (natural language)           |
+| `--entity, -e`  | Entity name for cache matching (optional)  |
+| `--project, -p` | Project directory (default: .)             |
+| `--adopt`       | Bulk-import existing assets/ into manifest |
+| `--json`        | Output JSON instead of one-line result     |
 
 ## How it works
 
 1. Check project `.media/manifest.jsonl` for exact-prompt match
 2. Scan existing `assets/` directory for unregistered files matching the need
 3. Check global cache `~/.media/` for reusable asset
-4. Search via provider (HeyGen catalog, Asset Scout, ElevenLabs, brand kits)
-5. Fall back to generation (fal.ai image/video gen, hyperframes bgm, Kokoro TTS)
-6. Freeze file to `.media/<type>/`, register in manifest, regenerate `index.md`
+4. Search via provider (HeyGen audio catalog, HeyGen asset search)
+5. Freeze file to `.media/<type>/`, register in manifest, regenerate `index.md`
 
 The agent gets back **one line**. Candidates, scores, provenance stay on disk.
 
-## Working with existing projects
+## Adopt existing projects
 
-Most HyperFrames projects already have assets in `assets/` (audio in `assets/bgm/`, images in `assets/icons/`, etc.). media-use is aware of these:
+Most HyperFrames projects already have assets in `assets/`. media-use adopts them:
 
-- **`--adopt`** scans `assets/` and registers every media file in the manifest without moving anything. Compositions keep their existing `src="assets/..."` paths. Run once per project to get a full inventory.
-- **During resolve**, if an unregistered file in `assets/` matches the intent, media-use adopts it on the fly — no re-download, no provider call.
-- The `index.md` shows ALL media: both `.media/` (resolved) and `assets/` (existing). Agents see the complete picture.
+```bash
+node <SKILL_DIR>/scripts/resolve.mjs --adopt --project .
+# → adopted 9 assets from assets/
+#   bgm_001 → assets/bgm/mango-fizz.mp3 (bgm, 146.6s)
+#   image_001 → assets/images/avatar.jpg (image, 400×400)
+```
+
+`ffprobe` extracts real duration and dimensions. During resolve, unregistered files in `assets/` matching the intent are adopted on the fly.
+
+## Reading the inventory
+
+After resolve or adopt, read `.media/index.md` for the full inventory:
+
+```
+# .media · 4 assets
+
+id         type   dur   dims       path                          description
+bgm_001    bgm    25s   —          .media/audio/bgm/bgm_001.mp3  upbeat tech launch
+sfx_001    sfx    0.6s  —          .media/audio/sfx/sfx_001.mp3  whoosh
+image_001  image  —     1920×1080  .media/images/image_001.jpg   gradient tech background
+icon_001   icon   —     svg        .media/images/icon_001.svg    rocket
+```
+
+## Cross-project reuse
+
+Assets are cached automatically on resolve. Subsequent resolves for the same prompt hit the global cache at `~/.media/` — no re-download, no provider call. Promote an asset explicitly with `organize --promote <id>` to make it reusable across all projects.
 
 ## Files
 
@@ -60,20 +108,7 @@ Most HyperFrames projects already have assets in `assets/` (audio in `assets/bgm
 
 ## CLI tools used
 
-media-use orchestrates these tools (all installed locally):
-
-| Tool          | Purpose                                                  | Required?             |
-| ------------- | -------------------------------------------------------- | --------------------- |
-| `ffprobe`     | Probe duration, dimensions, codec on adopt/resolve       | Yes                   |
-| `ffmpeg`      | Format conversion, audio normalization                   | For processing        |
-| `fal`         | Image generation (Flux), video generation                | For generate fallback |
-| `yt-dlp`      | Download video/audio from URLs (1000+ platforms)         | For resolve:video     |
-| `elevenlabs`  | High-quality TTS (via audio engine)                      | For resolve:voice     |
-| `hyperframes` | Local BGM gen (Lyria/MusicGen), TTS (Kokoro), transcribe | Fallback              |
-| `heygen`      | Audio catalog search, asset search, brand kits           | For search providers  |
-| `ImageMagick` | Resize, convert, composite images                        | For processing        |
-
-## References
-
-- `references/resolve-types.md` — per-type provider chains and manifest fields
-- `references/manifest-schema.md` — JSONL record schema and index format
+| Tool      | Purpose                                    | Required?     |
+| --------- | ------------------------------------------ | ------------- |
+| `ffprobe` | Probe duration, dimensions, codec on adopt | Yes           |
+| `heygen`  | Audio catalog, asset search                | For providers |
