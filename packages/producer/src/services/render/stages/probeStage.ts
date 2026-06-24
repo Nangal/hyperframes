@@ -180,43 +180,47 @@ export async function runProbeStage(input: ProbeStageInput): Promise<ProbeStageR
 
     const PROBE_MAX_ATTEMPTS = 2;
     for (let attempt = 1; attempt <= PROBE_MAX_ATTEMPTS; attempt++) {
-      log.info("Creating capture session...", { attempt, maxAttempts: PROBE_MAX_ATTEMPTS });
-      probeSession = await createCaptureSession(
-        fileServer.url,
-        join(workDir, "probe"),
-        captureOpts,
-        null,
-        probeCfg,
-      );
-      log.info("Waiting for composition to initialize...", { attempt });
-      const initStart = Date.now();
-      const heartbeat = setInterval(() => {
-        const elapsed = ((Date.now() - initStart) / 1000).toFixed(1);
-        log.info(`Still waiting for browser initialization... (${elapsed}s elapsed)`);
-      }, 30_000);
+      const attemptStart = Date.now();
       try {
-        await initializeSession(probeSession);
-        clearInterval(heartbeat);
+        log.info("Creating capture session...", { attempt, maxAttempts: PROBE_MAX_ATTEMPTS });
+        probeSession = await createCaptureSession(
+          fileServer.url,
+          join(workDir, "probe"),
+          captureOpts,
+          null,
+          probeCfg,
+        );
+        log.info("Waiting for composition to initialize...", { attempt });
+        const heartbeat = setInterval(() => {
+          const elapsed = ((Date.now() - attemptStart) / 1000).toFixed(1);
+          log.info(`Still waiting for browser initialization... (${elapsed}s elapsed)`);
+        }, 30_000);
+        try {
+          await initializeSession(probeSession);
+        } finally {
+          clearInterval(heartbeat);
+        }
       } catch (err) {
-        clearInterval(heartbeat);
         const isTransient = isTransientBrowserError(err);
         const errMsg = err instanceof Error ? err.message : String(err);
-        log.warn("Browser session initialization failed", {
+        log.warn("Browser probe attempt failed", {
           attempt,
           maxAttempts: PROBE_MAX_ATTEMPTS,
           isTransient,
           error: errMsg,
-          elapsedMs: Date.now() - initStart,
+          elapsedMs: Date.now() - attemptStart,
         });
 
-        try {
-          await closeCaptureSession(probeSession);
-        } catch (closeErr) {
-          log.warn("Failed to close crashed probe session", {
-            error: closeErr instanceof Error ? closeErr.message : String(closeErr),
-          });
+        if (probeSession) {
+          try {
+            await closeCaptureSession(probeSession);
+          } catch (closeErr) {
+            log.warn("Failed to close crashed probe session", {
+              error: closeErr instanceof Error ? closeErr.message : String(closeErr),
+            });
+          }
+          probeSession = null;
         }
-        probeSession = null;
 
         if (isTransient && attempt < PROBE_MAX_ATTEMPTS) {
           log.info("Retrying with a fresh browser session...", {
@@ -230,7 +234,7 @@ export async function runProbeStage(input: ProbeStageInput): Promise<ProbeStageR
       }
       log.info("Composition ready", {
         attempt,
-        initMs: Date.now() - initStart,
+        initMs: Date.now() - attemptStart,
       });
       break;
     }

@@ -7,12 +7,13 @@ describe("isTransientBrowserError", () => {
     "Target closed",
     "Session closed. Most likely the page has been closed.",
     "Protocol error (Runtime.callFunctionOn): Target closed",
-    "Protocol error (Page.navigate): Target closed",
     "Navigation failed because browser has disconnected",
     "browser has disconnected",
     "Page crashed!",
     "Execution context was destroyed",
     "Cannot find context with specified id",
+    "Failed to launch the browser process! TROUBLESHOOTING: https://pptr.dev/troubleshooting",
+    "connect ECONNREFUSED 127.0.0.1:9222",
   ])("returns true for transient error: %s", (message) => {
     expect(isTransientBrowserError(new Error(message))).toBe(true);
   });

@@ -20,12 +20,18 @@ const mockPage = {
 let initializeSessionCallCount = 0;
 let initializeSessionFailUntilAttempt = 0;
 let initializeSessionError: Error | null = null;
+let createSessionCallCount = 0;
+let createSessionFailUntilAttempt = 0;
+let createSessionError: Error | null = null;
 let closeCaptureSessionCallCount = 0;
 
 function resetRetryMocks() {
   initializeSessionCallCount = 0;
   initializeSessionFailUntilAttempt = 0;
   initializeSessionError = null;
+  createSessionCallCount = 0;
+  createSessionFailUntilAttempt = 0;
+  createSessionError = null;
   closeCaptureSessionCallCount = 0;
 }
 
@@ -37,7 +43,11 @@ mock.module("@hyperframes/engine", () => ({
     _nullArg: unknown,
     cfg: unknown,
   ) => {
+    createSessionCallCount++;
     capturedCfgs.push(cfg);
+    if (createSessionError && createSessionCallCount <= createSessionFailUntilAttempt) {
+      throw createSessionError;
+    }
     return {
       isInitialized: false,
       browserConsoleBuffer: [],
@@ -55,10 +65,12 @@ mock.module("@hyperframes/engine", () => ({
   closeCaptureSession: async () => {
     closeCaptureSessionCallCount++;
   },
+  // Mirror of the real engine classifier. Canonical tests + pattern list
+  // live in frameCapture-transientErrors.test.ts — update both if patterns change.
   isTransientBrowserError: (error: unknown) => {
-    const message = error instanceof Error ? error.message : String(error);
-    return /Navigating frame was detached|Target closed|Session closed|Protocol error.*Target closed|browser has disconnected|Page crashed|Execution context was destroyed|Cannot find context with specified id/i.test(
-      message,
+    const msg = error instanceof Error ? error.message : String(error);
+    return /Navigating frame was detached|Target closed|Session closed|browser has disconnected|Page crashed|Execution context was destroyed|Cannot find context with specified id|Failed to launch the browser process|ECONNREFUSED/i.test(
+      msg,
     );
   },
 }));
@@ -306,5 +318,22 @@ describe("runProbeStage — transient browser error retry (#1687)", () => {
     expect((caught as Error).message).toContain("Target closed");
     expect(initializeSessionCallCount).toBe(2);
     expect(closeCaptureSessionCallCount).toBe(2);
+  });
+
+  it("retries on a transient browser LAUNCH failure (createCaptureSession throws)", async () => {
+    resetRetryMocks();
+    capturedCfgs.length = 0;
+    createSessionError = new Error("Failed to launch the browser process!");
+    createSessionFailUntilAttempt = 1;
+
+    const { runProbeStage } = await import("./probeStage.js");
+    const input = makeProbeInput({ cfgForceScreenshot: false, stageForceScreenshot: false });
+
+    const result = await runProbeStage(input);
+
+    expect(createSessionCallCount).toBe(2);
+    expect(closeCaptureSessionCallCount).toBe(0);
+    expect(result.duration).toBe(5);
+    expect(result.probeSession).not.toBeNull();
   });
 });
