@@ -12,7 +12,6 @@
     "dist/**/*.d.ts",
     "dist/**/*.d.ts.map",
     "dist/**/*.js.map",
-    "!dist/hyperframe.runtime.iife.js",
     "!dist/hyperframe.runtime.mjs",
     "!dist/generated/runtime-inline.js",
     "docs",
