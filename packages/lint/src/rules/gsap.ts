@@ -1234,9 +1234,25 @@ export const gsapRules: LintRule<LintContext>[] = [
           );
         }
         if (reflowProps.length > 0) {
+          // Faithful fix differs by property: fontSize maps to scale (same visual), but
+          // letterSpacing/wordSpacing do NOT — uniform scale resizes glyphs, it does not
+          // change the gaps between them. The smooth equivalent of a spacing tween is a
+          // per-glyph split with an x transform per character.
+          const sizing = reflowProps.filter((p) => p === "fontSize");
+          const spacing = reflowProps.filter((p) => p !== "fontSize");
+          const parts: string[] = [];
+          if (sizing.length > 0) {
+            parts.push(`replace ${sizing.join("/")} with scale (same visual, no reflow)`);
+          }
+          if (spacing.length > 0) {
+            parts.push(
+              `for ${spacing.join("/")}, split the text into per-character elements and animate ` +
+                "each glyph's x (the spread) — uniform scale is NOT equivalent — or hold the final value statically",
+            );
+          }
           fixes.push(
-            `do not animate ${reflowProps.join("/")} (they reflow text and snap glyph positions) — ` +
-              "settle via scale, or set the final value statically",
+            `do not animate ${reflowProps.join("/")} (they reflow text and snap glyph positions): ` +
+              parts.join("; "),
           );
         }
         if (usesRoundProps) fixes.push("remove roundProps");

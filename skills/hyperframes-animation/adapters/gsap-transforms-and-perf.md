@@ -63,7 +63,21 @@ Animate `x`, `y`, `scale`, `rotation`, `opacity`. Never animate `left`, `right`,
 
 This is a **render-correctness** rule in HyperFrames, not just a GPU-performance nicety. The renderer seeks frame-by-frame and screenshots each frame, and the browser compositor snaps layout properties to whole device pixels. On a fast tween the per-frame step is several pixels, so the snap is invisible; on a slow tween or a long ease-out tail the value moves less than a pixel per frame — it holds the same pixel for several frames, then jumps a whole one. The result is motion that looks smooth when fast but visibly stutters when slow. Transforms interpolate sub-pixel and stay smooth at any speed. `roundProps` forces the same integer snap onto a transform — don't use it.
 
-"Layout property" is broader than position: anything that triggers **reflow** snaps the same way. `letterSpacing` / `fontSize` are the common trap — a slow "settle" that crawls letter-spacing or font-size by a fraction of a pixel per frame dwells on a handful of discrete glyph layouts (visible micro-stutter). For a text settle, animate `scale` (or hold the final value) instead. Unlike positional props, reflow props snap during browser **layout** — upstream of the canvas raster — so they stutter even in html-in-canvas, and the exception below does **not** apply to them.
+"Layout property" is broader than position: anything that triggers **reflow** snaps the same way. `letterSpacing` / `fontSize` are the common trap — a slow "settle" that crawls one of them by a fraction of a pixel per frame dwells on a handful of discrete glyph layouts (visible micro-stutter). The faithful smooth fix depends on which property — **do not reach for `scale` reflexively**:
+
+- **`fontSize`** → animate `scale`. Scaling text up/down is the same visual and stays sub-pixel smooth (no reflow).
+- **`letterSpacing` / `wordSpacing`** → uniform `scale` is **not** the same effect (it resizes the glyphs; it does not change the gaps between them). To animate spacing smoothly, split the text into per-character (or per-word) elements and animate each one's `x` — the glyph spread is a transform, sub-pixel smooth and visually identical to a letter-spacing tween. GSAP's `SplitText` does the split. If the spacing change is a minor flourish, hold the final value statically instead.
+
+Unlike positional props, reflow props snap during browser **layout** — upstream of the canvas raster — so they stutter even in html-in-canvas, and the exception below does **not** apply to them.
+
+#### Fixing a flagged animation — preserve the intent
+
+The lint rule tells you a property will stutter; it does **not** tell you the fix, and a fix that merely passes lint can silently change the look. Swapping a `letterSpacing` tighten for a uniform `scale` lints clean but animates a _different thing_ (it resizes the glyphs instead of closing the gaps). Two rules:
+
+1. **Reproduce the same visual** — same start/end state, same trajectory, only sub-pixel-smooth. Use the faithful equivalent (per-glyph `x` for spacing, `scale` for `fontSize`, `x`/`y` for position), not whichever transform is the least code.
+2. **Verify against the original, not against the linter.** Render the original and the fixed version and compare the motion at its key moments — the fix should differ only by the removed stutter, not by _where things end up_. Lint-clean-and-smooth is not the bar; faithful-and-smooth is.
+
+If the faithful fix is non-trivial (a per-glyph split, a measured offset), build it or surface the tradeoff — never downgrade to a cheaper, different effect just to satisfy the linter.
 
 **Convert a position animation to a transform** by leaving the element at its resting `left`/`top` in CSS and animating the _offset_ with `x`/`y`:
 
