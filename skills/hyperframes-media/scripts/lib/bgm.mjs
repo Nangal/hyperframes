@@ -15,6 +15,7 @@ import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, openSync, closeSync } from "node:fs";
 import { join } from "node:path";
 import { downloadTo, searchSounds } from "./heygen.mjs";
+import { pythonInvocation } from "./python.mjs";
 
 const r3 = (x) => Number(x.toFixed(3));
 const lyriaKey = () => process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || "";
@@ -26,7 +27,8 @@ const LYRIA_PY_DEPS = ["google-genai", "python-dotenv"];
 const LYRIA_PY_PROBE = "import google.genai";
 
 function pyOk(probe) {
-  return spawnSync("python3", ["-c", probe], { stdio: "ignore" }).status === 0;
+  const { cmd, args } = pythonInvocation(["-c", probe]);
+  return spawnSync(cmd, args, { stdio: "ignore" }).status === 0;
 }
 function pipInstall(deps) {
   return spawnSync("pip", ["install", "-q", ...deps], { stdio: "ignore" }).status === 0;
@@ -120,11 +122,16 @@ export function generateBgmDetached({
 
   const fd = openSync(log, "w");
   if (useLyria) {
-    const proc = spawn(
-      "python3",
-      [lyriaRecipe, "--output", abs, "--duration", String(targetS), "--prompt", prompt],
-      { detached: true, stdio: ["ignore", fd, fd] },
-    );
+    const { cmd, args } = pythonInvocation([
+      lyriaRecipe,
+      "--output",
+      abs,
+      "--duration",
+      String(targetS),
+      "--prompt",
+      prompt,
+    ]);
+    const proc = spawn(cmd, args, { detached: true, stdio: ["ignore", fd, fd] });
     proc.unref();
     closeSync(fd);
     return {
@@ -141,7 +148,8 @@ export function generateBgmDetached({
     const seedS = Math.min(Math.max(seedSeconds, 10), 30);
     const loops = targetS > seedS ? Math.ceil(targetS / seedS) : 1;
     const script = musicgenScript({ prompt, abs, targetS, seedS });
-    const proc = spawn("python3", ["-c", script], { detached: true, stdio: ["ignore", fd, fd] });
+    const { cmd, args } = pythonInvocation(["-c", script]);
+    const proc = spawn(cmd, args, { detached: true, stdio: ["ignore", fd, fd] });
     proc.unref();
     closeSync(fd);
     return {
