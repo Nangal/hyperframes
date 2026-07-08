@@ -40,6 +40,7 @@ export type {
   CaptureResult,
   CaptureBufferResult,
   CapturePerfSummary,
+  SubTimelineWaitOutcome,
 } from "./types.js";
 
 // ── Configuration ──────────────────────────────────────────────────────────────

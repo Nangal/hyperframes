@@ -1,8 +1,11 @@
 import { redactTelemetryString, type OutputResolutionIssueKind } from "@hyperframes/core";
+import type { SubTimelineWaitOutcome } from "@hyperframes/engine";
 import { trackEvent } from "./client.js";
 import { readConfig } from "./config.js";
 
 export interface RenderObservabilityTelemetryPayload {
+  /** Worst sub-composition timeline wait outcome across sessions. */
+  subTimelineWait?: SubTimelineWaitOutcome;
   observabilityRenderJobId?: string;
   observabilityCompositionHash?: string;
   observabilityEventCount?: number;
@@ -47,6 +50,7 @@ export interface RenderObservabilityTelemetryPayload {
 
 function renderObservabilityEventProperties(props: RenderObservabilityTelemetryPayload) {
   return {
+    sub_timeline_wait: props.subTimelineWait,
     observability_render_job_id: props.observabilityRenderJobId,
     observability_composition_hash: props.observabilityCompositionHash,
     observability_event_count: props.observabilityEventCount,

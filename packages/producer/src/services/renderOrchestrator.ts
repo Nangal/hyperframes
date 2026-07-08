@@ -67,6 +67,7 @@ import {
   LOW_MEMORY_TOTAL_MB_THRESHOLD,
   assertConfiguredFfmpegBinariesExist,
   type CapturePerfSummary,
+  type SubTimelineWaitOutcome,
   resolveBrowserGpuMode,
   resolveHeadlessShellPath,
   scaleProtocolTimeoutForComposition,
@@ -90,7 +91,11 @@ import { buildRenderErrorDetails, cleanupRenderResources, safeCleanup } from "./
 import { normalizeErrorMessage } from "../utils/errorMessage.js";
 import { formatCaptureFrameName } from "../utils/paths.js";
 import { resolveEffectiveHdrMode } from "./render/hdrMode.js";
-import { buildRenderPerfSummary, pushWorkerDedupPerfs } from "./render/perfSummary.js";
+import {
+  buildRenderPerfSummary,
+  pushWorkerDedupPerfs,
+  worstSubTimelineWaitOutcome,
+} from "./render/perfSummary.js";
 import { getCaptureStageBrowserConsole } from "./render/captureStageError.js";
 import { resolveVideoCaptureBeyondViewport } from "./render/captureBeyondViewport.js";
 import {
@@ -322,6 +327,8 @@ export interface RenderPerfSummary {
    * captured the most frames when parallel workers report separately.
    */
   captureP50Ms?: number;
+  /** Worst sub-composition timeline wait outcome across sessions. */
+  subTimelineWait?: SubTimelineWaitOutcome;
   capturePeakMs?: number;
   captureCalibration?: {
     sampledFrames: number[];
@@ -455,6 +462,8 @@ export interface RenderJob {
     perfStages?: Record<string, number>;
     hdrDiagnostics?: HdrDiagnostics;
     observability?: RenderObservabilitySummary;
+    /** Worst sub-composition timeline wait outcome across sessions captured before the failure. */
+    subTimelineWait?: SubTimelineWaitOutcome;
   };
 }
 
@@ -1187,6 +1196,11 @@ export async function executeRenderJob(
   // can read it — the catch records transient-retry burn on renders that still
   // failed, which is the more actionable signal for tuning the retry cap.
   const captureAttempts: CaptureAttemptSummary[] = [];
+  // Static-dedup perf, appended per sequential session / per parallel worker
+  // by the capture stage. Also function-scoped so the catch block can read
+  // the sub-timeline-wait outcome for a render that fails downstream of a
+  // fail-fast (aggregated into the success-path perf summary below too).
+  const dedupPerfs: CapturePerfSummary[] = [];
   const recordTransientRetryObservability = (): void => {
     const count = captureAttempts.filter((a) => a.reason === "transient-retry").length;
     if (count > 0) updateCaptureObservability({ transientRetries: count });
@@ -1822,11 +1836,6 @@ export async function executeRenderJob(
       }
     }
 
-    // `captureAttempts` is declared at function scope above (shared with the
-    // catch block). Static-dedup perf, appended per sequential session / per
-    // parallel worker by the capture stage, aggregated into the perf summary below.
-    const dedupPerfs: CapturePerfSummary[] = [];
-
     // png-sequence is "no container" — outputPath is treated as a directory and
     // the encode/mux/faststart stages are skipped entirely. The empty extension
     // keeps `videoOnlyPath` (which is constructed below) sensible even though
@@ -2432,6 +2441,7 @@ export async function executeRenderJob(
       perfStages,
       hdrDiagnostics,
       observability: observabilitySummary,
+      subTimelineWait: worstSubTimelineWaitOutcome(dedupPerfs),
     });
 
     log.info("[Render] Failure summary", {
