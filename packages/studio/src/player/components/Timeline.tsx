@@ -8,6 +8,7 @@ import { useMountEffect } from "../../hooks/useMountEffect";
 import { EditPopover } from "./EditModal";
 import { defaultTimelineTheme } from "./timelineTheme";
 import { useTimelineRangeSelection } from "./useTimelineRangeSelection";
+import { useTimelineMarqueeSelection } from "./useTimelineMarqueeSelection";
 import { useTimelinePlayhead } from "./useTimelinePlayhead";
 import { useTimelineActiveClips } from "./useTimelineActiveClips";
 import { type TrackVisualStyle, getTrackStyle } from "./timelineIcons";
@@ -21,6 +22,7 @@ import {
   type KeyframeDiamondContextMenuState,
 } from "./KeyframeDiamondContextMenu";
 import { useTimelineClipDrag } from "./useTimelineClipDrag";
+import { useTimelineKeyframeHandlers } from "./useTimelineKeyframeHandlers";
 import { ClipContextMenu } from "./ClipContextMenu";
 import { TimelineShortcutHint } from "./TimelineShortcutHint";
 import { buildStackingTimelineLayers, insertPreviewTrackOrder } from "./timelineTrackOrder";
@@ -36,7 +38,6 @@ import {
 import { useResolvedTimelineEditCallbacks } from "./useResolvedTimelineEditCallbacks";
 import type { TimelineProps } from "./TimelineTypes";
 
-// Re-export pure utilities so existing imports from "./Timeline" still resolve.
 export {
   generateTicks,
   formatTimelineTickLabel,
@@ -206,7 +207,6 @@ export const Timeline = memo(function Timeline({
   const ppsRef = useRef(100);
   const durationRef = useRef(Number.isFinite(duration) ? duration : 0);
 
-  // Stable ref so useTimelineClipDrag can clear rangeSelection without circular dep
   const setRangeSelectionRef = useRef<((sel: null) => void) | null>(null);
 
   const {
@@ -230,7 +230,6 @@ export const Timeline = memo(function Timeline({
     setRangeSelectionRef,
   });
 
-  // basis drives the zoom (committed); effective adds the live preview (see timelineLayout).
   const basisDuration = useMemo(
     () =>
       computeTimelineBasisDuration(
@@ -269,6 +268,15 @@ export const Timeline = memo(function Timeline({
   const keyframeCache = usePlayerStore((s) => s.keyframeCache);
   const selectedKeyframes = usePlayerStore((s) => s.selectedKeyframes);
   const toggleSelectedKeyframe = usePlayerStore((s) => s.toggleSelectedKeyframe);
+  const keyframeHandlers = useTimelineKeyframeHandlers({
+    expandedElements,
+    keyframeCache,
+    onSelectElement,
+    onSeek,
+    setSelectedElementId,
+    setKfContextMenu,
+    toggleSelectedKeyframe,
+  });
 
   const selectedElement = useMemo(
     () =>
@@ -278,7 +286,6 @@ export const Timeline = memo(function Timeline({
   const selectedElementRef = useRef<TimelineElement | null>(selectedElement);
   selectedElementRef.current = selectedElement;
 
-  // Fit to basisDuration, not effectiveDuration, so a live drag can't rezoom.
   const fitPps =
     viewportWidth > GUTTER && basisDuration > 0
       ? (viewportWidth - GUTTER - 2) / basisDuration
@@ -346,7 +353,20 @@ export const Timeline = memo(function Timeline({
     isDragging,
     setShowPopover,
   });
-  // Wire setRangeSelection into the stable ref consumed by useTimelineClipDrag
+  const {
+    marqueeRect,
+    handlePointerDown: handleMarqueePointerDown,
+    handlePointerMove: handleMarqueePointerMove,
+    handlePointerUp: handleMarqueePointerUp,
+  } = useTimelineMarqueeSelection({
+    scrollRef,
+    ppsRef,
+    trackOrderRef,
+    timelineLayersRef,
+    disabled: activeTool === "razor",
+    setShowPopover,
+    setRangeSelectionRef,
+  });
   setRangeSelectionRef.current = setRangeSelection;
 
   const prevSelectedRef = useRef(selectedElementRef.current);
@@ -445,11 +465,21 @@ export const Timeline = memo(function Timeline({
             onRazorSplitAll?.(splitTime);
             return;
           }
+          if (handleMarqueePointerDown(e)) return;
           handlePointerDown(e);
         }}
-        onPointerMove={handlePointerMove}
-        onPointerUp={handlePointerUp}
-        onLostPointerCapture={handlePointerUp}
+        onPointerMove={(e) => {
+          if (handleMarqueePointerMove(e)) return;
+          handlePointerMove(e);
+        }}
+        onPointerUp={(e) => {
+          if (handleMarqueePointerUp(e)) return;
+          handlePointerUp();
+        }}
+        onLostPointerCapture={(e) => {
+          if (handleMarqueePointerUp(e)) return;
+          handlePointerUp();
+        }}
       >
         <TimelineCanvas
           major={major}
@@ -460,6 +490,7 @@ export const Timeline = memo(function Timeline({
           effectiveDuration={effectiveDuration}
           majorTickInterval={majorTickInterval}
           rangeSelection={rangeSelection}
+          marqueeRect={marqueeRect}
           theme={theme}
           displayTrackOrder={displayTrackOrder}
           trackOrder={trackOrder}
@@ -491,41 +522,10 @@ export const Timeline = memo(function Timeline({
           selectedKeyframes={selectedKeyframes}
           currentTime={currentTime}
           beatAnalysis={adjustedBeatAnalysis}
-          onClickKeyframe={(el, pct) => {
-            usePlayerStore.getState().clearSelectedKeyframes();
-            const elKey = el.key ?? el.id;
-            setSelectedElementId(elKey);
-            onSelectElement?.(el);
-            // Visually select the clicked diamond (matches shift-click / motion-path
-            // selection); cleared above so this single-selects it.
-            toggleSelectedKeyframe(`${elKey}:${pct}`);
-            const absTime = el.start + (pct / 100) * el.duration;
-            onSeek?.(absTime);
-            const kfData = keyframeCache?.get(elKey);
-            const kf = kfData?.keyframes.find((k) => Math.abs(k.percentage - pct) < 0.5);
-            usePlayerStore.getState().setActiveKeyframePct(kf?.tweenPercentage ?? null);
-          }}
-          onShiftClickKeyframe={(elId, pct) => {
-            toggleSelectedKeyframe(`${elId}:${pct}`);
-          }}
+          onClickKeyframe={keyframeHandlers.onClickKeyframe}
+          onShiftClickKeyframe={keyframeHandlers.onShiftClickKeyframe}
           onMoveKeyframe={onMoveKeyframe}
-          onContextMenuKeyframe={(e, elId, pct) => {
-            const el = expandedElements.find((x) => (x.key ?? x.id) === elId);
-            if (el) {
-              setSelectedElementId(elId);
-              onSelectElement?.(el);
-            }
-            const kfData = keyframeCache.get(elId);
-            const kf = kfData?.keyframes.find((k) => Math.abs(k.percentage - pct) < 0.2);
-            setKfContextMenu({
-              x: e.clientX + 4,
-              y: e.clientY + 2,
-              elementId: elId,
-              percentage: pct,
-              tweenPercentage: kf?.tweenPercentage,
-              currentEase: kf?.ease ?? kfData?.ease,
-            });
-          }}
+          onContextMenuKeyframe={keyframeHandlers.onContextMenuKeyframe}
           onContextMenuClip={(e, el) => {
             e.preventDefault();
             setSelectedElementId(el.key ?? el.id);

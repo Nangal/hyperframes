@@ -2,7 +2,7 @@ import type { TimelineTheme } from "./timelineTheme";
 import { GUTTER } from "./timelineLayout";
 import type { StackingTimelineLayer, TimelineLayerId } from "./timelineTrackOrder";
 
-const TIMELINE_LAYER_GROUP_HEADER_H = 18;
+export const TIMELINE_LAYER_GROUP_HEADER_H = 18;
 
 export function shouldShowTimelineLayerGroupHeader(
   contextKey: string,
