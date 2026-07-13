@@ -12,11 +12,11 @@ export interface WebmAlphaProbe {
   /** True when the VP9 stream declares the alpha sidecar (ALPHA_MODE=1 tag). */
   alphaMode: boolean;
   /**
-   * When true, the tag says alpha but 3 sampled decoded frames report every
-   * pixel at alpha=255 — either the composition has no transparent regions in
-   * the samples, or libvpx-vp9 wrote the tag without emitting the alpha side
-   * data (a known Windows-build quirk). Undefined when the pixel-level probe
-   * couldn't run (no ffmpeg, decode error, unexpected byte count) — an
+   * When true, the tag says alpha but every decoded sample byte reads
+   * alpha=255 — either the composition has no transparent regions in the
+   * samples, or libvpx-vp9 wrote the tag without emitting the alpha side data
+   * (a known Windows-build quirk). Undefined when the pixel-level probe
+   * couldn't run (no ffmpeg, decode error, malformed byte count) — an
    * inconclusive probe is not a warning trigger.
    */
   sampledAlphaFullyOpaque?: boolean;
@@ -52,8 +52,8 @@ export function webmAlphaAdvisory(format: string, probe: WebmAlphaProbe): string
   }
   if (probe.sampledAlphaFullyOpaque) {
     return (
-      "The WebM declares alpha (ALPHA_MODE=1) but 3 sampled decoded frames read " +
-      "alpha=255 everywhere. This may be intentional (the composition has no transparent " +
+      "The WebM declares alpha (ALPHA_MODE=1) but every sampled decoded pixel " +
+      "reads alpha=255. This may be intentional (the composition has no transparent " +
       "regions in the samples) OR your ffmpeg/libvpx-vp9 build wrote the tag without " +
       "emitting the alpha side data — a known Windows-build quirk. To rule it out, " +
       "re-render with --format mov (ProRes 4444), or with --format png-sequence and " +
@@ -116,13 +116,26 @@ function probeWebmAlpha(filePath: string): WebmAlphaProbe {
 }
 
 /**
- * Force the libvpx-vp9 decoder (default decoder silently discards VP9 alpha
- * — see docs/guides/rendering.mdx) and sample 3 frames at 8x8 rgba. Returns
- * `true` iff every alpha byte across all samples is 255, `false` when any
- * pixel shows partial/full transparency, `undefined` if the probe couldn't
- * run (no ffmpeg, decode error, unexpected byte count).
+ * Bytes per sampled frame at 8x8 rgba: 8 * 8 * 4 = 256. `-frames:v 3` samples
+ * AT MOST 3 frames — a legitimate 1-frame WebM (a still) yields 256 bytes and
+ * a 2-frame yields 512, both valid opaque samples that must be evaluated.
  */
-function sampledAlphaIsFullyOpaque(filePath: string): boolean | undefined {
+const BYTES_PER_SAMPLE_FRAME = 8 * 8 * 4;
+const MAX_SAMPLE_BYTES = BYTES_PER_SAMPLE_FRAME * 3;
+
+/**
+ * Force the libvpx-vp9 decoder (default decoder silently discards VP9 alpha
+ * — see docs/guides/rendering.mdx) and sample up to 3 frames at 8x8 rgba.
+ * Returns `true` iff every alpha byte across all sampled frames is 255,
+ * `false` when any pixel shows partial/full transparency, `undefined` if the
+ * probe couldn't run (no ffmpeg, decode error, or the byte count is not a
+ * positive whole-frame multiple ≤ 768 — anything else is a malformed decode,
+ * not a signal).
+ *
+ * Exported for direct unit testing; the pixel-level contract is too load-
+ * bearing to only exercise through `webmAlphaAdvisory`.
+ */
+export function sampledAlphaIsFullyOpaque(filePath: string): boolean | undefined {
   const ffmpegPath = findFFmpeg();
   if (!ffmpegPath) return undefined;
   try {
@@ -147,9 +160,13 @@ function sampledAlphaIsFullyOpaque(filePath: string): boolean | undefined {
       ],
       { timeout: 30_000, maxBuffer: 4096, stdio: ["ignore", "pipe", "pipe"] },
     );
-    // 8*8 rgba * 3 frames = 768 bytes; require full frame count for a
-    // reliable verdict (silent short-decode is a probe failure, not a signal).
-    if (buf.length !== 768) return undefined;
+    if (
+      buf.length === 0 ||
+      buf.length > MAX_SAMPLE_BYTES ||
+      buf.length % BYTES_PER_SAMPLE_FRAME !== 0
+    ) {
+      return undefined;
+    }
     for (let i = 3; i < buf.length; i += 4) {
       if (buf[i] !== 255) return false;
     }
