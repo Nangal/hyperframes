@@ -296,6 +296,49 @@ describe("resolveConfig", () => {
     });
   });
 
+  describe("forceScreenshot (software-GPU clamp)", () => {
+    it("forces screenshot capture when browserGpuMode resolves to software", () => {
+      setEnv("PRODUCER_BROWSER_GPU_MODE", "software");
+      unsetEnv("PRODUCER_FORCE_SCREENSHOT");
+      const config = resolveConfig();
+      expect(config.forceScreenshot).toBe(true);
+    });
+
+    it("leaves forceScreenshot alone on hardware GPU (default off)", () => {
+      setEnv("PRODUCER_BROWSER_GPU_MODE", "hardware");
+      unsetEnv("PRODUCER_FORCE_SCREENSHOT");
+      const config = resolveConfig();
+      expect(config.forceScreenshot).toBe(false);
+    });
+
+    it("does not force screenshot on auto (auto probes to hardware on real GPUs)", () => {
+      setEnv("PRODUCER_BROWSER_GPU_MODE", "auto");
+      unsetEnv("PRODUCER_FORCE_SCREENSHOT");
+      const config = resolveConfig();
+      expect(config.forceScreenshot).toBe(false);
+    });
+
+    it("explicit env opt-out (PRODUCER_FORCE_SCREENSHOT=false) is honored on software", () => {
+      setEnv("PRODUCER_BROWSER_GPU_MODE", "software");
+      setEnv("PRODUCER_FORCE_SCREENSHOT", "false");
+      const config = resolveConfig();
+      expect(config.forceScreenshot).toBe(false);
+    });
+
+    it("explicit programmatic opt-out is honored on software", () => {
+      setEnv("PRODUCER_BROWSER_GPU_MODE", "software");
+      unsetEnv("PRODUCER_FORCE_SCREENSHOT");
+      const config = resolveConfig({ forceScreenshot: false });
+      expect(config.forceScreenshot).toBe(false);
+    });
+
+    it("caller override forceScreenshot=true stays true regardless of GPU mode", () => {
+      setEnv("PRODUCER_BROWSER_GPU_MODE", "hardware");
+      const config = resolveConfig({ forceScreenshot: true });
+      expect(config.forceScreenshot).toBe(true);
+    });
+  });
+
   describe("lowMemoryMode", () => {
     it("forces on for truthy PRODUCER_LOW_MEMORY_MODE values", () => {
       setEnv("PRODUCER_LOW_MEMORY_MODE", "true");

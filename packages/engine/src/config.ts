@@ -554,6 +554,41 @@ export function resolveConfig(overrides?: Partial<EngineConfig>): EngineConfig {
     merged.useDrawElement = false;
   }
 
+  // Software GPU implies screenshot capture.
+  //
+  // Two existing platform gates already do most of the work: `browserManager`
+  // only launches BeginFrame on Linux + chrome-headless-shell + !forceScreenshot,
+  // and the DE clamp above turns off `useDrawElement` on non-(darwin +
+  // non-software) hosts. Setting `forceScreenshot` here layers defense-in-depth
+  // on top:
+  //
+  //   1. Linux + software (SwiftShader host): kicks the browser off BeginFrame,
+  //      which stalls the compositor on shader-heavy frames under CPU raster
+  //      (same motivation as the closed PR #822).
+  //   2. Observability truth: `renderOrchestrator`'s reported `captureMode`
+  //      field is derived from `cfg.forceScreenshot ? "screenshot" : "beginframe"`
+  //      — without this clamp it misreports `"beginframe"` for the actual
+  //      screenshot capture on darwin + software.
+  //   3. Future-proofing: any new BeginFrame or drawElement entry point that
+  //      forgets to gate on GPU mode still routes to screenshot here.
+  //
+  // Note this does NOT eliminate SwiftShader-on-darwin text-rasterization
+  // artifacts (an ANGLE-SwiftShader issue on macOS text — the fix there is to
+  // use `--browser-gpu`, which routes to `--use-angle=metal`). It only makes
+  // routing consistent + observability accurate.
+  //
+  // Explicit opt-out (env or programmatic override) is honored so BeginFrame-
+  // on-software debugging remains possible.
+  const explicitForceScreenshotOptOut =
+    env("PRODUCER_FORCE_SCREENSHOT") === "false" || overrides?.forceScreenshot === false;
+  if (
+    merged.browserGpuMode === "software" &&
+    !merged.forceScreenshot &&
+    !explicitForceScreenshotOptOut
+  ) {
+    merged.forceScreenshot = true;
+  }
+
   // drawElement capture and page-side shader compositing are mutually
   // incompatible capture strategies (drawElement reads paint records directly
   // and bypasses the page-side prepare→composite→resolve protocol). When
