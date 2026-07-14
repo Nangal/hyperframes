@@ -18,6 +18,10 @@ vi.mock("../../contexts/StudioContext", async () => {
 
 afterEach(() => {
   document.body.innerHTML = "";
+  // usePersistedPinnedGroups persists to localStorage; clear it so a pinned
+  // group from one test can't leak into the next (which would move a group out
+  // of the accordion and break an unrelated open-by-default assertion).
+  window.localStorage.clear();
   vi.doUnmock("./manualEditingAvailability");
   vi.resetModules();
 });
@@ -77,9 +81,10 @@ function nonTextElement() {
   };
 }
 
-// Bug 2 fixture: 2+ text fields, which routes FlatTextSection to the legacy
-// multi-field <TextSection> fallback — must not double-render the "Text"
-// heading (FlatGroup's own heading + TextSection's internal Section heading).
+// Bug 2 fixture: 2+ text fields, which routes FlatTextSection to its own
+// flat multi-field layer list (FlatTextLayerList + FlatTextFieldEditor) —
+// must not double-render the "Text" heading (FlatGroup's own heading; this
+// component never renders one of its own).
 function multiFieldTextElement() {
   const base = baseElement();
   return {
@@ -308,10 +313,11 @@ describe("PropertyPanel — STUDIO_FLAT_INSPECTOR_ENABLED on", () => {
       const { host, root } = await renderPanel(true, multiFieldTextElement());
       // The FlatGroup's own "Text" heading is the only one that should exist —
       // the legacy TextSection's internal Section heading (data-panel-section
-      // ="text") must be suppressed when it's used as the flat fallback.
+      // ="text") must never appear, since the flat multi-field path no longer
+      // delegates to that component at all.
       expect(host.querySelector('[data-flat-group-open="true"]')).not.toBeNull();
       expect(host.querySelector('[data-panel-section="text"]')).toBeNull();
-      // Content from the legacy multi-field fallback must still render.
+      // Content from the flat multi-field layer list must render.
       expect(host.textContent).toContain("Text layers");
       act(() => root.unmount());
     },
@@ -746,6 +752,47 @@ describe("PropertyPanel — Media group (Plan 4)", () => {
       expect(host.querySelector('[data-panel-section="video"]')).toBeNull();
       expect(host.querySelector('[data-panel-section="image"]')).toBeNull();
       expect(host.querySelector('[data-panel-section="audio"]')).toBeNull();
+      act(() => root.unmount());
+    },
+    RENDER_TIMEOUT_MS,
+  );
+});
+
+describe("PropertyPanel — pinning", () => {
+  it(
+    "renders a pinned group first, always open, above the PinnedZoneDivider",
+    async () => {
+      const { host, root } = await renderPanel(true);
+      // Pin the Text group via its pin button.
+      const pinButton = host.querySelector<HTMLButtonElement>('[data-flat-group-pin="true"]');
+      if (!pinButton) throw new Error("expected a pin button on the open Text group");
+      act(() => pinButton.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+
+      const pinnedRow = host.querySelector('[data-pinned-group="true"]');
+      expect(pinnedRow?.textContent).toContain("Text");
+      expect(pinnedRow?.textContent).toContain("Pinned");
+
+      // The divider must appear after the pinned zone.
+      const container = host.querySelector(".flex-1.overflow-y-auto");
+      const children = Array.from(container?.children ?? []);
+      const pinnedIndex = children.indexOf(pinnedRow as Element);
+      const dividerIndex = children.findIndex((el) => el.textContent?.includes("one open below"));
+      expect(pinnedIndex).toBeGreaterThanOrEqual(0);
+      expect(dividerIndex).toBeGreaterThan(pinnedIndex);
+      act(() => root.unmount());
+    },
+    RENDER_TIMEOUT_MS,
+  );
+
+  it(
+    "unpinning returns the group to its normal accordion stack position",
+    async () => {
+      const { host, root } = await renderPanel(true);
+      const pinButton = host.querySelector<HTMLButtonElement>('[data-flat-group-pin="true"]');
+      act(() => pinButton?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+      const unpinButton = host.querySelector<HTMLButtonElement>('[data-pinned-group-unpin="true"]');
+      act(() => unpinButton?.dispatchEvent(new MouseEvent("click", { bubbles: true })));
+      expect(host.querySelector('[data-pinned-group="true"]')).toBeNull();
       act(() => root.unmount());
     },
     RENDER_TIMEOUT_MS,
