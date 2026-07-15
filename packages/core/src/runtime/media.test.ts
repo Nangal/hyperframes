@@ -250,6 +250,28 @@ describe("syncRuntimeMedia", () => {
     expect(clip.el.play).toHaveBeenCalled();
   });
 
+  it("uses a half-open interval around a clip's end boundary", () => {
+    const clip = createMockClip({ start: 0, end: 2.5 });
+    Object.defineProperty(clip.el, "readyState", { value: 4, writable: true });
+
+    syncRuntimeMedia({
+      clips: [clip],
+      timeSeconds: 2.5 - 1e-9,
+      playing: true,
+      playbackRate: 1,
+    });
+    expect(clip.el.play).toHaveBeenCalledTimes(1);
+
+    syncRuntimeMedia({ clips: [clip], timeSeconds: 2.5, playing: true, playbackRate: 1 });
+    syncRuntimeMedia({
+      clips: [clip],
+      timeSeconds: 2.5 + 1e-9,
+      playing: true,
+      playbackRate: 1,
+    });
+    expect(clip.el.play).toHaveBeenCalledTimes(1);
+  });
+
   it("plays synchronously even when media is unbuffered (preserves user gesture)", () => {
     // Calling play() synchronously inside the user-gesture call chain lets the
     // browser queue playback until data buffers, while consuming the transient
