@@ -40,6 +40,19 @@ function writeViewModeToUrl(mode: StudioViewMode): void {
   window.history.replaceState(window.history.state, "", url);
 }
 
+interface HistoryLocation {
+  href: string;
+  state: unknown;
+}
+
+function readHistoryLocation(): HistoryLocation | null {
+  if (typeof window === "undefined") return null;
+  return {
+    href: window.location.href,
+    state: window.history.state,
+  };
+}
+
 export interface ViewModeValue {
   viewMode: StudioViewMode;
   /** Returns false when an active editor vetoes the transition. */
@@ -54,6 +67,14 @@ export interface ViewModeValue {
 export function useViewModeState(): ViewModeValue {
   const [viewMode, setMode] = useState<StudioViewMode>(() => readViewModeFromUrl());
   const guardsRef = useRef(new Set<ViewModeGuard>());
+  const acceptedLocationRef = useRef<HistoryLocation | null>(readHistoryLocation());
+
+  const canSetViewMode = useCallback((mode: StudioViewMode) => {
+    for (const guard of guardsRef.current) {
+      if (!guard(mode)) return false;
+    }
+    return true;
+  }, []);
 
   // Reflect genuine browser back/forward between history entries with a different
   // `?view=`. Note: our own writes use `replaceState` (below), which does NOT fire
@@ -62,19 +83,32 @@ export function useViewModeState(): ViewModeValue {
   // the mount-time read); a scripted `pushState`/`replaceState` to `?view=` would not be
   // reflected here, by design.
   useEffect(() => {
-    const onPopState = () => setMode(readViewModeFromUrl());
+    const onPopState = () => {
+      const mode = readViewModeFromUrl();
+      if (mode !== viewMode && !canSetViewMode(mode)) {
+        const acceptedLocation = acceptedLocationRef.current;
+        if (acceptedLocation) {
+          window.history.pushState(acceptedLocation.state, "", acceptedLocation.href);
+        }
+        return;
+      }
+      setMode(mode);
+      acceptedLocationRef.current = readHistoryLocation();
+    };
     window.addEventListener("popstate", onPopState);
     return () => window.removeEventListener("popstate", onPopState);
-  }, []);
+  }, [canSetViewMode, viewMode]);
 
-  const setViewMode = useCallback((mode: StudioViewMode) => {
-    for (const guard of guardsRef.current) {
-      if (!guard(mode)) return false;
-    }
-    setMode(mode);
-    writeViewModeToUrl(mode);
-    return true;
-  }, []);
+  const setViewMode = useCallback(
+    (mode: StudioViewMode) => {
+      if (!canSetViewMode(mode)) return false;
+      setMode(mode);
+      writeViewModeToUrl(mode);
+      acceptedLocationRef.current = readHistoryLocation();
+      return true;
+    },
+    [canSetViewMode],
+  );
 
   const registerViewModeGuard = useCallback((guard: ViewModeGuard) => {
     guardsRef.current.add(guard);

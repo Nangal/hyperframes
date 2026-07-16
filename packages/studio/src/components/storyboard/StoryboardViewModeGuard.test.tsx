@@ -98,8 +98,16 @@ function clickButton(host: HTMLElement, label: string): void {
   act(() => button.dispatchEvent(new MouseEvent("click", { bubbles: true })));
 }
 
+async function goBack(): Promise<void> {
+  await act(async () => {
+    window.history.back();
+    await new Promise((resolve) => setTimeout(resolve, 0));
+  });
+}
+
 beforeEach(() => {
-  window.history.replaceState({}, "", "/?view=storyboard");
+  window.history.replaceState({ entry: "timeline" }, "", "/");
+  window.history.pushState({ entry: "storyboard" }, "", "/?view=storyboard");
   onSelectComposition.mockReset();
 });
 
@@ -138,6 +146,25 @@ describe("dirty storyboard voiceover view-mode guard", () => {
     clickButton(host, "Open in Preview →");
     expect(host.querySelector("[data-view-mode]")?.textContent).toBe("timeline");
     expect(onSelectComposition).toHaveBeenCalledWith("frames/01-opening.html");
+    act(() => root.unmount());
+  });
+
+  it("guards browser history transitions on decline and allows them on accept", async () => {
+    const confirm = vi.spyOn(window, "confirm").mockReturnValue(false);
+    const { host, root } = renderApp();
+    makeVoiceoverDirty(host);
+
+    await goBack();
+    expect(host.querySelector("[data-view-mode]")?.textContent).toBe("storyboard");
+    expect(window.location.search).toBe("?view=storyboard");
+    expect(window.history.state).toEqual({ entry: "storyboard" });
+    expect(confirm).toHaveBeenCalledWith("Discard unsaved voiceover changes?");
+
+    confirm.mockReturnValue(true);
+    await goBack();
+    expect(host.querySelector("[data-view-mode]")?.textContent).toBe("timeline");
+    expect(window.location.search).toBe("");
+    expect(window.history.state).toEqual({ entry: "timeline" });
     act(() => root.unmount());
   });
 });
