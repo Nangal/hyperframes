@@ -1,5 +1,36 @@
-import { describe, it, expect, vi, afterEach } from "vitest";
+import { describe, it, expect, vi, afterEach, beforeAll } from "vitest";
 import { createPickerModule } from "./picker";
+
+// jsdom does not implement CSS.escape — polyfill with a spec-adjacent version.
+// (Parallel polyfills already live in compositionLoader.test.ts /
+// startResolver.test.ts, but each test file runs in an isolated environment.)
+beforeAll(() => {
+  const css = globalThis.CSS as { escape?: (input: string) => string } | undefined;
+  if (!css || typeof css.escape !== "function") {
+    (globalThis as { CSS?: { escape: (input: string) => string } }).CSS = {
+      ...(css ?? {}),
+      escape: (value: string) => {
+        let out = "";
+        for (let i = 0; i < value.length; i += 1) {
+          const ch = value[i] ?? "";
+          const code = ch.charCodeAt(0);
+          const isDigit = code >= 48 && code <= 57;
+          const isAlpha = (code >= 65 && code <= 90) || (code >= 97 && code <= 122);
+          const isWordSafe = isAlpha || code === 45 || code === 95 || code >= 128; // - _ non-ASCII
+          const leadingDigit = i === 0 && isDigit;
+          if (leadingDigit) {
+            out += `\\${code.toString(16)} `;
+          } else if (isDigit || isWordSafe) {
+            out += ch;
+          } else {
+            out += `\\${ch}`;
+          }
+        }
+        return out;
+      },
+    };
+  }
+});
 
 function createMockPostMessage() {
   return vi.fn();
@@ -179,6 +210,54 @@ describe("createPickerModule", () => {
 
       document.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
       expect(document.body.classList.contains("__hf-pick-active")).toBe(true);
+    });
+  });
+
+  describe("buildElementSelector escapes digit-leading ids", () => {
+    it('produces a CSS-valid selector for id="0" and picks the element back', () => {
+      // Regression: a user's HTML with id="0" (or any digit-leading id) used
+      // to produce the raw selector "#0", which is invalid per the CSS spec —
+      // downstream querySelector calls threw SyntaxError. buildElementSelector
+      // now CSS.escapes the id.
+      const picker = createPickerModule({ postMessage: createMockPostMessage() });
+      picker.installPickerApi();
+      const el = document.createElement("div");
+      el.id = "0";
+      Object.assign(el.style, {
+        position: "absolute",
+        left: "0px",
+        top: "0px",
+        width: "40px",
+        height: "40px",
+      });
+      document.body.appendChild(el);
+
+      // Force elementsFromPoint to hit our div so we exercise the real code
+      // path that calls buildElementSelector via extractElementInfo.
+      const originalElementsFromPoint = document.elementsFromPoint;
+      Object.defineProperty(document, "elementsFromPoint", {
+        configurable: true,
+        value: () => [el],
+      });
+      try {
+        const api = (
+          window as {
+            __HF_PICKER_API?: {
+              pickAtPoint?: (x: number, y: number) => { selector: string } | null;
+            };
+          }
+        ).__HF_PICKER_API;
+        const picked = api?.pickAtPoint?.(10, 10);
+        expect(picked?.selector).toBe("#\\30 ");
+        // And the round trip must find the element back through querySelector.
+        expect(() => document.querySelector(picked?.selector ?? "")).not.toThrow();
+        expect(document.querySelector(picked?.selector ?? "")).toBe(el);
+      } finally {
+        Object.defineProperty(document, "elementsFromPoint", {
+          configurable: true,
+          value: originalElementsFromPoint,
+        });
+      }
     });
   });
 });
