@@ -103,4 +103,51 @@ describe("createCaptureSession construction ownership", () => {
       rmSync(outputDir, { recursive: true, force: true });
     }
   });
+
+  it("force-releases its browser lease when rollback browser close never settles", async () => {
+    vi.useFakeTimers();
+    const outputDir = mkdtempSync(join(tmpdir(), "hf-session-browser-timeout-"));
+    const page = {
+      evaluateOnNewDocument: vi.fn().mockRejectedValue(new Error("bootstrap failed")),
+      close: vi.fn().mockResolvedValue(undefined),
+    } as unknown as Page;
+    const disconnect = vi.fn();
+    const browser = {
+      connected: true,
+      newPage: vi.fn().mockResolvedValue(page),
+      version: vi.fn().mockResolvedValue("HeadlessChrome/150.0.0.0"),
+      close: vi.fn().mockReturnValue(new Promise<void>(() => {})),
+      disconnect,
+      process: () => null,
+    } as unknown as Browser;
+    _setPuppeteerForTests({
+      launch: vi.fn().mockResolvedValue(browser),
+    } as unknown as PuppeteerNode);
+
+    try {
+      const creating = expect(
+        createCaptureSession(
+          "http://127.0.0.1:3000",
+          outputDir,
+          { width: 320, height: 180, fps: { num: 30, den: 1 }, format: "jpeg" },
+          null,
+          {
+            browserGpuMode: "software",
+            enableBrowserPool: true,
+            forceScreenshot: true,
+          },
+        ),
+      ).rejects.toThrow("bootstrap failed");
+
+      await vi.runAllTimersAsync();
+      await creating;
+
+      expect(page.close).toHaveBeenCalledTimes(1);
+      expect(browser.close).toHaveBeenCalledTimes(1);
+      expect(disconnect).toHaveBeenCalledTimes(1);
+    } finally {
+      vi.useRealTimers();
+      rmSync(outputDir, { recursive: true, force: true });
+    }
+  });
 });

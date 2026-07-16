@@ -32,6 +32,8 @@ interface BrowserPoolEntry {
   result?: BrowserLaunchResult;
   launchPromise: Promise<BrowserLaunchResult>;
   closePromise?: Promise<void>;
+  forceCloseRequested: boolean;
+  forceClose?: () => void;
 }
 
 export interface BrowserLeasePoolOptions {
@@ -165,6 +167,7 @@ export class BrowserLeasePool {
       state: "launching",
       refCount: 1,
       closeRequested: false,
+      forceCloseRequested: false,
       launchPromise: undefined as unknown as Promise<BrowserLaunchResult>,
     };
     entry.launchPromise = this.options.launch(fingerprint).then(
@@ -207,7 +210,9 @@ export class BrowserLeasePool {
         await entry.closePromise;
       },
       forceRelease: () => {
-        deactivate(true);
+        if (!deactivate(true) && entry.refCount === 0 && entry.closePromise) {
+          this.requestClose(entry, true);
+        }
       },
     };
     const leases = this.leasesByBrowser.get(result.browser) ?? new Set<BrowserLease>();
@@ -217,20 +222,34 @@ export class BrowserLeasePool {
   }
 
   private requestClose(entry: BrowserPoolEntry, force: boolean): void {
+    if (force) {
+      entry.forceCloseRequested = true;
+      entry.forceClose?.();
+    }
     if (entry.closePromise) return;
     entry.closeRequested = true;
     if (this.available.get(entry.key) === entry) this.available.delete(entry.key);
     entry.closePromise = entry.launchPromise
       .then(async (result) => {
         entry.state = "closing";
-        if (force) {
+        if (entry.forceCloseRequested) {
           this.options.forceClose(result.browser);
         } else {
-          await this.options.close(result.browser).catch(() => {});
+          await Promise.race([
+            this.options.close(result.browser).catch(() => {}),
+            new Promise<void>((resolve) => {
+              entry.forceClose = () => {
+                entry.forceClose = undefined;
+                this.options.forceClose(result.browser);
+                resolve();
+              };
+            }),
+          ]);
         }
       })
       .catch(() => {})
       .finally(() => {
+        entry.forceClose = undefined;
         this.entries.delete(entry);
         if (entry.result) this.leasesByBrowser.delete(entry.result.browser);
       });
