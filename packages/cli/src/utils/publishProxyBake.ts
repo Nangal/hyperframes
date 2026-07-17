@@ -17,8 +17,8 @@
  * original untouched. On-disk project files are never modified — only the
  * in-memory archive file map passed in by `publish.ts` (built via
  * `buildPublishFileMap`, baked here, then zipped via `zipPublishFileMap`).
- * `cloud render` never calls this: it uses `createPublishArchive` directly,
- * which has no baking hook (R2 in the plan).
+ * `cloud render` never calls this: it builds and zips the file map without an
+ * intermediate baking transform (R2 in the plan).
  *
  * Alpha-bearing sources bake as VP9/WebM so transparency survives. A failed
  * hostile transcode aborts publish with a
