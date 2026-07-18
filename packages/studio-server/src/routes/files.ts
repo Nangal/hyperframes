@@ -2043,8 +2043,10 @@ async function foldAtomicCutFile(
       for (const selector of result.skippedSelectors) skippedSelectors.add(selector);
     }
     if (script !== block.scriptText) {
-      const parser = await loadGsapParser();
-      script = parser.syncPositionHoldsBeforeKeyframes(script);
+      script =
+        writer === "acorn"
+          ? syncPositionHoldsBeforeKeyframes(script)
+          : (await loadGsapParser()).syncPositionHoldsBeforeKeyframes(script);
       after = block.replaceScript(script);
     }
   }

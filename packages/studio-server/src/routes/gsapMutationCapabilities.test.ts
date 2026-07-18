@@ -44,11 +44,20 @@ describe("GSAP writer capability matrix", () => {
       source.indexOf("async function applyGsapMutations"),
       source.indexOf("function executeGsapMutationAcorn"),
     );
+    const atomicCutHelperBody = source.slice(
+      source.indexOf("async function foldAtomicCutFile"),
+      source.indexOf("function registerFileRoutes"),
+    );
     expect(acornBody).not.toContain("loadGsapParser");
     expect(mutationHelperBody).toContain('writer === "acorn"');
     expect(mutationHelperBody).toContain("? syncPositionHoldsBeforeKeyframes(newScript)");
     expect(mutationHelperBody).toContain(
       "(await loadGsapParser()).syncPositionHoldsBeforeKeyframes",
+    );
+    expect(atomicCutHelperBody).toContain('writer === "acorn"');
+    expect(atomicCutHelperBody).toContain("? syncPositionHoldsBeforeKeyframes(script)");
+    expect(atomicCutHelperBody).toContain(
+      "(await loadGsapParser()).syncPositionHoldsBeforeKeyframes(script)",
     );
   });
 
